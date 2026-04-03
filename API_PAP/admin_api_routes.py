@@ -741,22 +741,21 @@ def relatorios_dados():
 
     def iot_q():
         q = DadosIoT.query.filter(DadosIoT.timestamp >= cutoff)
-        if device_ids is not None:
-            if device_ids:
-                q = q.filter(DadosIoT.device_id.in_(device_ids))
-            else:
-                q = q.filter(False)
+        if device_ids:  # só filtra se houver device_ids; sem sensores → mostra todos
+            q = q.filter(db.func.lower(DadosIoT.device_id).in_([d.lower() for d in device_ids]))
         return q
 
-    total_leituras    = iot_q().count()
-    avg_temp          = db.session.query(func.avg(DadosIoT.temperatura_ar)).filter(DadosIoT.timestamp >= cutoff).scalar() if not device_ids else db.session.query(func.avg(DadosIoT.temperatura_ar)).filter(DadosIoT.timestamp >= cutoff, DadosIoT.device_id.in_(device_ids or [])).scalar()
-    avg_hum_ar        = db.session.query(func.avg(DadosIoT.humidade_ar)).filter(DadosIoT.timestamp >= cutoff).scalar() if not device_ids else db.session.query(func.avg(DadosIoT.humidade_ar)).filter(DadosIoT.timestamp >= cutoff, DadosIoT.device_id.in_(device_ids or [])).scalar()
-    avg_hum_solo      = db.session.query(func.avg(DadosIoT.humidade_solo)).filter(DadosIoT.timestamp >= cutoff).scalar() if not device_ids else db.session.query(func.avg(DadosIoT.humidade_solo)).filter(DadosIoT.timestamp >= cutoff, DadosIoT.device_id.in_(device_ids or [])).scalar()
-    avg_pressao       = db.session.query(func.avg(DadosIoT.pressao_ar)).filter(DadosIoT.timestamp >= cutoff).scalar() if not device_ids else db.session.query(func.avg(DadosIoT.pressao_ar)).filter(DadosIoT.timestamp >= cutoff, DadosIoT.device_id.in_(device_ids or [])).scalar()
-    pragas_detectadas = iot_q().filter(DadosIoT.detecao_praga == True).count()
+    rows_all          = iot_q().all()
+    total_leituras    = len(rows_all)
+    def _avg(lst): return round(sum(lst)/len(lst), 1) if lst else None
+    avg_temp     = _avg([r.temperatura_ar for r in rows_all if r.temperatura_ar is not None])
+    avg_hum_ar   = _avg([r.humidade_ar    for r in rows_all if r.humidade_ar    is not None])
+    avg_hum_solo = _avg([r.humidade_solo  for r in rows_all if r.humidade_solo  is not None])
+    avg_pressao  = _avg([r.pressao_ar     for r in rows_all if r.pressao_ar     is not None])
+    pragas_detectadas = sum(1 for r in rows_all if r.detecao_praga)
 
     # Dados diários para gráficos
-    rows = iot_q().order_by(DadosIoT.timestamp.asc()).all()
+    rows = sorted(rows_all, key=lambda r: r.timestamp)
     daily = {}
     for row in rows:
         day = row.timestamp.strftime("%Y-%m-%d")

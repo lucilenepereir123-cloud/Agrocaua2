@@ -1,9 +1,7 @@
 /**
  * AgroCaua API Client — v3 (com ML integrado)
  */
-const API_BASE = window.location.port === '5000'
-    ? window.location.origin
-    : 'http://localhost:5000';
+const API_BASE = window.location.origin;
 
 function getToken()   { return localStorage.getItem('agrocaua_token'); }
 function saveToken(t) { localStorage.setItem('agrocaua_token', t); }

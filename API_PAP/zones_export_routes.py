@@ -206,21 +206,35 @@ def _get_export_data(user, periodo, fazenda_id_filtro=None, is_admin=False):
         fazenda = Fazenda.query.get(int(fazenda_id_filtro))
         if fazenda:
             sensores = Sensor.query.filter_by(fazenda_id=fazenda.id).all()
-            device_ids = [s.nome for s in sensores]
+            nomes = set()
+            for s in sensores:
+                n = s.nome.strip().lower()
+                nomes.add(n)
+                nomes.add(n.replace('-', '_'))
+                nomes.add(n.replace('_', '-'))
+                nomes.add(n.replace('-', '').replace('_', ''))
+            device_ids = list(nomes)
     elif not is_admin:
         fazenda = _get_fazenda(user)
         farm_activated_at = None
         if fazenda:
             farm_activated_at = fazenda.activated_at
             sensores = Sensor.query.filter_by(fazenda_id=fazenda.id).all()
-            device_ids = [s.nome for s in sensores]
+            nomes = set()
+            for s in sensores:
+                n = s.nome.strip().lower()
+                nomes.add(n)
+                nomes.add(n.replace('-', '_'))
+                nomes.add(n.replace('_', '-'))
+                nomes.add(n.replace('-', '').replace('_', ''))
+            device_ids = list(nomes)
 
     q = DadosIoT.query.filter(DadosIoT.timestamp >= cutoff)
-    if device_ids is not None:
-        if device_ids:
-            q = q.filter(DadosIoT.device_id.in_(device_ids))
-        else:
-            q = q.filter(False)
+    if device_ids:  # só filtra se houver device_ids; lista vazia → sem filtro (mostra tudo)
+        q = q.filter(db.func.lower(DadosIoT.device_id).in_(device_ids))
+    # Filtrar a partir da data de ativação da fazenda, se existir
+    if not is_admin and 'farm_activated_at' in dir() and farm_activated_at:
+        q = q.filter(DadosIoT.timestamp >= farm_activated_at)
 
     rows = q.order_by(DadosIoT.timestamp.asc()).all()
 

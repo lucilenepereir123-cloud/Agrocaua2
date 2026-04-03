@@ -2999,3 +2999,228 @@
 .rec-card:nth-child(4) { animation-delay: 0.20s; }
 .rec-card:nth-child(5) { animation-delay: 0.25s; }
 .rec-card:nth-child(6) { animation-delay: 0.30s; }
+
+/* ═══════════════════════════════════════════════════════════════
+   AGROCAUA — RESPONSIVE PATCH (mobile-first additions)
+   Breakpoints: xs < 480px | sm 480–767px | md 768–1023px | lg 1024+
+════════════════════════════════════════════════════════════════*/
+
+/* ── Base: main padding adapts to screen ── */
+@media (max-width: 768px) {
+  main.px-6, main.px-6.pt-6 {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+    padding-top: 0.75rem !important;
+    padding-bottom: 4rem !important; /* space for mobile bottom nav */
+  }
+}
+@media (max-width: 480px) {
+  main.px-6, main.px-6.pt-6 {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+    padding-top: 0.5rem !important;
+  }
+}
+
+/* ── KPI grids: force 2-col on mobile, sensible on tablet ── */
+@media (max-width: 767px) {
+  /* 4-col KPI grids → 2 col */
+  .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4,
+  .grid.grid-cols-1.md\:grid-cols-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  /* 6-col KPI grids (sensores) → 2 col */
+  .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-6,
+  .grid.grid-cols-1.lg\:grid-cols-6 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  /* 5-col KPI grids (culturas) → 2 col */
+  .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-5,
+  .grid.grid-cols-1.lg\:grid-cols-5 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  /* 3-col grids → 2 col on mobile */
+  .grid.grid-cols-1.md\:grid-cols-3,
+  .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  /* relatorios/agronomia: bare grid-cols-2 stays 2 but with tighter gap */
+  .grid.grid-cols-2 {
+    gap: 0.5rem !important;
+  }
+  .grid.grid-cols-2.md\:grid-cols-3.lg\:grid-cols-6 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.5rem !important;
+  }
+  /* All layout grids go single col */
+  .grid.grid-cols-1.lg\:grid-cols-2,
+  .grid.grid-cols-1.lg\:grid-cols-3 {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  }
+  /* Gap reduction on mobile */
+  .gap-8 { gap: 1rem !important; }
+  .gap-6 { gap: 0.75rem !important; }
+  .mb-8 { margin-bottom: 1rem !important; }
+  .mb-6 { margin-bottom: 0.75rem !important; }
+}
+
+@media (max-width: 480px) {
+  /* xs: everything single column */
+  .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4,
+  .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-6,
+  .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-5,
+  .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-3,
+  .grid.grid-cols-1.md\:grid-cols-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  /* agronomia bare 2-col stays 2 on xs */
+  .grid.grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.5rem !important;
+  }
+}
+
+/* ── Tables: horizontal scroll + min-width ── */
+.overflow-x-auto {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+.overflow-x-auto table {
+  min-width: 480px;
+}
+/* sensores table is wider */
+#sensoresTableBody ~ table,
+#sensorKpiGrid ~ .card .overflow-x-auto table {
+  min-width: 600px;
+}
+
+/* ── KPI cards: reduce font on very small screens ── */
+@media (max-width: 480px) {
+  .kpi-card .text-3xl, .kpi-card .text-2xl {
+    font-size: 1.25rem !important;
+  }
+  .kpi-card .text-sm {
+    font-size: 0.7rem !important;
+  }
+  .card {
+    padding: 0.75rem !important;
+    border-radius: 0.875rem !important;
+  }
+  .kpi-card {
+    padding: 0.75rem !important;
+    min-height: 80px !important;
+  }
+}
+
+/* ── Chart heights on mobile ── */
+@media (max-width: 767px) {
+  .chart-wrapper { height: 180px !important; max-height: 180px !important; }
+  .chart-container { min-height: 240px !important; }
+}
+@media (max-width: 480px) {
+  .chart-wrapper { height: 150px !important; max-height: 150px !important; }
+  .chart-container { min-height: 210px !important; }
+}
+
+/* ── Topbar: tighter on xs ── */
+@media (max-width: 380px) {
+  .topbar-inner { padding: 0.5rem 0.75rem !important; }
+  .topbar-title h2 { font-size: 0.875rem !important; }
+}
+
+/* ── Buttons/actions rows: wrap on mobile ── */
+@media (max-width: 640px) {
+  .flex.justify-between,
+  .flex.flex-wrap.justify-between {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  /* Export buttons in relatorios */
+  .export-btn { font-size: 0.75rem !important; padding: 0.4rem 0.875rem !important; }
+  /* Period buttons */
+  .periodo-btn { padding: 0.4rem 0.875rem !important; font-size: 0.75rem !important; }
+}
+
+/* ── Relatorios: period selector wraps ── */
+@media (max-width: 600px) {
+  #periodoContainer, .flex.gap-2.flex-wrap {
+    flex-wrap: wrap !important;
+  }
+}
+
+/* ── Solo/Clima: interpretation banners ── */
+@media (max-width: 640px) {
+  .interp-banner {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.375rem !important;
+  }
+  #soloBanner, #climaBanner {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+    padding: 0.75rem !important;
+  }
+}
+
+/* ── Sidebar z-index + backdrop blur for mobile ── */
+@media (max-width: 768px) {
+  .sidebar {
+    box-shadow: 4px 0 24px rgba(0,0,0,0.18) !important;
+  }
+  .sidebar.open {
+    transform: translateX(0) !important;
+  }
+  /* Mobile bottom navigation hint (padding so content not hidden behind) */
+  .main-content > footer {
+    padding-bottom: 1.5rem;
+  }
+}
+
+/* ── Culturas: form inputs full width ── */
+@media (max-width: 640px) {
+  .culturas-form-grid,
+  .grid.grid-cols-1.md\:grid-cols-2.gap-4 {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  }
+}
+
+/* ── GPS map: full height on mobile ── */
+@media (max-width: 767px) {
+  #map { height: 260px !important; }
+}
+
+/* ── Sensores: badge/tag wrapping ── */
+@media (max-width: 640px) {
+  .sensor-tags, .flex.flex-wrap.gap-2 {
+    gap: 0.25rem !important;
+  }
+}
+
+/* ── Alertas: card content stacks ── */
+@media (max-width: 640px) {
+  .alerta-card-inner {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+  }
+}
+
+/* ── Apoio: textarea full width ── */
+@media (max-width: 640px) {
+  .apoio-grid, .grid.grid-cols-1.md\:grid-cols-3 {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  }
+}
+
+/* ── Typography scaling ── */
+@media (max-width: 640px) {
+  .section-title, h2.text-xl, h2.text-2xl { font-size: 1rem !important; }
+  .text-lg { font-size: 0.9375rem !important; }
+}
+
+/* ── Overflow prevention ── */
+* { box-sizing: border-box; }
+img, canvas, svg { max-width: 100%; }
+@media (max-width: 768px) {
+  body { overflow-x: hidden; }
+  .main-content { overflow-x: hidden; }
+}

@@ -2,7 +2,9 @@
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <title>{% block title %}AgroCaua Dashboard{% endblock %}</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -311,7 +313,7 @@
 
     <!-- Main Content Area -->
     <div class="main-content" style="padding-top:0;">
-        <main class="px-6 pt-6 pb-6 fade-in">
+        <main class="px-6 pt-6 pb-6 fade-in" style="padding-left:clamp(0.5rem,3vw,1.5rem);padding-right:clamp(0.5rem,3vw,1.5rem);">
             {% block content %}{% endblock %}
         </main>
         <footer class="py-8 px-6 text-center text-gray-500 text-sm">
