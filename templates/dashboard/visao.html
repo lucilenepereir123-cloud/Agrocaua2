@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}Visão - AgroCaua{% endblock %}
+
+{% block page_title %}Visão Computacional{% endblock %}
+{% block page_subtitle %}Detecção de pragas por análise de imagem{% endblock %}
+
+{% block content %}
+<!-- Detection Status Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="kpi-card">
+        <div>
+            <p class="text-sm text-gray-500 mb-1">Status de Detecção</p>
+            <p class="text-2xl font-bold text-gray-900" id="detectionStatus">--</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-purple-100">
+            <i class="icon-eye text-purple-600 text-2xl"></i>
+        </div>
+    </div>
+    
+    <div class="kpi-card">
+        <div>
+            <p class="text-sm text-gray-500 mb-1">Tipo de Praga</p>
+            <p class="text-lg font-bold text-gray-900" id="pestType">--</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-red-100">
+            <i class="icon-bug text-red-600 text-2xl"></i>
+        </div>
+    </div>
+    
+    <div class="kpi-card">
+        <div>
+            <p class="text-sm text-gray-500 mb-1">Confiança</p>
+            <p class="text-3xl font-bold text-gray-900" id="confidence">--</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-green-100">
+            <i class="icon-check-circle text-green-600 text-2xl"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Alert Card -->
+<div id="alertCard" class="hidden mb-8">
+    <!-- Will be populated by JS -->
+</div>
+
+<!-- Detection History Table -->
+<div class="card">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <i class="icon-activity text-green-600"></i>
+            Histórico de Detecções
+        </h3>
+        <span class="text-sm text-gray-500" id="lastUpdate">--</span>
+    </div>
+    
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="border-b border-gray-200">
+                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600">Timestamp</th>
+                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600">Detecção</th>
+                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600">Tipo</th>
+                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600">Confiança</th>
+                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600">Status</th>
+                </tr>
+            </thead>
+            <tbody id="visaoTableBody">
+                <tr>
+                    <td colspan="5" class="text-center py-8 text-gray-500">
+                        <div class="spinner mx-auto"></div>
+                        <p class="mt-2">A carregar dados...</p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    async function fetchVisaoData() {
+        try {
+            const [latestResponse, allResponse] = await Promise.all([
+                API.getVisao(),
+                API.getAllData()
+            ]);
+            
+            if (latestResponse.ok) {
+                const latest = await latestResponse.json();
+                const visao = latest.visao || {};
+                
+                // Update KPIs
+                document.getElementById('detectionStatus').textContent = 
+                    visao.detecao_praga ? 'Praga Detectada' : 'Nenhuma Praga';
+                
+                document.getElementById('pestType').textContent = 
+                    visao.tipo_praga || 'Nenhuma';
+                
+                document.getElementById('confidence').textContent = 
+                    formatConfidence(visao.confianca);
+                
+                document.getElementById('lastUpdate').textContent = 
+                    `Última atualização: ${timeAgo(latest.timestamp)}`;
+                
+                // Show alert if pest detected
+                if (visao.detecao_praga) {
+                    showAlert(visao);
+                } else {
+                    hideAlert();
+                }
+            }
+            
+            if (allResponse.ok) {
+                const allData = await allResponse.json();
+                updateTable(allData);
+            }
+        } catch (error) {
+            console.error('Error fetching visao data:', error);
+            showError('Erro ao carregar dados de visão');
+        }
+    }
+    
+    function showAlert(visao) {
+        const alertCard = document.getElementById('alertCard');
+        alertCard.className = 'card border-2 border-danger bg-red-50';
+        alertCard.innerHTML = `
+            <div class="flex items-start gap-4">
+                <div class="w-12 h-12 bg-danger rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="icon-alert-triangle text-white text-2xl"></i>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-bold text-danger mb-2">Alerta de Praga Detectada!</h3>
+                    <p class="text-sm text-gray-700 mb-3">
+                        Foi detectada uma infestação de <strong>${visao.tipo_praga}</strong> 
+                        com ${formatConfidence(visao.confianca)} de confiança.
+                    </p>
+                    <div class="flex gap-3">
+                        <button class="btn btn-danger btn-sm">
+                            <i class="icon-bell"></i>
+                            Notificar Equipe
+                        </button>
+                        <button class="btn btn-secondary btn-sm">
+                            Ver Recomendações
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        alertCard.classList.remove('hidden');
+    }
+    
+    function hideAlert() {
+        document.getElementById('alertCard').classList.add('hidden');
+    }
+    
+    function updateTable(data) {
+        const tbody = document.getElementById('visaoTableBody');
+        
+        if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-500">Nenhum dado disponível</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = data.slice(0, 15).map(item => {
+            const visao = item.visao || {};
+            const detected = visao.detecao_praga;
+            
+            return `
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                    <td class="py-3 px-4 text-sm text-gray-900">${formatTimestamp(item.timestamp)}</td>
+                    <td class="py-3 px-4 text-sm text-gray-900 font-semibold">${formatDetection(detected)}</td>
+                    <td class="py-3 px-4 text-sm text-gray-900">${visao.tipo_praga || '-'}</td>
+                    <td class="py-3 px-4 text-sm text-gray-900 font-semibold">${formatConfidence(visao.confianca)}</td>
+                    <td class="py-3 px-4">
+                        <span class="badge ${detected ? 'badge-danger' : 'badge-success'}">
+                            ${detected ? 'Alerta' : 'Normal'}
+                        </span>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+    
+    let refreshInterval = null;
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchVisaoData();
+        refreshInterval = setInterval(fetchVisaoData, 60000);
+    });
+    
+    // Cleanup and visibility handling
+    window.addEventListener('beforeunload', () => {
+        if (refreshInterval) {
+            clearInterval(refreshInterval);
+            refreshInterval = null;
+        }
+    });
+    
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
+            }
+        } else {
+            if (!refreshInterval) {
+                fetchVisaoData();
+                refreshInterval = setInterval(fetchVisaoData, 60000);
+            }
+        }
+    });
+</script>
+{% endblock %}

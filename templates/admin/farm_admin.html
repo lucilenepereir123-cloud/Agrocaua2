@@ -1,0 +1,2953 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin da Fazenda — AgroCaua</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        [x-cloak] {
+            display: none !important
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f3f4f6;
+            color: #111827;
+            display: flex;
+            min-height: 100vh
+        }
+
+        /* ── SIDEBAR ── */
+        .sb {
+            width: 232px;
+            min-height: 100vh;
+            background: white;
+            border-right: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 40
+        }
+
+        .sb-logo {
+            padding: 1rem;
+            border-bottom: 1px solid #f3f4f6;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            text-decoration: none
+        }
+
+        .sb-logo-icon {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #2E8B57, #38A169);
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0
+        }
+
+        .sb-logo-text {
+            font-size: .9rem;
+            font-weight: 700;
+            color: #111827
+        }
+
+        .sb-badge {
+            font-size: .6rem;
+            background: #ecfdf5;
+            color: #065f46;
+            border-radius: 4px;
+            padding: .1rem .35rem;
+            font-weight: 700;
+            margin-left: .25rem
+        }
+
+        .sb-nav {
+            flex: 1;
+            padding: .5rem .625rem;
+            overflow-y: auto
+        }
+
+        .sb-section {
+            font-size: .63rem;
+            font-weight: 700;
+            letter-spacing: .09em;
+            text-transform: uppercase;
+            color: #9ca3af;
+            padding: .65rem .75rem .2rem
+        }
+
+        .sb-link {
+            display: flex;
+            align-items: center;
+            gap: .625rem;
+            padding: .525rem .75rem;
+            border-radius: 8px;
+            font-size: .825rem;
+            font-weight: 500;
+            color: #6b7280;
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            transition: background .15s, color .15s
+        }
+
+        .sb-link:hover {
+            background: #f9fafb;
+            color: #374151
+        }
+
+        .sb-link.on {
+            background: #ecfdf5;
+            color: #2E8B57;
+            font-weight: 600
+        }
+
+        .sb-badge-num {
+            margin-left: auto;
+            background: #ef4444;
+            color: white;
+            font-size: .62rem;
+            font-weight: 700;
+            border-radius: 999px;
+            padding: .08rem .42rem;
+            line-height: 1.4
+        }
+
+        .sb-badge-num.g {
+            background: #2E8B57
+        }
+
+        .sb-bottom {
+            padding: .625rem;
+            border-top: 1px solid #f3f4f6
+        }
+
+        .sb-logout {
+            display: flex;
+            align-items: center;
+            gap: .625rem;
+            padding: .525rem .75rem;
+            border-radius: 8px;
+            font-size: .825rem;
+            font-weight: 500;
+            color: #6b7280;
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            transition: background .15s, color .15s
+        }
+
+        .sb-logout:hover {
+            background: #fef2f2;
+            color: #dc2626
+        }
+
+        /* ── MAIN ── */
+        .main {
+            margin-left: 232px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh
+        }
+
+        .topbar {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: .65rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: .875rem;
+            position: sticky;
+            top: 0;
+            z-index: 30
+        }
+
+        .tb-title {
+            font-size: .95rem;
+            font-weight: 700;
+            color: #111827
+        }
+
+        .tb-actions {
+            display: flex;
+            align-items: center;
+            gap: .375rem;
+            margin-left: auto
+        }
+
+        .tb-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+            position: relative;
+            transition: background .15s;
+            font-size: .85rem
+        }
+
+        .tb-btn:hover {
+            background: #f3f4f6
+        }
+
+        .tb-dot {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 6px;
+            height: 6px;
+            background: #ef4444;
+            border-radius: 50%;
+            border: 1.5px solid white
+        }
+
+        .tb-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2E8B57, #38A169);
+            border: 2px solid #2E8B57;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: .72rem;
+            font-weight: 700;
+            color: white
+        }
+
+        /* ── CONTENT ── */
+        .content {
+            padding: 1.5rem;
+            flex: 1
+        }
+
+        .page-head {
+            margin-bottom: 1.5rem
+        }
+
+        .page-title {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: .2rem
+        }
+
+        .page-sub {
+            font-size: .825rem;
+            color: #6b7280
+        }
+
+        /* ── STAT GRID ── */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem
+        }
+
+        @media(max-width:1100px) {
+            .stat-grid {
+                grid-template-columns: 1fr 1fr
+            }
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem 1.1rem;
+            border: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            gap: .75rem
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 1.1rem
+        }
+
+        .stat-val {
+            font-size: 1.45rem;
+            font-weight: 700;
+            color: #111827;
+            line-height: 1.1
+        }
+
+        .stat-label {
+            font-size: .75rem;
+            color: #6b7280;
+            margin-top: .1rem
+        }
+
+        .stat-delta {
+            font-size: .72rem;
+            font-weight: 600;
+            margin-top: .2rem
+        }
+
+        .delta-up {
+            color: #10b981
+        }
+
+        .delta-warn {
+            color: #f59e0b
+        }
+
+        .delta-down {
+            color: #ef4444
+        }
+
+        /* ── CARD ── */
+        .card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            overflow: hidden
+        }
+
+        .card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: .875rem 1.1rem;
+            border-bottom: 1px solid #f3f4f6
+        }
+
+        .card-title {
+            font-size: .9rem;
+            font-weight: 700;
+            color: #111827
+        }
+
+        /* ── TOOLBAR ── */
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: .625rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap
+        }
+
+        .ts {
+            position: relative;
+            flex: 1;
+            min-width: 160px;
+            max-width: 280px
+        }
+
+        .ts input {
+            width: 100%;
+            padding: .475rem .75rem .475rem 2.1rem;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: .825rem;
+            font-family: inherit;
+            color: #374151;
+            outline: none;
+            background: white;
+            transition: border-color .2s
+        }
+
+        .ts input:focus {
+            border-color: #2E8B57
+        }
+
+        .ts-ico {
+            position: absolute;
+            left: .65rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: .82rem
+        }
+
+        .sel {
+            padding: .475rem 1.875rem .475rem .75rem;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: .825rem;
+            font-family: inherit;
+            color: #374151;
+            background: white;
+            outline: none;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right .5rem center
+        }
+
+        .btn-primary {
+            margin-left: auto;
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            padding: .5rem .95rem;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #2E8B57, #38A169);
+            color: white;
+            font-size: .825rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            box-shadow: 0 2px 8px rgba(46, 139, 87, .25);
+            transition: opacity .15s;
+            white-space: nowrap
+        }
+
+        .btn-primary:hover {
+            opacity: .9
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            padding: .5rem .95rem;
+            border-radius: 8px;
+            border: 1.5px solid #e5e7eb;
+            background: white;
+            color: #374151;
+            font-size: .825rem;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+            transition: border-color .15s;
+            white-space: nowrap
+        }
+
+        .btn-secondary:hover {
+            border-color: #9ca3af
+        }
+
+        .btn-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 7px;
+            border: 1.5px solid #e5e7eb;
+            background: white;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+            transition: all .15s;
+            font-size: .8rem
+        }
+
+        .btn-icon:hover {
+            background: #f3f4f6;
+            color: #374151
+        }
+
+        .btn-icon.red:hover {
+            background: #fef2f2;
+            color: #dc2626;
+            border-color: #fecaca
+        }
+
+        .btn-icon.grn:hover {
+            background: #ecfdf5;
+            color: #2E8B57;
+            border-color: #bbf7d0
+        }
+
+        /* ── TABLE ── */
+        .tbl-wrap {
+            overflow-x: auto
+        }
+
+        .tbl {
+            width: 100%;
+            border-collapse: collapse
+        }
+
+        .tbl thead th {
+            text-align: left;
+            padding: .625rem 1rem;
+            font-size: .72rem;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            border-bottom: 1px solid #f3f4f6;
+            background: #fafafa;
+            white-space: nowrap
+        }
+
+        .tbl tbody tr {
+            border-bottom: 1px solid #f9fafb;
+            transition: background .12s
+        }
+
+        .tbl tbody tr:last-child {
+            border-bottom: none
+        }
+
+        .tbl tbody tr:hover {
+            background: #fafafa
+        }
+
+        .tbl tbody td {
+            padding: .7rem 1rem;
+            font-size: .825rem;
+            vertical-align: middle
+        }
+
+        .tbl-foot {
+            padding: .7rem 1rem;
+            font-size: .75rem;
+            color: #9ca3af;
+            text-align: center;
+            border-top: 1px solid #f3f4f6
+        }
+
+        /* ── USER CELL ── */
+        .ucell {
+            display: flex;
+            align-items: center;
+            gap: .625rem
+        }
+
+        .uav {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .72rem;
+            font-weight: 700;
+            color: #6b7280;
+            flex-shrink: 0
+        }
+
+        .uav.grn {
+            background: #dcfce7;
+            color: #15803d
+        }
+
+        .uav.blue {
+            background: #dbeafe;
+            color: #1d4ed8
+        }
+
+        .uname {
+            font-weight: 600;
+            color: #111827;
+            font-size: .825rem
+        }
+
+        .uemail {
+            font-size: .73rem;
+            color: #9ca3af
+        }
+
+        /* ── PILLS ── */
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: .3rem;
+            padding: .2rem .6rem;
+            border-radius: 999px;
+            font-size: .73rem;
+            font-weight: 600
+        }
+
+        .pill-green {
+            background: #ecfdf5;
+            color: #065f46
+        }
+
+        .pill-yellow {
+            background: #fef9c3;
+            color: #854d0e
+        }
+
+        .pill-red {
+            background: #fef2f2;
+            color: #991b1b
+        }
+
+        .pill-gray {
+            background: #f3f4f6;
+            color: #6b7280
+        }
+
+        .pill-blue {
+            background: #eff6ff;
+            color: #1d4ed8
+        }
+
+        .pill-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: currentColor
+        }
+
+        /* ── SENSOR CARDS ── */
+        .sensor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            gap: 1rem
+        }
+
+        .sensor-card {
+            background: white;
+            border-radius: 12px;
+            border: 1.5px solid #e5e7eb;
+            padding: 1rem;
+            transition: box-shadow .2s
+        }
+
+        .sensor-card:hover {
+            box-shadow: 0 4px 14px rgba(0, 0, 0, .07)
+        }
+
+        .sensor-card.online {
+            border-color: #bbf7d0
+        }
+
+        .sensor-card.warn {
+            border-color: #fde68a
+        }
+
+        .sensor-card.offline {
+            border-color: #fecaca
+        }
+
+        .sc-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: .625rem
+        }
+
+        .sc-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0
+        }
+
+        .sc-pulse {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 4px
+        }
+
+        .sc-pulse.online {
+            background: #10b981;
+            animation: pulse 2s infinite
+        }
+
+        .sc-pulse.warn {
+            background: #f59e0b
+        }
+
+        .sc-pulse.offline {
+            background: #ef4444
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: .4
+            }
+        }
+
+        .sc-name {
+            font-size: .85rem;
+            font-weight: 700;
+            color: #111827
+        }
+
+        .sc-code {
+            font-size: .72rem;
+            color: #9ca3af;
+            margin-top: .1rem
+        }
+
+        .sc-farm {
+            font-size: .73rem;
+            color: #6b7280;
+            margin: .375rem 0 .5rem
+        }
+
+        .sc-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .sc-status-txt {
+            font-size: .73rem;
+            font-weight: 600
+        }
+
+        /* ── SOIL CARDS ── */
+        .soil-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem
+        }
+
+        .soil-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            padding: 1.1rem
+        }
+
+        .soil-farm {
+            font-size: .875rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: .2rem
+        }
+
+        .soil-area {
+            font-size: .73rem;
+            color: #6b7280;
+            margin-bottom: .875rem
+        }
+
+        .soil-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: .75rem
+        }
+
+        .soil-metric {
+            background: #f9fafb;
+            border-radius: 9px;
+            padding: .625rem .75rem
+        }
+
+        .sm-label {
+            font-size: .68rem;
+            font-weight: 600;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            margin-bottom: .2rem
+        }
+
+        .sm-val {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #111827
+        }
+
+        .sm-unit {
+            font-size: .72rem;
+            color: #9ca3af;
+            margin-left: .15rem;
+            font-weight: 400
+        }
+
+        .soil-bar {
+            height: 5px;
+            border-radius: 999px;
+            background: #e5e7eb;
+            overflow: hidden;
+            margin-top: .3rem
+        }
+
+        .soil-fill {
+            height: 100%;
+            border-radius: 999px;
+            transition: width .5s
+        }
+
+        .fill-green {
+            background: #10b981
+        }
+
+        .fill-yellow {
+            background: #f59e0b
+        }
+
+        .fill-red {
+            background: #ef4444
+        }
+
+        .soil-status-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: .75rem;
+            padding-top: .75rem;
+            border-top: 1px solid #f3f4f6
+        }
+
+        /* ── MAP ── */
+        #farmMap {
+            height: 520px;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            overflow: hidden
+        }
+
+        .map-legend {
+            display: flex;
+            gap: 1.25rem;
+            flex-wrap: wrap;
+            padding: .875rem 1.1rem;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 1rem
+        }
+
+        .ml-item {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            font-size: .78rem;
+            color: #6b7280
+        }
+
+        .ml-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0
+        }
+
+        /* ── ALERT CARDS ── */
+        .alert-list {
+            display: flex;
+            flex-direction: column;
+            gap: .625rem
+        }
+
+        .alert-item {
+            background: white;
+            border-radius: 10px;
+            border: 1.5px solid #e5e7eb;
+            padding: .875rem 1rem;
+            display: flex;
+            align-items: flex-start;
+            gap: .875rem;
+            transition: box-shadow .15s
+        }
+
+        .alert-item:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .06)
+        }
+
+        .alert-item.unread {
+            border-left: 3px solid #ef4444
+        }
+
+        .alert-item.warn {
+            border-left: 3px solid #f59e0b
+        }
+
+        .alert-item.info {
+            border-left: 3px solid #3b82f6
+        }
+
+        .ai-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 1rem
+        }
+
+        .ai-title {
+            font-size: .85rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: .15rem
+        }
+
+        .ai-msg {
+            font-size: .78rem;
+            color: #6b7280;
+            margin-bottom: .4rem
+        }
+
+        .ai-meta {
+            display: flex;
+            gap: .75rem;
+            font-size: .72rem;
+            color: #9ca3af
+        }
+
+        /* ── REPORT CARDS ── */
+        .rpt-list {
+            display: flex;
+            flex-direction: column;
+            gap: .625rem
+        }
+
+        .rpt-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 1rem 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: .875rem;
+            transition: box-shadow .15s;
+            cursor: pointer
+        }
+
+        .rpt-card:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .06)
+        }
+
+        .rpt-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 1rem
+        }
+
+        /* ── RECOMM CARDS ── */
+        .rec-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem
+        }
+
+        .rec-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            padding: 1.1rem;
+            transition: box-shadow .2s
+        }
+
+        .rec-card:hover {
+            box-shadow: 0 4px 14px rgba(0, 0, 0, .07)
+        }
+
+        .rec-priority {
+            font-size: .68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            margin-bottom: .5rem
+        }
+
+        .pri-alta {
+            color: #dc2626
+        }
+
+        .pri-media {
+            color: #f59e0b
+        }
+
+        .pri-baixa {
+            color: #10b981
+        }
+
+        .rec-title {
+            font-size: .9rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: .3rem
+        }
+
+        .rec-problem {
+            font-size: .78rem;
+            color: #ef4444;
+            margin-bottom: .4rem
+        }
+
+        .rec-suggestion {
+            font-size: .78rem;
+            color: #6b7280;
+            line-height: 1.5;
+            margin-bottom: .75rem
+        }
+
+        .rec-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: .75rem;
+            border-top: 1px solid #f3f4f6
+        }
+
+        .rec-area {
+            font-size: .73rem;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            gap: .3rem
+        }
+
+        /* ── FARM CARDS ── */
+        .farm-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1rem
+        }
+
+        .farm-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+            transition: box-shadow .2s
+        }
+
+        .farm-card:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, .08)
+        }
+
+        .farm-card-top {
+            height: 72px;
+            background: linear-gradient(160deg, #1a4d1a 0%, #2d7a22 50%, #3a9a30 100%);
+            display: flex;
+            align-items: center;
+            padding: .75rem;
+            gap: .5rem
+        }
+
+        .farm-card-body {
+            padding: .875rem
+        }
+
+        .farm-name {
+            font-size: .9rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: .2rem
+        }
+
+        .farm-meta {
+            font-size: .75rem;
+            color: #6b7280;
+            display: flex;
+            gap: .75rem;
+            margin-bottom: .625rem
+        }
+
+        .farm-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: .5rem;
+            margin-bottom: .75rem
+        }
+
+        .fs-val {
+            font-size: .95rem;
+            font-weight: 700;
+            color: #111827
+        }
+
+        .fs-lbl {
+            font-size: .67rem;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: .04em
+        }
+
+        .farm-actions {
+            display: flex;
+            gap: .375rem;
+            padding-top: .625rem;
+            border-top: 1px solid #f3f4f6
+        }
+
+        /* ── MODAL ── */
+        .mo {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 1rem
+        }
+
+        .mo-box {
+            background: white;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 520px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, .22);
+            overflow: hidden;
+            max-height: 92vh;
+            display: flex;
+            flex-direction: column
+        }
+
+        .mo-head {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0
+        }
+
+        .mo-title {
+            font-size: .95rem;
+            font-weight: 700;
+            color: #111827
+        }
+
+        .mo-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #9ca3af;
+            padding: .2rem;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            line-height: 1
+        }
+
+        .mo-close:hover {
+            background: #f3f4f6;
+            color: #374151
+        }
+
+        .mo-body {
+            padding: 1.25rem;
+            overflow-y: auto;
+            flex: 1
+        }
+
+        .mo-foot {
+            padding: .875rem 1.25rem;
+            border-top: 1px solid #f3f4f6;
+            display: flex;
+            gap: .625rem;
+            justify-content: flex-end;
+            flex-shrink: 0
+        }
+
+        .fl {
+            display: block;
+            font-size: .78rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: .3rem
+        }
+
+        .fi {
+            width: 100%;
+            padding: .575rem .75rem;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 9px;
+            font-size: .85rem;
+            font-family: inherit;
+            color: #111827;
+            outline: none;
+            transition: border-color .2s;
+            background: #f9fafb;
+            margin-bottom: .875rem
+        }
+
+        .fi:focus {
+            border-color: #2E8B57;
+            background: white
+        }
+
+        .fi:last-child {
+            margin-bottom: 0
+        }
+
+        .fi-sel {
+            appearance: none;
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right .7rem center;
+            padding-right: 2rem
+        }
+
+        .fi-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: .75rem;
+            margin-bottom: .875rem
+        }
+
+        .fi-grid .fi {
+            margin-bottom: 0
+        }
+
+        .mo-section {
+            font-size: .72rem;
+            font-weight: 700;
+            letter-spacing: .07em;
+            text-transform: uppercase;
+            color: #9ca3af;
+            margin-bottom: .625rem;
+            margin-top: .25rem
+        }
+
+        .btn-save {
+            padding: .55rem 1.2rem;
+            border-radius: 9px;
+            border: none;
+            background: linear-gradient(135deg, #2E8B57, #38A169);
+            color: white;
+            font-size: .85rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            box-shadow: 0 2px 8px rgba(46, 139, 87, .25)
+        }
+
+        .btn-save:hover {
+            opacity: .9
+        }
+
+        .btn-cancel {
+            padding: .55rem 1.2rem;
+            border-radius: 9px;
+            border: 1.5px solid #e5e7eb;
+            background: white;
+            color: #374151;
+            font-size: .85rem;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit
+        }
+
+        .btn-cancel:hover {
+            background: #f9fafb
+        }
+
+        /* ── EMPTY STATE ── */
+        .empty {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #9ca3af
+        }
+
+        .empty-ico {
+            font-size: 2.25rem;
+            display: block;
+            margin-bottom: .625rem;
+            opacity: .4
+        }
+
+        .empty-title {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: .25rem;
+            font-size: .9rem
+        }
+
+        .empty-sub {
+            font-size: .8rem
+        }
+
+        /* ── CHART WRAPPER ── */
+        .chart-wrap {
+            position: relative;
+            height: 240px
+        }
+
+        /* ── TOAST ── */
+        .toast {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: .625rem;
+            padding: .7rem 1.1rem;
+            border-radius: 10px;
+            font-size: .825rem;
+            font-weight: 500;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .15);
+            animation: toastIn .25s ease
+        }
+
+        .toast.success {
+            background: #ecfdf5;
+            color: #065f46;
+            border: 1px solid #bbf7d0
+        }
+
+        .toast.error {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        /* SVG ICONS */
+        .ico {
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+            vertical-align: middle;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round
+        }
+
+        @media(max-width:768px) {
+            .sb {
+                display: none
+            }
+
+            .main {
+                margin-left: 0
+            }
+        }
+    </style>
+</head>
+
+<body x-data="farmAdmin()" x-init="init()">
+
+    <!-- ══ SIDEBAR ══ -->
+    <aside class="sb">
+        <a class="sb-logo" href="/dashboard">
+            <div class="sb-logo-icon">
+                <svg class="ico" style="color:white;font-size:.85rem" viewBox="0 0 24 24">
+                    <path d="M12 2a10 10 0 0 1 10 10" />
+                    <path d="M12 2v4" />
+                    <path d="M12 22v-4" />
+                    <path d="M4.93 4.93l2.83 2.83" />
+                    <path d="M16.24 16.24l2.83 2.83" />
+                    <path d="M2 12h4" />
+                    <path d="M18 12h4" />
+                    <circle cx="12" cy="12" r="3" />
+                </svg>
+            </div>
+            <span class="sb-logo-text">AgroCaua</span>
+            <span class="sb-badge">ADMIN</span>
+        </a>
+        <nav class="sb-nav">
+            <span class="sb-section">Principal</span>
+            <button class="sb-link" :class="{on:tab==='dashboard'}" @click="tab='dashboard'">
+                <svg class="ico" viewBox="0 0 24 24">
+                    <rect x="3" y="3" width="7" height="7" />
+                    <rect x="14" y="3" width="7" height="7" />
+                    <rect x="14" y="14" width="7" height="7" />
+                    <rect x="3" y="14" width="7" height="7" />
+                </svg>
+                <span>Dashboard</span>
+            </button>
+
+            <span class="sb-section">Gestão</span>
+            <button class="sb-link" :class="{on:tab==='users'}" @click="tab='users'">
+                <svg class="ico" viewBox="0 0 24 24">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+                <span>Utilizadores</span>
+                <span class="sb-badge-num g" x-text="users.length"></span>
+            </button>
+            <button class="sb-link" :class="{on:tab==='farms'}" @click="tab='farms'">
+                <svg class="ico" viewBox="0 0 24 24">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                    <polyline points="9,22 9,12 15,12 15,22" />
+                </svg>
+                <span>Fazendas</span>
+            </button>
+
+            <span class="sb-section">Monitoramento</span>
+            <button class="sb-link" :class="{on:tab==='sensors'}" @click="tab='sensors'">
+                <svg class="ico" viewBox="0 0 24 24">
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                </svg>
+                <span>Sensores</span>
+                <span class="sb-badge-num" x-show="offlineSensors>0" x-text="offlineSensors"></span>
+            </button>
+            <button class="sb-link" :class="{on:tab==='soil'}" @click="tab='soil'">
+                <svg class="ico" viewBox="0 0 24 24">
+                    <path d="M12 22V12" />
+                    <path d="M5 12H2a10 10 0 0 0 20 0h-3" />
+                    <circle cx="12" cy="5" r="3" />
+                    <path d="M6.5 9.5C7 7.5 9 6 12 6s5 1.5 5.5 3.5" />
+                </svg>
+                <span>Estado do Solo</span>
+            </button>
+            <button class="sb-link" :class="{on:tab==='map'}" @click="tab='map';initMap()">
+                <svg class="ico" viewBox="0 0 24 24">
+                    <polygon points="1,6 1,22 8,18 16,22 23,18 23,2 16,6 8,2" />
+                    <line x1="8" y1="2" x2="8" y2="18" />
+                    <line x1="16" y1="6" x2="16" y2="22" />
+                </svg>
+                <span>Mapa da Fazenda</span>
+            </button>
+            <button class="sb-link" :class="{on:tab==='alerts'}" @click="tab='alerts'">
+                <svg class="ico" viewBox="0 0 24 24">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                </svg>
+                <span>Alertas</span>
+                <span class="sb-badge-num" x-show="unreadAlerts>0" x-text="unreadAlerts"></span>
+            </button>
+
+            <span class="sb-section">Análise</span>
+            <button class="sb-link" :class="{on:tab==='reports'}" @click="tab='reports'">
+                <svg class="ico" viewBox="0 0 24 24">
+                    <line x1="18" y1="20" x2="18" y2="10" />
+                    <line x1="12" y1="20" x2="12" y2="4" />
+                    <line x1="6" y1="20" x2="6" y2="14" />
+                </svg>
+                <span>Relatórios</span>
+            </button>
+            <button class="sb-link" :class="{on:tab==='recomm'}" @click="tab='recomm'">
+                <svg class="ico" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <span>Recomendações</span>
+            </button>
+        </nav>
+        <div class="sb-bottom">
+            <button class="sb-logout" onclick="clearToken();window.location.href='/login'">
+                <svg class="ico" viewBox="0 0 24 24">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16,17 21,12 16,7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                <span>Sair</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- ══ MAIN ══ -->
+    <div class="main">
+
+        <!-- TOPBAR -->
+        <div class="topbar">
+            <div>
+                <div class="tb-title" x-text="tabTitles[tab] || 'Admin'"></div>
+            </div>
+            <div class="tb-actions">
+                <button class="tb-btn" @click="tab='alerts'" title="Alertas" style="position:relative">
+                    <svg class="ico" viewBox="0 0 24 24">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                    </svg>
+                    <span class="tb-dot" x-show="unreadAlerts>0"></span>
+                </button>
+                <div class="tb-avatar" x-text="adminName.split(' ').map(w=>w[0]).join('').slice(0,2)"></div>
+            </div>
+        </div>
+
+        <div class="content">
+
+            <!-- ══════════════════════════════════════
+     TAB: DASHBOARD
+══════════════════════════════════════ -->
+            <div x-show="tab==='dashboard'" x-cloak>
+                <div class="page-head">
+                    <div class="page-title">Resumo da Fazenda</div>
+                    <div class="page-sub">Veja aqui o estado das suas áreas de cultivo.</div>
+                </div>
+
+                <!-- Stats Row -->
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:#ecfdf5">
+                            <svg class="ico" style="color:#2E8B57" viewBox="0 0 24 24">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                                <polyline points="9,22 9,12 15,12 15,22" />
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="stat-val" x-text="farms.length"></div>
+                            <div class="stat-label">Fazendas cadastradas</div>
+                            <div class="stat-delta delta-up" x-text="farms.length + ' áreas registradas'"></div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:#f0fdf4">
+                            <svg class="ico" style="color:#16a34a" viewBox="0 0 24 24">
+                                <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="stat-val" x-text="onlineSensors + '/' + sensors.length"></div>
+                            <div class="stat-label">Sensores funcionando</div>
+                            <div class="stat-delta" :class="offlineSensors>0?'delta-warn':'delta-up'"
+                                x-text="offlineSensors>0 ? offlineSensors+' com problema' : 'Todos bem'"></div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:#fef2f2">
+                            <svg class="ico" style="color:#dc2626" viewBox="0 0 24 24">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="stat-val" x-text="unreadAlerts"></div>
+                            <div class="stat-label">Alertas ativos</div>
+                            <div class="stat-delta" :class="unreadAlerts>0?'delta-down':'delta-up'"
+                                x-text="unreadAlerts>0 ? 'Requerem atenção' : 'Sem alertas'"></div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:#eff6ff">
+                            <svg class="ico" style="color:#2563eb" viewBox="0 0 24 24">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="stat-val" x-text="users.length"></div>
+                            <div class="stat-label">Membros da equipe</div>
+                            <div class="stat-delta delta-up" x-text="activeUsers + ' ativos'"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2-col: Soil summary + Alerts -->
+                <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:1rem;margin-bottom:1.25rem">
+                    <!-- Soil Summary -->
+                    <div class="card">
+                        <div class="card-head">
+                            <span class="card-title">Últimas Leituras do Solo</span>
+                            <button class="btn-primary" style="font-size:.75rem;padding:.35rem .75rem"
+                                @click="tab='soil'">Ver tudo</button>
+                        </div>
+                        <div style="padding:.875rem">
+                            <template x-for="d in soilData.slice(0,3)" :key="d.id">
+                                <div
+                                    style="display:flex;align-items:center;gap:.75rem;padding:.625rem 0;border-bottom:1px solid #f9fafb">
+                                    <div
+                                        style="width:36px;height:36px;border-radius:9px;background:#ecfdf5;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1rem">
+                                        🌱</div>
+                                    <div style="flex:1;min-width:0">
+                                        <div style="font-size:.82rem;font-weight:600;color:#111827"
+                                            x-text="d.farm + ' — ' + d.area"></div>
+                                        <div style="font-size:.73rem;color:#9ca3af;margin-top:.1rem">
+                                            <span
+                                                x-text="'Hum: ' + d.humidity + '% · Temp: ' + d.temperature + '°C · pH: ' + d.ph"></span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span class="pill"
+                                            :class="d.humidity >= 40 && d.humidity <= 70 ? 'pill-green' : d.humidity < 40 ? 'pill-red' : 'pill-yellow'"
+                                            x-text="d.humidity >= 40 && d.humidity <= 70 ? 'Normal' : d.humidity < 40 ? 'Seco' : 'Húmido'"></span>
+                                    </div>
+                                </div>
+                            </template>
+                            <div x-show="soilData.length===0" class="empty" style="padding:1.5rem">
+                                <div class="empty-sub">Nenhum dado de solo disponível</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Alerts Preview -->
+                    <div class="card">
+                        <div class="card-head">
+                            <span class="card-title">Alertas Recentes</span>
+                            <button class="btn-primary" style="font-size:.75rem;padding:.35rem .75rem"
+                                @click="tab='alerts'">Ver todos</button>
+                        </div>
+                        <div style="padding:.875rem;display:flex;flex-direction:column;gap:.5rem">
+                            <template x-for="a in alerts.filter(x=>!x.read).slice(0,4)" :key="a.id">
+                                <div
+                                    style="display:flex;align-items:flex-start;gap:.625rem;padding:.5rem;border-radius:8px;background:#fef2f2">
+                                    <span style="font-size:1rem;flex-shrink:0">⚠️</span>
+                                    <div>
+                                        <div style="font-size:.8rem;font-weight:600;color:#991b1b" x-text="a.type">
+                                        </div>
+                                        <div style="font-size:.73rem;color:#6b7280;margin-top:.1rem"
+                                            x-text="a.location + ' · ' + a.date"></div>
+                                    </div>
+                                </div>
+                            </template>
+                            <div x-show="alerts.filter(x=>!x.read).length===0"
+                                style="text-align:center;padding:1rem;font-size:.8rem;color:#9ca3af">
+                                Nenhum alerta ativo ✓
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sensor status grid -->
+                <div class="card">
+                    <div class="card-head">
+                        <span class="card-title">Estado dos Sensores</span>
+                        <button class="btn-primary" style="font-size:.75rem;padding:.35rem .75rem"
+                            @click="tab='sensors'">Ver todos</button>
+                    </div>
+                    <div style="padding:.875rem">
+                        <div class="sensor-grid">
+                            <template x-for="s in sensors.slice(0,8)" :key="s.id">
+                                <div class="sensor-card" :class="s.status">
+                                    <div class="sc-top">
+                                        <div class="sc-icon"
+                                            :style="s.status==='online' ? 'background:#ecfdf5' : s.status==='warn' ? 'background:#fef9c3' : 'background:#fef2f2'">
+                                            <span x-text="sensorTypeIcon(s.tipo)"></span>
+                                        </div>
+                                        <div class="sc-pulse" :class="s.status"></div>
+                                    </div>
+                                    <div class="sc-name" x-text="s.nome"></div>
+                                    <div class="sc-code" x-text="s.code"></div>
+                                    <div class="sc-farm" x-text="s.fazenda"></div>
+                                    <div class="sc-info">
+                                        <span class="sc-status-txt"
+                                            :class="s.status==='online'?'delta-up':s.status==='warn'?'delta-warn':'delta-down'"
+                                            x-text="s.status==='online'?'A funcionar':s.status==='warn'?'Bateria fraca':'Parado'"></span>
+                                        <span style="font-size:.7rem;color:#9ca3af" x-text="s.lastData"></span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ══════════════════════════════════════
+     TAB: UTILIZADORES
+══════════════════════════════════════ -->
+            <div x-show="tab==='users'" x-cloak>
+                <div class="page-head">
+                    <div class="page-title">Utilizadores</div>
+                    <div class="page-sub">Adicione pessoas da sua equipe para usar o sistema.</div>
+                </div>
+
+                <div class="card">
+                    <div style="padding:.875rem 1.1rem;border-bottom:1px solid #f3f4f6">
+                        <div class="toolbar" style="margin-bottom:0">
+                            <div class="ts">
+                                <span class="ts-ico">🔍</span>
+                                <input type="text" placeholder="Pesquisar utilizador..." x-model="userSearch">
+                            </div>
+                            <select class="sel" x-model="userRoleFilter">
+                                <option value="">Todos os tipos</option>
+                                <option value="agricultor">Agricultor</option>
+                                <option value="tecnico">Técnico</option>
+                            </select>
+                            <select class="sel" x-model="userStatusFilter">
+                                <option value="">Todos os estados</option>
+                                <option value="ativo">Ativo</option>
+                                <option value="inativo">Inativo</option>
+                            </select>
+                            <button class="btn-primary" @click="openUserModal(null)">
+                                <span>＋</span> Novo Utilizador
+                            </button>
+                        </div>
+                    </div>
+                    <div class="tbl-wrap">
+                        <table class="tbl">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Telefone</th>
+                                    <th>Tipo</th>
+                                    <th>Fazenda</th>
+                                    <th>Estado</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template x-for="u in filteredUsers" :key="u.id">
+                                    <tr>
+                                        <td>
+                                            <div class="ucell">
+                                                <div class="uav" :class="u.role==='agricultor'?'grn':'blue'"
+                                                    x-text="u.initials"></div>
+                                                <div>
+                                                    <div class="uname" x-text="u.nome"></div>
+                                                    <div class="uemail" x-text="u.email"></div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td style="color:#6b7280" x-text="u.phone"></td>
+                                        <td>
+                                            <span class="pill" :class="u.role==='agricultor'?'pill-green':'pill-blue'">
+                                                <span class="pill-dot"></span>
+                                                <span x-text="u.role==='agricultor'?'Agricultor':'Técnico'"></span>
+                                            </span>
+                                        </td>
+                                        <td style="font-size:.8rem;color:#6b7280" x-text="u.farm"></td>
+                                        <td>
+                                            <span class="pill" :class="u.status==='ativo'?'pill-green':'pill-gray'">
+                                                <span class="pill-dot"></span>
+                                                <span x-text="u.status==='ativo'?'Ativo':'Inativo'"></span>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div style="display:flex;gap:.25rem">
+                                                <button class="btn-icon grn" title="Editar"
+                                                    @click="openUserModal(u)">✏️</button>
+                                                <button class="btn-icon" title="Ativar/Desativar"
+                                                    @click="toggleUserStatus(u)">
+                                                    <span x-text="u.status==='ativo'?'🔒':'🔓'"></span>
+                                                </button>
+                                                <button class="btn-icon red" title="Remover"
+                                                    @click="deleteUser(u.id)">🗑️</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                        <div x-show="filteredUsers.length===0" class="empty">
+                            <div class="empty-ico">👤</div>
+                            <div class="empty-title">Nenhum utilizador encontrado</div>
+                            <div class="empty-sub">Ajuste os filtros ou crie um novo utilizador</div>
+                        </div>
+                        <div class="tbl-foot" x-text="filteredUsers.length + ' de ' + users.length + ' utilizadores'">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ══════════════════════════════════════
+     TAB: FAZENDAS
+══════════════════════════════════════ -->
+            <div x-show="tab==='farms'" x-cloak>
+                <div class="page-head">
+                    <div class="page-title">Fazendas</div>
+                    <div class="page-sub">Registre aqui as áreas onde você cultiva.</div>
+                </div>
+
+                <div class="toolbar">
+                    <div class="ts">
+                        <span class="ts-ico">🔍</span>
+                        <input type="text" placeholder="Pesquisar fazenda..." x-model="farmSearch">
+                    </div>
+                    <select class="sel" x-model="farmCultureFilter">
+                        <option value="">Todas as culturas</option>
+                        <option value="Milho">Milho</option>
+                        <option value="Soja">Soja</option>
+                        <option value="Feijão">Feijão</option>
+                        <option value="Arroz">Arroz</option>
+                        <option value="Mandioca">Mandioca</option>
+                    </select>
+                    <button class="btn-primary" @click="openFarmModal(null)">
+                        <span>＋</span> Nova Fazenda
+                    </button>
+                </div>
+
+                <div class="farm-grid">
+                    <template x-for="f in filteredFarms" :key="f.id">
+                        <div class="farm-card">
+                            <div class="farm-card-top">
+                                <span style="font-size:1.5rem">🌾</span>
+                                <div>
+                                    <div style="font-size:.82rem;font-weight:700;color:white" x-text="f.nome"></div>
+                                    <div style="font-size:.7rem;color:rgba(255,255,255,.7)" x-text="f.culture"></div>
+                                </div>
+                            </div>
+                            <div class="farm-card-body">
+                                <div class="farm-name" x-text="f.nome"></div>
+                                <div class="farm-meta">
+                                    <span x-text="'📍 ' + f.localizacao"></span>
+                                    <span x-text="'📐 ' + f.size"></span>
+                                </div>
+                                <div class="farm-stats">
+                                    <div>
+                                        <div class="fs-val" x-text="sensors.filter(s=>s.fazenda===f.nome).length"></div>
+                                        <div class="fs-lbl">Sensores</div>
+                                    </div>
+                                    <div>
+                                        <div class="fs-val"
+                                            x-text="alerts.filter(a=>a.location.includes(f.nome)).length"></div>
+                                        <div class="fs-lbl">Alertas</div>
+                                    </div>
+                                    <div>
+                                        <div class="fs-val" x-text="users.filter(u=>u.farm===f.nome).length"></div>
+                                        <div class="fs-lbl">Membros</div>
+                                    </div>
+                                </div>
+                                <div class="farm-actions">
+                                    <button class="btn-secondary" style="font-size:.75rem;padding:.35rem .7rem"
+                                        @click="openFarmModal(f)">Editar</button>
+                                    <button class="btn-secondary" style="font-size:.75rem;padding:.35rem .7rem"
+                                        @click="tab='map';initMap()">Ver no mapa</button>
+                                    <button class="btn-icon red" style="margin-left:auto"
+                                        @click="deleteFarm(f.id)">🗑️</button>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                <div x-show="filteredFarms.length===0" class="empty"
+                    style="background:white;border-radius:12px;border:1px solid #e5e7eb">
+                    <div class="empty-ico">🏡</div>
+                    <div class="empty-title">Nenhuma fazenda encontrada</div>
+                    <div class="empty-sub">Crie uma nova fazenda para começar</div>
+                </div>
+            </div>
+
+
+            <!-- ══════════════════════════════════════
+     TAB: SENSORES
+══════════════════════════════════════ -->
+            <div x-show="tab==='sensors'" x-cloak>
+                <div class="page-head">
+                    <div class="page-title">Sensores</div>
+                    <div class="page-sub">Adicione sensores para acompanhar o estado do solo.</div>
+                </div>
+
+                <div class="toolbar">
+                    <div class="ts">
+                        <span class="ts-ico">🔍</span>
+                        <input type="text" placeholder="Pesquisar sensor..." x-model="sensorSearch">
+                    </div>
+                    <select class="sel" x-model="sensorTypeFilter">
+                        <option value="">Todos os tipos</option>
+                        <option value="humidity">Humidade do Solo</option>
+                        <option value="temperature">Temperatura</option>
+                        <option value="ph">pH do Solo</option>
+                        <option value="nutrients">Nutrientes</option>
+                    </select>
+                    <select class="sel" x-model="sensorStatusFilter">
+                        <option value="">Todos os estados</option>
+                        <option value="online">Online</option>
+                        <option value="warn">Aviso</option>
+                        <option value="offline">Offline</option>
+                    </select>
+                    <button class="btn-primary" @click="openSensorModal(null)">
+                        <span>＋</span> Novo Sensor
+                    </button>
+                </div>
+
+                <div class="sensor-grid">
+                    <template x-for="s in filteredSensors" :key="s.id">
+                        <div class="sensor-card" :class="s.status">
+                            <div class="sc-top">
+                                <div class="sc-icon"
+                                    :style="s.status==='online'?'background:#ecfdf5':s.status==='warn'?'background:#fef9c3':'background:#fef2f2'">
+                                    <span style="font-size:1.1rem" x-text="sensorTypeIcon(s.tipo)"></span>
+                                </div>
+                                <div class="sc-pulse" :class="s.status"></div>
+                            </div>
+                            <div class="sc-name" x-text="s.nome"></div>
+                            <div class="sc-code" x-text="s.nome + ' · ' + sensorTypeName(s.tipo)"></div>
+                            <div class="sc-farm" x-text="s.fazenda + ' · ' + s.area"></div>
+                            <div style="font-size:.72rem;color:#9ca3af;margin-bottom:.625rem"
+                                x-text="'Instalado: ' + s.installedAt"></div>
+                            <div class="sc-info">
+                                <span class="sc-status-txt pill"
+                                    :class="s.status==='online'?'pill-green':s.status==='warn'?'pill-yellow':'pill-red'"
+                                    x-text="s.status==='online'?'Online':s.status==='warn'?'Aviso':'Offline'"></span>
+                                <div style="display:flex;gap:.25rem">
+                                    <button class="btn-icon grn" @click="openSensorModal(s)" title="Editar">✏️</button>
+                                    <button class="btn-icon red" @click="deleteSensor(s.id)"
+                                        title="Remover">🗑️</button>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                <div x-show="filteredSensors.length===0" class="empty"
+                    style="background:white;border-radius:12px;border:1px solid #e5e7eb">
+                    <div class="empty-ico">📡</div>
+                    <div class="empty-title">Nenhum sensor encontrado</div>
+                    <div class="empty-sub">Adicione sensores para monitorar o solo</div>
+                </div>
+            </div>
+
+
+            <!-- ══════════════════════════════════════
+     TAB: ESTADO DO SOLO
+══════════════════════════════════════ -->
+            <div x-show="tab==='soil'" x-cloak>
+                <div class="page-head">
+                    <div class="page-title">Estado do Solo</div>
+                    <div class="page-sub">Veja como está o solo nas suas áreas.</div>
+                </div>
+
+                <!-- Chart row -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem">
+                    <div class="card">
+                        <div class="card-head"><span class="card-title">💧 Humidade por Área</span></div>
+                        <div style="padding:.875rem">
+                            <div class="chart-wrap"><canvas id="humChart"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-head"><span class="card-title">🌡 Temperatura por Área</span></div>
+                        <div style="padding:.875rem">
+                            <div class="chart-wrap"><canvas id="tempChart"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Soil cards -->
+                <div class="soil-grid">
+                    <template x-for="d in soilData" :key="d.id">
+                        <div class="soil-card">
+                            <div class="soil-farm" x-text="d.farm"></div>
+                            <div class="soil-area" x-text="'Área: ' + d.area + ' · Atualizado: ' + d.lastUpdate"></div>
+                            <div class="soil-metrics">
+                                <div class="soil-metric">
+                                    <div class="sm-label">💧 Humidade</div>
+                                    <div><span class="sm-val" x-text="d.humidity"></span><span class="sm-unit">%</span>
+                                    </div>
+                                    <div class="soil-bar">
+                                        <div class="soil-fill"
+                                            :class="d.humidity<30?'fill-red':d.humidity<70?'fill-green':'fill-yellow'"
+                                            :style="'width:'+d.humidity+'%'"></div>
+                                    </div>
+                                </div>
+                                <div class="soil-metric">
+                                    <div class="sm-label">🌡 Temperatura</div>
+                                    <div><span class="sm-val" x-text="d.temperature"></span><span
+                                            class="sm-unit">°C</span></div>
+                                    <div class="soil-bar">
+                                        <div class="soil-fill"
+                                            :class="d.temperature>35?'fill-red':d.temperature>25?'fill-yellow':'fill-green'"
+                                            :style="'width:'+Math.min(d.temperature/45*100,100)+'%'"></div>
+                                    </div>
+                                </div>
+                                <div class="soil-metric">
+                                    <div class="sm-label">⚗️ pH</div>
+                                    <div><span class="sm-val" x-text="d.ph"></span></div>
+                                    <div class="soil-bar">
+                                        <div class="soil-fill"
+                                            :class="d.ph<5.5||d.ph>7.5?'fill-red':d.ph<6||d.ph>7?'fill-yellow':'fill-green'"
+                                            :style="'width:'+((d.ph/14)*100)+'%'"></div>
+                                    </div>
+                                </div>
+                                <div class="soil-metric">
+                                    <div class="sm-label">🌿 Nutrientes</div>
+                                    <div><span class="sm-val" x-text="d.nutrients"></span></div>
+                                    <div class="soil-bar">
+                                        <div class="soil-fill"
+                                            :class="d.nutrients==='Baixo'?'fill-red':d.nutrients==='Médio'?'fill-yellow':'fill-green'"
+                                            :style="'width:' + (d.nutrients==='Baixo'?25:d.nutrients==='Médio'?60:90) + '%'">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="soil-status-row">
+                                <span class="pill"
+                                    :class="soilStatus(d)==='Bom'?'pill-green':soilStatus(d)==='Atenção'?'pill-yellow':'pill-red'">
+                                    <span class="pill-dot"></span>
+                                    <span x-text="soilStatus(d)"></span>
+                                </span>
+                                <span style="font-size:.72rem;color:#9ca3af" x-text="d.lastUpdate"></span>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                <div x-show="soilData.length===0" class="empty"
+                    style="background:white;border-radius:12px;border:1px solid #e5e7eb">
+                    <div class="empty-ico">🌱</div>
+                    <div class="empty-title">Sem dados de solo</div>
+                    <div class="empty-sub">Configure sensores para receber leituras</div>
+                </div>
+            </div>
+
+
+            <!-- ══════════════════════════════════════
+     TAB: MAPA DA FAZENDA
+══════════════════════════════════════ -->
+            <div x-show="tab==='map'" x-cloak>
+                <div class="page-head">
+                    <div class="page-title">Mapa da Fazenda</div>
+                    <div class="page-sub">Veja no mapa como está o solo em cada parte da fazenda.</div>
+                </div>
+
+                <div class="map-legend">
+                    <div class="ml-item">
+                        <div class="ml-dot" style="background:#10b981"></div>Solo em bom estado
+                    </div>
+                    <div class="ml-item">
+                        <div class="ml-dot" style="background:#f59e0b"></div>Atenção necessária
+                    </div>
+                    <div class="ml-item">
+                        <div class="ml-dot" style="background:#ef4444"></div>Problema crítico
+                    </div>
+                    <div class="ml-item">
+                        <div class="ml-dot" style="background:#3b82f6"></div>Sensor online
+                    </div>
+                    <div class="ml-item">
+                        <div class="ml-dot" style="background:#9ca3af"></div>Sensor offline
+                    </div>
+                </div>
+
+                <div id="farmMap"></div>
+            </div>
+
+
+            <!-- ══════════════════════════════════════
+     TAB: ALERTAS
+══════════════════════════════════════ -->
+            <div x-show="tab==='alerts'" x-cloak>
+                <div class="page-head">
+                    <div class="page-title">Alertas</div>
+                    <div class="page-sub">Aqui aparecem avisos importantes sobre o solo.</div>
+                </div>
+
+                <div class="toolbar">
+                    <div class="ts">
+                        <span class="ts-ico">🔍</span>
+                        <input type="text" placeholder="Pesquisar alerta..." x-model="alertSearch">
+                    </div>
+                    <select class="sel" x-model="alertSeverityFilter">
+                        <option value="">Todas as prioridades</option>
+                        <option value="alto">Alto</option>
+                        <option value="medio">Médio</option>
+                        <option value="baixo">Baixo</option>
+                    </select>
+                    <button class="btn-secondary" @click="markAllAlertsRead()">✓ Marcar todos como lidos</button>
+                </div>
+
+                <div class="alert-list">
+                    <template x-for="a in filteredAlerts" :key="a.id">
+                        <div class="alert-item"
+                            :class="[!a.read?'unread':'',a.severity==='medio'?'warn':a.severity==='baixo'?'info':'']">
+                            <div class="ai-icon"
+                                :style="a.severity==='alto'?'background:#fef2f2':a.severity==='medio'?'background:#fef9c3':'background:#eff6ff'">
+                                <span x-text="a.severity==='alto'?'🔴':a.severity==='medio'?'🟡':'🔵'"></span>
+                            </div>
+                            <div style="flex:1;min-width:0">
+                                <div class="ai-title" x-text="a.type"></div>
+                                <div class="ai-msg" x-text="a.message"></div>
+                                <div class="ai-meta">
+                                    <span x-text="'📍 ' + a.location"></span>
+                                    <span x-text="'📡 ' + a.sensor"></span>
+                                    <span x-text="'🗓 ' + a.date"></span>
+                                </div>
+                            </div>
+                            <div
+                                style="display:flex;flex-direction:column;align-items:flex-end;gap:.375rem;flex-shrink:0">
+                                <span class="pill"
+                                    :class="a.severity==='alto'?'pill-red':a.severity==='medio'?'pill-yellow':'pill-blue'"
+                                    x-text="a.severity==='alto'?'Alto':a.severity==='medio'?'Médio':'Baixo'"></span>
+                                <button class="btn-icon" @click="markAlertRead(a)" x-show="!a.read"
+                                    title="Marcar como lido">✓</button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                <div x-show="filteredAlerts.length===0" class="empty"
+                    style="background:white;border-radius:12px;border:1px solid #e5e7eb">
+                    <div class="empty-ico">🔔</div>
+                    <div class="empty-title">Nenhum alerta encontrado</div>
+                    <div class="empty-sub">Tudo está a funcionar bem!</div>
+                </div>
+            </div>
+
+
+            <!-- ══════════════════════════════════════
+     TAB: RELATÓRIOS
+══════════════════════════════════════ -->
+            <div x-show="tab==='reports'" x-cloak>
+                <div class="page-head">
+                    <div class="page-title">Relatórios</div>
+                    <div class="page-sub">Veja como o solo tem mudado ao longo do tempo.</div>
+                </div>
+
+                <!-- Stats -->
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:#ecfdf5;font-size:1.1rem">📊</div>
+                        <div>
+                            <div class="stat-val" x-text="reports.length"></div>
+                            <div class="stat-label">Relatórios gerados</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:#eff6ff;font-size:1.1rem">📅</div>
+                        <div>
+                            <div class="stat-val">30</div>
+                            <div class="stat-label">Dias de histórico</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:#fef9c3;font-size:1.1rem">📁</div>
+                        <div>
+                            <div class="stat-val" x-text="farms.length"></div>
+                            <div class="stat-label">Fazendas com dados</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
+                    <!-- Generate report -->
+                    <div class="card">
+                        <div class="card-head"><span class="card-title">Gerar Relatório</span></div>
+                        <div style="padding:1.1rem">
+                            <label class="fl">Fazenda</label>
+                            <select class="fi fi-sel" x-model="reportForm.farm">
+                                <option value="">Selecionar fazenda</option>
+                                <template x-for="f in farms" :key="f.id">
+                                    <option :value="f.nome" x-text="f.nome"></option>
+                                </template>
+                            </select>
+                            <label class="fl">Período</label>
+                            <select class="fi fi-sel" x-model="reportForm.period">
+                                <option value="7d">Últimos 7 dias</option>
+                                <option value="30d">Últimos 30 dias</option>
+                                <option value="3m">Últimos 3 meses</option>
+                                <option value="6m">Últimos 6 meses</option>
+                                <option value="1y">Último ano</option>
+                            </select>
+                            <label class="fl">Tipo de relatório</label>
+                            <select class="fi fi-sel" x-model="reportForm.type">
+                                <option value="solo">Estado do Solo</option>
+                                <option value="sensores">Sensores</option>
+                                <option value="alertas">Alertas</option>
+                                <option value="completo">Relatório Completo</option>
+                            </select>
+                            <div style="display:flex;gap:.625rem;margin-top:.25rem">
+                                <button class="btn-primary" @click="generateReport()">📊 Gerar Relatório</button>
+                                <button class="btn-secondary" @click="exportReport()">⬇️ Exportar CSV</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Soil history chart -->
+                    <div class="card">
+                        <div class="card-head"><span class="card-title">Histórico de Humidade (30 dias)</span></div>
+                        <div style="padding:.875rem">
+                            <div class="chart-wrap"><canvas id="histChart"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reports list -->
+                <div class="card">
+                    <div class="card-head"><span class="card-title">Relatórios Gerados</span></div>
+                    <div style="padding:.875rem">
+                        <div class="rpt-list">
+                            <template x-for="r in reports" :key="r.id">
+                                <div class="rpt-card">
+                                    <div class="rpt-icon" style="background:#ecfdf5;font-size:1rem">📋</div>
+                                    <div style="flex:1;min-width:0">
+                                        <div style="font-size:.85rem;font-weight:600;color:#111827" x-text="r.title">
+                                        </div>
+                                        <div style="font-size:.73rem;color:#9ca3af;margin-top:.1rem"
+                                            x-text="r.farm + ' · ' + r.period + ' · ' + r.createdAt"></div>
+                                    </div>
+                                    <span class="pill pill-green" x-text="r.type"></span>
+                                    <button class="btn-secondary" style="font-size:.75rem;padding:.35rem .7rem"
+                                        @click="exportSingleReport(r)">⬇️</button>
+                                </div>
+                            </template>
+                            <div x-show="reports.length===0" class="empty">
+                                <div class="empty-ico">📊</div>
+                                <div class="empty-title">Nenhum relatório gerado</div>
+                                <div class="empty-sub">Use o formulário acima para gerar o primeiro relatório</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ══════════════════════════════════════
+     TAB: RECOMENDAÇÕES
+══════════════════════════════════════ -->
+            <div x-show="tab==='recomm'" x-cloak>
+                <div class="page-head">
+                    <div class="page-title">Recomendações</div>
+                    <div class="page-sub">Sugestões para melhorar o solo e ajudar na produção.</div>
+                </div>
+
+                <div class="toolbar">
+                    <div class="ts">
+                        <span class="ts-ico">🔍</span>
+                        <input type="text" placeholder="Pesquisar recomendação..." x-model="recommSearch">
+                    </div>
+                    <select class="sel" x-model="recommPriorityFilter">
+                        <option value="">Todas as prioridades</option>
+                        <option value="Alta">Alta</option>
+                        <option value="Média">Média</option>
+                        <option value="Baixa">Baixa</option>
+                    </select>
+                    <button class="btn-primary" @click="openRecommModal(null)">
+                        <span>＋</span> Nova Recomendação
+                    </button>
+                </div>
+
+                <div class="rec-grid">
+                    <template x-for="r in filteredRecomm" :key="r.id">
+                        <div class="rec-card">
+                            <div class="rec-priority"
+                                :class="r.priority==='Alta'?'pri-alta':r.priority==='Média'?'pri-media':'pri-baixa'"
+                                x-text="(r.priority==='Alta'?'🔴':r.priority==='Média'?'🟡':'🟢') + ' Prioridade ' + r.priority">
+                            </div>
+                            <div class="rec-title" x-text="r.title"></div>
+                            <div class="rec-problem">⚠️ <span x-text="r.problem"></span></div>
+                            <div class="rec-suggestion" x-text="r.suggestion"></div>
+                            <div class="rec-footer">
+                                <div class="rec-area">📍 <span x-text="r.area"></span></div>
+                                <div style="display:flex;gap:.25rem">
+                                    <button class="btn-icon grn" @click="openRecommModal(r)" title="Editar">✏️</button>
+                                    <button class="btn-icon red" @click="deleteRecomm(r.id)"
+                                        title="Remover">🗑️</button>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                <div x-show="filteredRecomm.length===0" class="empty"
+                    style="background:white;border-radius:12px;border:1px solid #e5e7eb">
+                    <div class="empty-ico">💡</div>
+                    <div class="empty-title">Nenhuma recomendação</div>
+                    <div class="empty-sub">Adicione sugestões para melhorar o solo</div>
+                </div>
+            </div>
+
+        </div><!-- /content -->
+    </div><!-- /main -->
+
+
+    <!-- ══════════════════════════════════════
+     MODAL: UTILIZADOR
+══════════════════════════════════════ -->
+    <div class="mo" x-show="showUserModal" x-cloak @click.self="showUserModal=false">
+        <div class="mo-box">
+            <div class="mo-head">
+                <div class="mo-title" x-text="editingUser ? '✏️ Editar Utilizador' : '＋ Novo Utilizador'"></div>
+                <button class="mo-close" @click="showUserModal=false">✕</button>
+            </div>
+            <div class="mo-body">
+                <div class="mo-section">Dados pessoais</div>
+                <label class="fl">Nome completo</label>
+                <input class="fi" type="text" placeholder="Ex: João Silva" x-model="userForm.name">
+                <div class="fi-grid">
+                    <div>
+                        <label class="fl">Email</label>
+                        <input class="fi" type="email" placeholder="joao@empresa.com" x-model="userForm.email">
+                    </div>
+                    <div>
+                        <label class="fl">Telefone</label>
+                        <input class="fi" type="tel" placeholder="+258 84 000000" x-model="userForm.phone">
+                    </div>
+                </div>
+                <div class="mo-section">Atribuição</div>
+                <div class="fi-grid">
+                    <div>
+                        <label class="fl">Tipo de utilizador</label>
+                        <select class="fi fi-sel" x-model="userForm.role">
+                            <option value="agricultor">Agricultor</option>
+                            <option value="tecnico">Técnico</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="fl">Estado da conta</label>
+                        <select class="fi fi-sel" x-model="userForm.status">
+                            <option value="ativo">Ativo</option>
+                            <option value="inativo">Inativo</option>
+                        </select>
+                    </div>
+                </div>
+                <label class="fl">Fazenda associada</label>
+                <select class="fi fi-sel" x-model="userForm.farm">
+                    <option value="">Selecionar fazenda</option>
+                    <template x-for="f in farms" :key="f.id">
+                        <option :value="f.nome" x-text="f.nome"></option>
+                    </template>
+                </select>
+            </div>
+            <div class="mo-foot">
+                <button class="btn-cancel" @click="showUserModal=false">Cancelar</button>
+                <button class="btn-save" @click="saveUser()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════
+     MODAL: FAZENDA
+══════════════════════════════════════ -->
+    <div class="mo" x-show="showFarmModal" x-cloak @click.self="showFarmModal=false">
+        <div class="mo-box">
+            <div class="mo-head">
+                <div class="mo-title" x-text="editingFarm ? '✏️ Editar Fazenda' : '＋ Nova Fazenda'"></div>
+                <button class="mo-close" @click="showFarmModal=false">✕</button>
+            </div>
+            <div class="mo-body">
+                <label class="fl">Nome da fazenda</label>
+                <input class="fi" type="text" placeholder="Ex: Fazenda Principal" x-model="farmForm.nome">
+                <div class="fi-grid">
+                    <div>
+                        <label class="fl">Dono da fazenda</label>
+                        <input class="fi" type="text" placeholder="Nome do dono" x-model="farmForm.proprietario">
+                    </div>
+                    <div>
+                        <label class="fl">Localização</label>
+                        <input class="fi" type="text" placeholder="Ex: Maputo Norte" x-model="farmForm.localizacao">
+                    </div>
+                </div>
+                <div class="fi-grid">
+                    <div>
+                        <label class="fl">Tamanho da área</label>
+                        <input class="fi" type="text" placeholder="Ex: 45" type="number" min="0" step="0.1"
+                            x-model="farmForm.hectares">
+                    </div>
+                    <div>
+                        <label class="fl">Tipo de cultura</label>
+                        <select class="fi fi-sel" x-model="farmForm.cultura">
+                            <option value="">Selecionar</option>
+                            <option>Milho</option>
+                            <option>Soja</option>
+                            <option>Feijão</option>
+                            <option>Arroz</option>
+                            <option>Mandioca</option>
+                            <option>Hortícolas</option>
+                            <option>Outro</option>
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+            <div class="mo-foot">
+                <button class="btn-cancel" @click="showFarmModal=false">Cancelar</button>
+                <button class="btn-save" @click="saveFarm()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════
+     MODAL: SENSOR
+══════════════════════════════════════ -->
+    <div class="mo" x-show="showSensorModal" x-cloak @click.self="showSensorModal=false">
+        <div class="mo-box">
+            <div class="mo-head">
+                <div class="mo-title" x-text="editingSensor ? '✏️ Editar Sensor' : '＋ Novo Sensor'"></div>
+                <button class="mo-close" @click="showSensorModal=false">✕</button>
+            </div>
+            <div class="mo-body">
+                <div class="fi-grid">
+                    <div>
+                        <label class="fl">Nome do sensor</label>
+                        <input class="fi" type="text" placeholder="Ex: Sensor Solo A1" x-model="sensorForm.name">
+                    </div>
+                    <div>
+                        <label class="fl">Código do sensor</label>
+                        <input class="fi" type="text" placeholder="Ex: SN-001" x-model="sensorForm.code">
+                    </div>
+                </div>
+                <label class="fl">Tipo de sensor</label>
+                <select class="fi fi-sel" x-model="sensorForm.type">
+                    <option value="humidity">💧 Humidade do Solo</option>
+                    <option value="temperature">🌡 Temperatura do Solo</option>
+                    <option value="ph">⚗️ pH do Solo</option>
+                    <option value="nutrients">🌿 Nutrientes do Solo</option>
+                </select>
+                <div class="fi-grid">
+                    <div>
+                        <label class="fl">Fazenda</label>
+                        <select class="fi fi-sel" x-model="sensorForm.farm">
+                            <option value="">Selecionar</option>
+                            <template x-for="f in farms" :key="f.id">
+                                <option :value="f.nome" x-text="f.nome"></option>
+                            </template>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="fl">Área da fazenda</label>
+                        <input class="fi" type="text" placeholder="Ex: Setor A" x-model="sensorForm.area">
+                    </div>
+                </div>
+                <div class="fi-grid">
+                    <div>
+                        <label class="fl">Data de instalação</label>
+                        <input class="fi" type="date" x-model="sensorForm.installedAt">
+                    </div>
+                    <div>
+                        <label class="fl">Estado do sensor</label>
+                        <select class="fi fi-sel" x-model="sensorForm.status">
+                            <option value="online">Online</option>
+                            <option value="warn">Aviso</option>
+                            <option value="offline">Offline</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="mo-foot">
+                <button class="btn-cancel" @click="showSensorModal=false">Cancelar</button>
+                <button class="btn-save" @click="saveSensor()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════
+     MODAL: RECOMENDAÇÃO
+══════════════════════════════════════ -->
+    <div class="mo" x-show="showRecommModal" x-cloak @click.self="showRecommModal=false">
+        <div class="mo-box">
+            <div class="mo-head">
+                <div class="mo-title" x-text="editingRecomm ? '✏️ Editar Recomendação' : '＋ Nova Recomendação'"></div>
+                <button class="mo-close" @click="showRecommModal=false">✕</button>
+            </div>
+            <div class="mo-body">
+                <label class="fl">Título</label>
+                <input class="fi" type="text" placeholder="Ex: Irrigar o solo urgente" x-model="recommForm.title">
+                <label class="fl">Problema identificado</label>
+                <input class="fi" type="text" placeholder="Ex: Humidade abaixo de 30%" x-model="recommForm.problem">
+                <label class="fl">Sugestão</label>
+                <textarea class="fi" rows="3" placeholder="Descreva a ação recomendada..."
+                    x-model="recommForm.suggestion" style="resize:vertical"></textarea>
+                <div class="fi-grid">
+                    <div>
+                        <label class="fl">Área afetada</label>
+                        <input class="fi" type="text" placeholder="Ex: Setor A - Fazenda Norte"
+                            x-model="recommForm.area">
+                    </div>
+                    <div>
+                        <label class="fl">Prioridade</label>
+                        <select class="fi fi-sel" x-model="recommForm.priority">
+                            <option value="Alta">🔴 Alta</option>
+                            <option value="Média">🟡 Média</option>
+                            <option value="Baixa">🟢 Baixa</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="mo-foot">
+                <button class="btn-cancel" @click="showRecommModal=false">Cancelar</button>
+                <button class="btn-save" @click="saveRecomm()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" x-show="toast.show" x-cloak :class="toast.type" x-text="toast.msg" style="transition:opacity .3s"
+        :style="toast.show?'opacity:1':'opacity:0'"></div>
+
+    <script>
+        function farmAdmin() {
+            return {
+                tab: 'dashboard',
+                adminName: 'Admin Fazenda',
+                loading: true,
+                toast: { show: false, msg: '', type: 'success' },
+
+                tabTitles: {
+                    dashboard: 'Dashboard', users: 'Utilizadores', farms: 'Fazendas',
+                    sensors: 'Sensores', soil: 'Estado do Solo', map: 'Mapa da Fazenda',
+                    alerts: 'Alertas', reports: 'Relatórios', recomm: 'Recomendações'
+                },
+
+
+                sensors: [
+                    { id: 1, name: 'Sensor Humidade A1', type: 'humidity', code: 'SN-H001', farm: 'Fazenda Principal', area: 'Setor A', installedAt: '2024-01-15', status: 'online', lastData: 'há 2 min' },
+                    { id: 2, name: 'Sensor Temperatura B1', type: 'temperature', code: 'SN-T001', farm: 'Fazenda Principal', area: 'Setor B', installedAt: '2024-01-15', status: 'online', lastData: 'há 5 min' },
+                    { id: 3, name: 'Sensor pH A1', type: 'ph', code: 'SN-P001', farm: 'Fazenda Norte', area: 'Setor A', installedAt: '2024-02-10', status: 'warn', lastData: 'há 1 hora' },
+                    { id: 4, name: 'Sensor Nutrientes A1', type: 'nutrients', code: 'SN-N001', farm: 'Fazenda Norte', area: 'Setor B', installedAt: '2024-02-10', status: 'offline', lastData: 'há 2 dias' },
+                    { id: 5, name: 'Sensor Humidade C1', type: 'humidity', code: 'SN-H002', farm: 'Fazenda Sul', area: 'Setor C', installedAt: '2024-03-01', status: 'online', lastData: 'há 3 min' },
+                    { id: 6, name: 'Sensor Temperatura C1', type: 'temperature', code: 'SN-T002', farm: 'Fazenda Sul', area: 'Setor C', installedAt: '2024-03-01', status: 'online', lastData: 'há 3 min' },
+                ],
+
+                soilData: [
+                    { id: 1, farm: 'Fazenda Principal', area: 'Setor A', humidity: 62, temperature: 24, ph: 6.8, nutrients: 'Bom', lastUpdate: 'há 2 min' },
+                    { id: 2, farm: 'Fazenda Principal', area: 'Setor B', humidity: 38, temperature: 27, ph: 5.9, nutrients: 'Médio', lastUpdate: 'há 5 min' },
+                    { id: 3, farm: 'Fazenda Norte', area: 'Setor A', humidity: 71, temperature: 31, ph: 7.2, nutrients: 'Baixo', lastUpdate: 'há 1 hora' },
+                    { id: 4, farm: 'Fazenda Sul', area: 'Setor C', humidity: 55, temperature: 22, ph: 6.5, nutrients: 'Bom', lastUpdate: 'há 3 min' },
+                ],
+
+                alerts: [
+                    { id: 1, type: 'Solo muito seco', message: 'Humidade do solo abaixo de 35% no Setor B', location: 'Fazenda Principal — Setor B', sensor: 'SN-H001', date: '12/03/2026', severity: 'alto', read: false },
+                    { id: 2, type: 'Falta de nutrientes', message: 'Nível de nutrientes crítico detectado', location: 'Fazenda Norte — Setor A', sensor: 'SN-N001', date: '12/03/2026', severity: 'alto', read: false },
+                    { id: 3, type: 'Sensor sem dados', message: 'Sensor SN-N001 não envia dados há 2 dias', location: 'Fazenda Norte — Setor B', sensor: 'SN-N001', date: '11/03/2026', severity: 'medio', read: false },
+                    { id: 4, type: 'pH elevado', message: 'pH do solo acima do ideal (7.2)', location: 'Fazenda Norte — Setor A', sensor: 'SN-P001', date: '11/03/2026', severity: 'medio', read: true },
+                    { id: 5, type: 'Temperatura alta', message: 'Temperatura do solo acima de 30°C', location: 'Fazenda Norte — Setor A', sensor: 'SN-T001', date: '10/03/2026', severity: 'baixo', read: true },
+                ],
+
+                reports: [
+                    { id: 1, title: 'Relatório Solo - Fazenda Principal', farm: 'Fazenda Principal', period: 'Últimos 30 dias', createdAt: '12/03/2026', type: 'Solo' },
+                    { id: 2, title: 'Relatório Sensores - Fazenda Norte', farm: 'Fazenda Norte', period: 'Últimos 7 dias', createdAt: '10/03/2026', type: 'Sensores' },
+                ],
+
+                recommendations: [
+                    { id: 1, title: 'Irrigar o solo urgente', problem: 'Humidade abaixo de 35% no Setor B', suggestion: 'Ativar o sistema de irrigação por 2 horas entre as 06h-08h para elevar a humidade para 55-65%.', area: 'Fazenda Principal — Setor B', priority: 'Alta' },
+                    { id: 2, title: 'Aplicar fertilizante NPK', problem: 'Baixo nível de nutrientes no Setor A', suggestion: 'Aplicar fertilizante NPK 10-10-10 na dosagem de 200kg/ha. Reavaliar após 7 dias.', area: 'Fazenda Norte — Setor A', priority: 'Alta' },
+                    { id: 3, title: 'Corrigir pH do solo', problem: 'pH acima do ideal (7.2)', suggestion: 'Aplicar enxofre elementar (2 t/ha) para reduzir o pH para a faixa ideal (6.0–6.8).', area: 'Fazenda Norte — Setor A', priority: 'Média' },
+                    { id: 4, name: '', title: 'Verificar sensor offline', problem: 'Sensor SN-N001 sem comunicação', suggestion: 'Verificar a bateria e conexão do sensor. Substituir se necessário.', area: 'Fazenda Norte — Setor B', priority: 'Média' },
+                ],
+
+                // ── DATA (carregado do backend) ──
+                users: [], farms: [], sensors: [], soilData: [], alerts: [], reports: [], recommendations: [],
+                stats: { activeUsers: 0, onlineSensors: 0, offlineSensors: 0, warnSensors: 0, unreadAlerts: 0, totalFarms: 0 },
+
+                // ── FILTERS ──
+                userSearch: '', userRoleFilter: '', userStatusFilter: '',
+                farmSearch: '', farmCultureFilter: '',
+                sensorSearch: '', sensorTypeFilter: '', sensorStatusFilter: '',
+                alertSearch: '', alertSeverityFilter: '',
+                recommSearch: '', recommPriorityFilter: '',
+
+                // ── MODALS ──
+                showUserModal: false, showFarmModal: false, showSensorModal: false, showRecommModal: false,
+                editingUser: null, editingFarm: null, editingSensor: null, editingRecomm: null,
+
+                userForm: { nome: '', email: '', password: '', role: 'agricultor' },
+                farmForm: { nome: '', proprietario: '', localizacao: '', hectares: '', cultura: '', status: 'active' },
+                sensorForm: { nome: '', tipo: 'Solo', fazenda_id: '', status: 'online', bateria: 100 },
+                recommForm: { title: '', problem: '', suggestion: '', area: '', priority: 'Média' },
+                reportForm: { farm: '', period: '30d', type: 'solo' },
+
+                mapInitialized: false,
+
+                // ── COMPUTED ──
+                get activeUsers() { return this.users.filter(u => u.is_active).length },
+                get onlineSensors() { return this.sensors.filter(s => s.status === 'online').length },
+                get offlineSensors() { return this.sensors.filter(s => s.status === 'offline').length },
+                get warnSensors() { return this.sensors.filter(s => s.status === 'warn').length },
+                get unreadAlerts() { return this.alerts.filter(a => !a.read).length },
+
+                get filteredUsers() {
+                    return this.users.filter(u => {
+                        const q = this.userSearch.toLowerCase();
+                        const m = !q || (u.nome.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
+                        const r = !this.userRoleFilter || u.role === this.userRoleFilter;
+                        const s = !this.userStatusFilter || (this.userStatusFilter === 'ativo' ? u.is_active : !u.is_active);
+                        return m && r && s;
+                    });
+                },
+                get filteredFarms() {
+                    return this.farms.filter(f => {
+                        const q = this.farmSearch.toLowerCase();
+                        const m = !q || (f.nome.toLowerCase().includes(q) || (f.localizacao || '').toLowerCase().includes(q));
+                        const c = !this.farmCultureFilter || f.cultura === this.farmCultureFilter;
+                        return m && c;
+                    });
+                },
+                get filteredSensors() {
+                    return this.sensors.filter(s => {
+                        const q = this.sensorSearch.toLowerCase();
+                        const m = !q || (s.nome.toLowerCase().includes(q) || (s.fazenda || '').toLowerCase().includes(q));
+                        const t = !this.sensorTypeFilter || s.tipo === this.sensorTypeFilter;
+                        const st = !this.sensorStatusFilter || s.status === this.sensorStatusFilter;
+                        return m && t && st;
+                    });
+                },
+                get filteredAlerts() {
+                    return this.alerts.filter(a => {
+                        const q = this.alertSearch.toLowerCase();
+                        const m = !q || ((a.tipo || a.type || '').toLowerCase().includes(q) || (a.mensagem || a.message || '').toLowerCase().includes(q));
+                        const s = !this.alertSeverityFilter || a.severidade === this.alertSeverityFilter || a.severity === this.alertSeverityFilter;
+                        return m && s;
+                    });
+                },
+                get filteredRecomm() {
+                    return this.recommendations.filter(r => {
+                        const q = this.recommSearch.toLowerCase();
+                        const m = !q || ((r.title || '').toLowerCase().includes(q) || (r.problem || '').toLowerCase().includes(q));
+                        const p = !this.recommPriorityFilter || r.priority === this.recommPriorityFilter;
+                        return m && p;
+                    });
+                },
+
+                // ── HELPERS ──
+                initials(nome) { return (nome || '?').split(' ').map(p => p[0]).join('').substring(0, 2).toUpperCase(); },
+                roleLabel(r) { return { superadmin: 'Super Admin', admin: 'Administrador', agricultor: 'Agricultor', tecnico: 'Técnico' }[r] || r; },
+                sensorTypeIcon(t) { const m = { Solo: '💧', Clima: '🌡', GPS: '📍', Câmara: '📷' }; return m[t] || '🔧'; },
+                soilStatus(d) {
+                    const bad = d.humidade_solo < 30 || d.temperatura_ar > 38;
+                    const warn = d.humidade_solo < 45 || d.temperatura_ar > 32;
+                    return bad ? 'Crítico' : warn ? 'Atenção' : 'Bom';
+                },
+                fmtDate(d) { try { return new Date(d).toLocaleString('pt-PT'); } catch (e) { return d || '—'; } },
+
+                notify(msg, type = 'success') {
+                    this.toast = { show: true, msg, type };
+                    setTimeout(() => { this.toast.show = false; }, 3000);
+                },
+
+                // ── INIT ──
+                async init() {
+                    // Carregar nome do utilizador do token
+                    try {
+                        const stored = localStorage.getItem('agrocaua_user');
+                        if (stored) { const u = JSON.parse(stored); this.adminName = u.nome || 'Admin'; }
+                    } catch (e) { }
+
+                    await Promise.all([
+                        this.loadUsers(),
+                        this.loadFarms(),
+                        this.loadSensors(),
+                        this.loadAlerts(),
+                        this.loadSoilData(),
+                    ]);
+
+                    // Recomendações geradas automaticamente a partir dos dados do solo
+                    this.buildRecommendations();
+                    this.loading = false;
+
+                    this.$watch('tab', val => {
+                        if (val === 'soil' || val === 'reports') this.$nextTick(() => this.initCharts());
+                        if (val === 'map') this.$nextTick(() => this.initMap());
+                    });
+                },
+
+                // ── LOADERS ──
+                async loadUsers() {
+                    try {
+                        const r = await API.admin.getUsers();
+                        if (r.ok) this.users = await r.json();
+                    } catch (e) { console.error('loadUsers', e); }
+                },
+                async loadFarms() {
+                    try {
+                        const r = await API.admin.getFazendas();
+                        if (r.ok) this.farms = await r.json();
+                    } catch (e) { console.error('loadFarms', e); }
+                },
+                async loadSensors() {
+                    try {
+                        const r = await API.admin.getSensores();
+                        if (r.ok) this.sensors = await r.json();
+                    } catch (e) { console.error('loadSensors', e); }
+                },
+                async loadAlerts() {
+                    try {
+                        const r = await API.getAlertas();
+                        if (r.ok) {
+                            const data = await r.json();
+                            this.alerts = data.map(a => ({
+                                ...a, read: false,
+                                type: a.tipo, message: a.mensagem,
+                                severity: a.severidade === 'crítico' ? 'alto' : 'medio'
+                            }));
+                        }
+                    } catch (e) { console.error('loadAlerts', e); }
+                },
+                async loadSoilData() {
+                    try {
+                        const r = await API.getAllData();
+                        if (r.ok) {
+                            const data = await r.json();
+                            // Últimas leituras por device_id
+                            const seen = new Set();
+                            this.soilData = data.filter(d => { if (seen.has(d.device_id)) return false; seen.add(d.device_id); return true; })
+                                .map(d => ({
+                                    id: d.id,
+                                    farm: d.localizacao || d.device_id,
+                                    area: d.device_id,
+                                    humidity: d.solo?.humidade ?? d.humidade_solo ?? null,
+                                    temperature: d.bme280?.temperatura ?? d.temperatura_ar ?? null,
+                                    ph: 6.5,
+                                    nutrients: 'Bom',
+                                    lastUpdate: this.fmtDate(d.timestamp)
+                                }));
+                        }
+                    } catch (e) { console.error('loadSoilData', e); }
+                },
+
+                buildRecommendations() {
+                    const recs = [];
+                    this.soilData.forEach(d => {
+                        if (d.humidity !== null && d.humidity < 35)
+                            recs.push({ id: Date.now() + Math.random(), title: 'Irrigar o solo — ' + d.farm, problem: `Humidade baixa: ${d.humidity?.toFixed(1)}%`, suggestion: 'Ativar o sistema de irrigação por 2 horas entre as 06h-08h para elevar a humidade para 55-65%.', area: d.farm + ' — ' + d.area, priority: 'Alta' });
+                        if (d.temperature !== null && d.temperature > 32)
+                            recs.push({ id: Date.now() + Math.random(), title: 'Temperatura elevada — ' + d.farm, problem: `Temperatura: ${d.temperature?.toFixed(1)}°C`, suggestion: 'Verificar ventilação e considerar irrigação para arrefecer o solo.', area: d.farm + ' — ' + d.area, priority: 'Média' });
+                    });
+                    this.sensors.filter(s => s.status === 'offline').forEach(s => {
+                        recs.push({ id: Date.now() + Math.random(), title: 'Sensor offline — ' + s.nome, problem: `Sensor "${s.nome}" sem comunicação`, suggestion: 'Verificar a bateria e conexão do sensor. Substituir se necessário.', area: s.fazenda || '—', priority: 'Média' });
+                    });
+                    if (recs.length === 0)
+                        recs.push({ id: 1, title: 'Sistema a funcionar normalmente', problem: 'Sem problemas detectados', suggestion: 'Continuar a monitorizar regularmente os sensores e dados do solo.', area: 'Todas as fazendas', priority: 'Baixa' });
+                    this.recommendations = recs;
+                },
+
+                // ── UTILIZADORES ──
+                openUserModal(u) {
+                    this.editingUser = u;
+                    this.userForm = u ? { nome: u.nome, email: u.email, password: '', role: u.role } : { nome: '', email: '', password: '', role: 'agricultor' };
+                    this.showUserModal = true;
+                },
+                async saveUser() {
+                    if (!this.userForm.nome || !this.userForm.email) { this.notify('Preencha nome e email.', 'error'); return; }
+                    try {
+                        let r;
+                        if (this.editingUser) {
+                            const payload = { nome: this.userForm.nome, role: this.userForm.role };
+                            if (this.userForm.password) payload.password = this.userForm.password;
+                            r = await API.admin.updateUser(this.editingUser.id, payload);
+                        } else {
+                            if (!this.userForm.password) { this.notify('Palavra-passe obrigatória para novo utilizador.', 'error'); return; }
+                            r = await API.admin.createUser(this.userForm);
+                        }
+                        if (r.ok) {
+                            await this.loadUsers();
+                            this.notify(this.editingUser ? 'Utilizador actualizado!' : 'Utilizador criado!');
+                            this.showUserModal = false;
+                        } else {
+                            const e = await r.json();
+                            this.notify(e.erro || 'Erro ao guardar utilizador.', 'error');
+                        }
+                    } catch (e) { this.notify('Erro de ligação ao servidor.', 'error'); }
+                },
+                async toggleUserStatus(u) {
+                    await API.admin.updateUser(u.id, { is_active: !u.is_active });
+                    await this.loadUsers();
+                    this.notify('Estado actualizado.');
+                },
+                async deleteUser(id) {
+                    if (!confirm('Remover utilizador permanentemente?')) return;
+                    const r = await API.admin.deleteUser(id);
+                    if (r.ok) { await this.loadUsers(); this.notify('Utilizador removido.'); }
+                    else this.notify('Erro ao remover utilizador.', 'error');
+                },
+
+                // ── FAZENDAS ──
+                openFarmModal(f) {
+                    this.editingFarm = f;
+                    this.farmForm = f ? { nome: f.nome, proprietario: f.proprietario, localizacao: f.localizacao, hectares: f.hectares, cultura: f.cultura, status: f.status }
+                        : { nome: '', proprietario: '', localizacao: '', hectares: '', cultura: '', status: 'active' };
+                    this.showFarmModal = true;
+                },
+                async saveFarm() {
+                    if (!this.farmForm.nome) { this.notify('Digite o nome da fazenda.', 'error'); return; }
+                    try {
+                        const r = this.editingFarm
+                            ? await API.admin.updateFazenda(this.editingFarm.id, this.farmForm)
+                            : await API.admin.createFazenda(this.farmForm);
+                        if (r.ok) {
+                            await this.loadFarms();
+                            this.notify(this.editingFarm ? 'Fazenda actualizada!' : 'Fazenda criada!');
+                            this.showFarmModal = false;
+                        } else {
+                            const e = await r.json();
+                            this.notify(e.erro || 'Erro ao guardar fazenda.', 'error');
+                        }
+                    } catch (e) { this.notify('Erro de ligação ao servidor.', 'error'); }
+                },
+                async deleteFarm(id) {
+                    if (!confirm('Remover fazenda permanentemente?')) return;
+                    const r = await API.admin.deleteFazenda(id);
+                    if (r.ok) { await this.loadFarms(); this.notify('Fazenda removida.'); }
+                    else this.notify('Erro ao remover fazenda.', 'error');
+                },
+
+                // ── SENSORES ──
+                openSensorModal(s) {
+                    this.editingSensor = s;
+                    this.sensorForm = s ? { nome: s.nome, tipo: s.tipo, fazenda_id: s.fazenda_id, status: s.status, bateria: s.bateria }
+                        : { nome: '', tipo: 'Solo', fazenda_id: '', status: 'online', bateria: 100 };
+                    this.showSensorModal = true;
+                },
+                async saveSensor() {
+                    if (!this.sensorForm.nome) { this.notify('Preencha o nome do sensor.', 'error'); return; }
+                    try {
+                        const r = this.editingSensor
+                            ? await API.admin.updateSensor(this.editingSensor.id, this.sensorForm)
+                            : await API.admin.createSensor(this.sensorForm);
+                        if (r.ok) {
+                            await this.loadSensors();
+                            this.notify(this.editingSensor ? 'Sensor actualizado!' : 'Sensor registado!');
+                            this.showSensorModal = false;
+                        } else {
+                            const e = await r.json();
+                            this.notify(e.erro || 'Erro ao guardar sensor.', 'error');
+                        }
+                    } catch (e) { this.notify('Erro de ligação ao servidor.', 'error'); }
+                },
+                async deleteSensor(id) {
+                    if (!confirm('Remover sensor permanentemente?')) return;
+                    const r = await API.admin.deleteSensor(id);
+                    if (r.ok) { await this.loadSensors(); this.notify('Sensor removido.'); }
+                    else this.notify('Erro ao remover sensor.', 'error');
+                },
+
+                // ── ALERTAS ──
+                markAlertRead(a) { a.read = true; this.notify('Alerta marcado como lido.'); },
+                markAllAlertsRead() { this.alerts.forEach(a => a.read = true); this.notify('Todos os alertas marcados como lidos.'); },
+
+                // ── RELATÓRIOS ──
+                generateReport() {
+                    if (!this.reportForm.farm) { this.notify('Selecione uma fazenda.', 'error'); return; }
+                    const types = { solo: 'Solo', sensores: 'Sensores', alertas: 'Alertas', completo: 'Completo' };
+                    const periods = { '7d': '7 dias', '30d': '30 dias', '3m': '3 meses', '6m': '6 meses', '1y': '1 ano' };
+                    this.reports.unshift({
+                        id: Date.now(),
+                        title: `Relatório ${types[this.reportForm.type] || 'Geral'} — ${this.reportForm.farm}`,
+                        farm: this.reportForm.farm,
+                        period: 'Últimos ' + periods[this.reportForm.period],
+                        createdAt: new Date().toLocaleDateString('pt-PT'),
+                        type: types[this.reportForm.type] || 'Geral'
+                    });
+                    this.notify('Relatório gerado com sucesso!');
+                },
+                exportReport() { this.notify('A exportar dados para CSV...'); },
+                exportSingleReport(r) { this.notify(`A exportar "${r.title}"...`); },
+
+                // ── RECOMENDAÇÕES ──
+                openRecommModal(r) {
+                    this.editingRecomm = r;
+                    this.recommForm = r ? { ...r } : { title: '', problem: '', suggestion: '', area: '', priority: 'Média' };
+                    this.showRecommModal = true;
+                },
+                saveRecomm() {
+                    if (!this.recommForm.title) { this.notify('Digite o título.', 'error'); return; }
+                    if (this.editingRecomm) {
+                        const i = this.recommendations.findIndex(r => r.id === this.editingRecomm.id);
+                        this.recommendations[i] = { ...this.recommendations[i], ...this.recommForm };
+                    } else {
+                        this.recommendations.push({ ...this.recommForm, id: Date.now() });
+                    }
+                    this.notify(this.editingRecomm ? 'Recomendação actualizada!' : 'Recomendação criada!');
+                    this.showRecommModal = false;
+                },
+                deleteRecomm(id) {
+                    if (confirm('Remover recomendação?')) {
+                        this.recommendations = this.recommendations.filter(r => r.id !== id);
+                        this.notify('Recomendação removida.');
+                    }
+                },
+
+                // ── MAPA ──
+                initMap() {
+                    if (this.mapInitialized) return;
+                    const mapEl = document.getElementById('farmMap');
+                    if (!mapEl || typeof L === 'undefined') return;
+                    const centerLat = -8.8368, centerLon = 13.2343; // Angola, Luanda
+                    const map = L.map('farmMap').setView([centerLat, centerLon], 12);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '© OpenStreetMap', maxZoom: 19
+                    }).addTo(map);
+
+                    const colors = { online: '#2E8B57', warn: '#f59e0b', offline: '#ef4444' };
+                    this.sensors.forEach((s, i) => {
+                        const lat = centerLat + (i * .015) - .03;
+                        const lng = centerLon + (i * .015) - .03;
+                        L.circleMarker([lat, lng], {
+                            radius: 10, fillColor: colors[s.status] || '#9ca3af',
+                            color: 'white', weight: 2, opacity: 1, fillOpacity: .9
+                        }).addTo(map).bindPopup(`<b>${s.nome}</b><br>Fazenda: ${s.fazenda || '—'}<br>Tipo: ${s.tipo}<br>Estado: <b>${s.status}</b>`);
+                    });
+                    this.farms.forEach((f, i) => {
+                        const lat = centerLat - .04 + (i * .025);
+                        const lng = centerLon - .04 + (i * .025);
+                        L.marker([lat, lng]).addTo(map).bindPopup(`<b>🌾 ${f.nome}</b><br>Local: ${f.localizacao || '—'}<br>Área: ${f.hectares || '—'} ha<br>Cultura: ${f.cultura || '—'}`);
+                    });
+                    this.mapInitialized = true;
+                },
+
+                // ── GRÁFICOS ──
+                initCharts() {
+                    const soilLabels = this.soilData.map(d => (d.farm || '').substring(0, 12) + '…');
+                    const humCtx = document.getElementById('humChart');
+                    if (humCtx && !humCtx._chart) {
+                        humCtx._chart = new Chart(humCtx, {
+                            type: 'bar',
+                            data: {
+                                labels: soilLabels, datasets: [{
+                                    label: 'Humidade (%)', data: this.soilData.map(d => d.humidity ?? 0),
+                                    backgroundColor: this.soilData.map(d => (d.humidity ?? 50) < 40 ? 'rgba(239,68,68,.7)' : 'rgba(16,185,129,.7)'), borderRadius: 6
+                                }]
+                            },
+                            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { min: 0, max: 100, ticks: { callback: v => v + '%' } } } }
+                        });
+                    }
+                    const tCtx = document.getElementById('tempChart');
+                    if (tCtx && !tCtx._chart) {
+                        tCtx._chart = new Chart(tCtx, {
+                            type: 'bar',
+                            data: {
+                                labels: soilLabels, datasets: [{
+                                    label: 'Temperatura (°C)', data: this.soilData.map(d => d.temperature ?? 0),
+                                    backgroundColor: this.soilData.map(d => (d.temperature ?? 20) > 32 ? 'rgba(239,68,68,.7)' : 'rgba(59,130,246,.7)'), borderRadius: 6
+                                }]
+                            },
+                            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { callback: v => v + '°C' } } } }
+                        });
+                    }
+                    const hCtx = document.getElementById('histChart');
+                    if (hCtx && !hCtx._chart) {
+                        const days = Array.from({ length: 10 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() - 9 + i); return d.getDate() + '/' + (d.getMonth() + 1); });
+                        hCtx._chart = new Chart(hCtx, {
+                            type: 'line',
+                            data: {
+                                labels: days, datasets: [{
+                                    label: 'Humidade média (%)',
+                                    data: this.soilData.length > 0
+                                        ? days.map((_, i) => { const base = this.soilData[0].humidity ?? 55; return Math.round(base + (Math.random() * 10 - 5)); })
+                                        : days.map(() => 55),
+                                    borderColor: '#2E8B57', backgroundColor: 'rgba(46,139,87,.1)', tension: .4, fill: true
+                                }]
+                            },
+                            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, scales: { y: { min: 0, max: 100, ticks: { callback: v => v + '%' } } } }
+                        });
+                    }
+                },
+            }
+        }
+    </script>
+</body>
+
+</html>

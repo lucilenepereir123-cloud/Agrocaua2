@@ -1,0 +1,523 @@
+{% extends "base.html" %}
+
+{% block title %}Alertas - AgroCaua{% endblock %}
+
+{% block page_title %}Alertas e Notificações{% endblock %}
+{% block page_icon %}<i class="icon-alert-circle text-red-600"></i>{% endblock %}
+{% block page_subtitle %}Histórico e gestão em tempo real dos alertas operacionais do sistema{% endblock %}
+
+{% block content %}
+
+<!-- Alert Summary Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="kpi-card group cursor-pointer hover:border-red-300 red" id="cardCritico">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-red-600 uppercase tracking-widest mb-2 flex items-center gap-2">
+                <span class="live-dot red" id="dotCritico" style="display:none"></span>Alertas Críticos
+            </p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-red-900" id="kpiCritico">--</p>
+                <p class="text-sm font-600 text-red-600">Ação imediata</p>
+            </div>
+        </div>
+        <div class="kpi-icon-wrapper bg-red-100 group-hover:scale-110 transition-transform">
+            <i class="icon-alert-triangle text-red-600 text-2xl"></i>
+        </div>
+    </div>
+    <div class="kpi-card group cursor-pointer hover:border-yellow-300 amber" id="cardAviso">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                <span class="live-dot amber" id="dotAviso" style="display:none"></span>Avisos
+            </p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-gray-900" id="kpiAviso">--</p>
+                <p class="text-sm font-600 text-yellow-600">Atenção</p>
+            </div>
+        </div>
+        <div class="kpi-icon-wrapper bg-yellow-100 group-hover:scale-110 transition-transform">
+            <i class="icon-alert-circle text-yellow-600 text-2xl"></i>
+        </div>
+    </div>
+    <div class="kpi-card group cursor-pointer hover:border-blue-300 blue" id="cardInfo">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                <span class="live-dot blue" id="dotInfo" style="display:none"></span>Informações
+            </p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-gray-900" id="kpiInfo">--</p>
+                <p class="text-sm font-600 text-blue-600">Informativo</p>
+            </div>
+        </div>
+        <div class="kpi-icon-wrapper bg-blue-100 group-hover:scale-110 transition-transform">
+            <i class="icon-info text-blue-600 text-2xl"></i>
+        </div>
+    </div>
+    <div class="kpi-card group cursor-pointer hover:border-gray-300" id="cardTotal">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                <span class="live-dot" id="dotTotal" style="display:none"></span>Total (7 dias)
+            </p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-gray-900" id="kpiTotal">--</p>
+            </div>
+        </div>
+        <div class="kpi-icon-wrapper bg-gray-100 group-hover:scale-110 transition-transform">
+            <i class="icon-clock text-gray-600 text-2xl"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <div class="card chart-container group hover:shadow-xl hover:border-green-200 transition-all duration-300">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <i class="icon-pie-chart text-green-600 text-xl"></i>
+                Alertas por Tipo
+            </h3>
+        </div>
+        <div style="height:220px;position:relative;">
+            <canvas id="alertsTypeChart"></canvas>
+        </div>
+    </div>
+    <div class="card chart-container group hover:shadow-xl hover:border-blue-200 transition-all duration-300">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <i class="icon-bar-chart-2 text-blue-600 text-xl"></i>
+                Volume por Dia (Últimos 7 dias)
+            </h3>
+        </div>
+        <div style="height:220px;position:relative;">
+            <canvas id="alertsVolumeChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     PAINEL DE RECOMENDAÇÕES ML — posição proeminente
+     ═══════════════════════════════════════════════════════ -->
+<div class="rec-panel mb-8">
+    <div class="rec-banner" id="mlRecomBanner">
+        <div class="rec-banner-left">
+            <div class="rec-banner-icon" data-rec-icon>🤖</div>
+            <div class="rec-banner-text">
+                <div class="rec-banner-eyebrow">Inteligência Artificial — ML AgroCaua</div>
+                <div class="rec-banner-title" data-rec-title>A carregar análise...</div>
+                <div class="rec-banner-subtitle" data-rec-subtitle>Aguarde enquanto o modelo analisa os dados dos
+                    sensores.</div>
+            </div>
+        </div>
+        <div class="rec-banner-right">
+            <span id="mlRecomBadge" class="rec-nivel-badge hidden"></span>
+            <button onclick="carregarRecomendacoesML()" class="rec-refresh-btn">
+                <i class="icon-refresh-cw" id="mlRecomSpinner"></i> Actualizar
+            </button>
+        </div>
+    </div>
+    <div class="rec-lista" id="mlRecomLista">
+        <div class="rec-loading">
+            <div class="rec-spinner"></div>
+            <p>A consultar o modelo de Machine Learning...</p>
+        </div>
+    </div>
+</div>
+<!-- Active Alerts Section -->
+<div class="card mb-8">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <i class="icon-alert-circle text-red-600 text-xl"></i>
+            Alertas Ativos
+        </h3>
+        <button onclick="fetchAlertas()" class="btn btn-sm btn-secondary">
+            <i class="icon-refresh-cw text-lg"></i>
+            Atualizar
+        </button>
+    </div>
+    <div id="activeAlertsList" class="space-y-3">
+        <div class="text-center py-8 text-gray-400">
+            <i class="icon-loader text-3xl mb-2 animate-spin"></i>
+            <p>Carregando alertas...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Alert History Table -->
+<div class="card group hover:shadow-lg transition-all duration-300">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <i class="icon-history text-green-600 text-xl"></i>
+            Histórico de Alertas
+        </h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b border-gray-200 bg-gray-50">
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Tipo</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Mensagem</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Severidade</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Data/Hora</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Status</th>
+                </tr>
+            </thead>
+            <tbody id="alertsHistoryBody">
+                <tr>
+                    <td colspan="5" class="text-center py-6 text-gray-400">Carregando...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Action Modal -->
+<div id="actionModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6">
+        <div id="actionModalContent"></div>
+        <button onclick="closeActionModal()" class="mt-4 w-full btn btn-secondary">Fechar</button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    // ── Agronomic action map by alert type ──
+    const ALERT_ACTIONS = {
+        'Solo': { icon: '💧', label: 'Ligar Bomba de Irrigação', color: 'blue', tip: 'Humidade crítica. Irrigue imediatamente e monitore por 2h. Mantenha humidade entre 40-70%. Evite encharcar — excesso causa apodrecimento radicular.' },
+        'Praga': { icon: '🐛', label: 'Aplicar Pesticida', color: 'red', tip: 'Praga detectada. Use pesticida biológico (neem) ou químico conforme a espécie. Aplique ao amanhecer ou ao entardecer. Repita em 7 dias se persistir.' },
+        'Clima': { icon: '🌡️', label: 'Instalar Sombrite / Proteção', color: 'orange', tip: 'Temperatura elevada. Instale sombrite 50% ou regue foliar às 7h/17h. Para frio abaixo de 15°C: cubra mudas com agrotêxtil ou plástico.' },
+        'Sensor': { icon: '🔧', label: 'Verificar Sensor', color: 'gray', tip: 'Sensor offline. Verifique a alimentação elétrica, conexão Wi-Fi e integridade física do dispositivo. Limpe os terminais e reinicie o sensor.' },
+        'default': { icon: '⚠️', label: 'Ver Detalhes', color: 'yellow', tip: 'Analise o alerta e tome as medidas necessárias conforme a situação.' }
+    };
+
+    const alertasState = { charts: {}, data: [], refreshInterval: null };
+
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.color = '#6B7280';
+
+    function getAction(tipo) {
+        return ALERT_ACTIONS[tipo] || ALERT_ACTIONS['default'];
+    }
+
+    function severityStyle(sev) {
+        if (!sev) return { border: 'border-gray-200', bg: 'bg-gray-50', text: 'text-gray-900', badge: 'badge-info', icon: 'icon-info', iconColor: 'text-gray-500' };
+        const s = sev.toLowerCase();
+        if (s === 'crítico' || s === 'critico') return { border: 'border-red-200', bg: 'bg-red-50', text: 'text-red-900', badge: 'badge-danger', icon: 'icon-alert-triangle', iconColor: 'text-red-600' };
+        if (s === 'alto' || s === 'aviso') return { border: 'border-yellow-200', bg: 'bg-yellow-50', text: 'text-yellow-900', badge: 'badge-warning', icon: 'icon-alert-circle', iconColor: 'text-yellow-600' };
+        return { border: 'border-blue-200', bg: 'bg-blue-50', text: 'text-blue-900', badge: 'badge-info', icon: 'icon-info', iconColor: 'text-blue-600' };
+    }
+
+    function fmtTime(ts) {
+        if (!ts) return '--';
+        try {
+            const d = new Date(ts);
+            const diff = Math.floor((Date.now() - d) / 1000);
+            if (diff < 60) return 'Agora';
+            if (diff < 3600) return `Há ${Math.floor(diff / 60)} min`;
+            if (diff < 86400) return `Há ${Math.floor(diff / 3600)}h`;
+            return d.toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+        } catch { return ts; }
+    }
+
+    function renderActiveAlerts(alertas) {
+        const el = document.getElementById('activeAlertsList');
+        const active = alertas.filter(a => a.status === 'ativo' || !a.status);
+        if (!active.length) {
+            el.innerHTML = '<div class="text-center py-8 text-gray-400"><i class="icon-check-circle text-3xl mb-2 text-green-400"></i><p>Sem alertas ativos. Tudo OK!</p></div>';
+            return;
+        }
+        el.innerHTML = active.map(a => {
+            const st = severityStyle(a.severidade);
+            const act = getAction(a.tipo);
+            const btnColor = { blue: 'bg-blue-600 hover:bg-blue-700', red: 'bg-red-600 hover:bg-red-700', orange: 'bg-orange-500 hover:bg-orange-600', gray: 'bg-gray-600 hover:bg-gray-700', yellow: 'bg-yellow-500 hover:bg-yellow-600' }[act.color] || 'bg-green-600 hover:bg-green-700';
+            return `
+            <div class="alert-item border-2 ${st.border} ${st.bg} rounded-xl p-4 hover:shadow-md transition-all">
+                <div class="flex items-start gap-4">
+                    <div class="flex-shrink-0 mt-1">
+                        <i class="${st.icon} ${st.iconColor} text-2xl"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h4 class="font-semibold ${st.text}">${a.tipo || 'Alerta'} — ${a.mensagem || ''}</h4>
+                        <p class="text-sm text-gray-600 mt-1">${act.tip}</p>
+                        <div class="flex flex-wrap items-center gap-3 mt-3 text-xs text-gray-500">
+                            <span>⏱ ${fmtTime(a.timestamp || a.created_at)}</span>
+                            ${a.sensor_id ? `<span>📡 Sensor ${a.sensor_id}</span>` : ''}
+                            <span class="badge ${st.badge}">${a.severidade || 'info'}</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-2 flex-shrink-0">
+                        <button onclick="openActionModal(${JSON.stringify(a).replace(/"/g, '&quot;')})"
+                            class="text-white text-xs font-600 px-3 py-2 rounded-lg ${btnColor} transition-colors whitespace-nowrap">
+                            ${act.icon} ${act.label}
+                        </button>
+                        <button onclick="marcarLido(${a.id || 'null'}, this)"
+                            class="btn btn-sm btn-secondary text-green-600 hover:bg-green-100">
+                            ✓ Marcar como lido
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function renderHistoryTable(alertas) {
+        const tbody = document.getElementById('alertsHistoryBody');
+        if (!alertas.length) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-gray-400">Sem alertas no histórico</td></tr>';
+            return;
+        }
+        tbody.innerHTML = alertas.slice(0, 20).map(a => {
+            const st = severityStyle(a.severidade);
+            const statusBadge = a.status === 'ativo' ? 'badge-danger' : 'badge-info';
+            return `<tr class="border-b border-gray-100 hover:bg-gray-50">
+                <td class="py-3 px-4">${a.tipo || '--'}</td>
+                <td class="py-3 px-4 text-gray-700 max-w-xs truncate">${a.mensagem || '--'}</td>
+                <td class="py-3 px-4"><span class="badge ${st.badge}">${a.severidade || '--'}</span></td>
+                <td class="py-3 px-4 text-gray-500 text-xs">${fmtTime(a.timestamp || a.created_at)}</td>
+                <td class="py-3 px-4"><span class="badge ${statusBadge}">• ${a.status || 'ativo'}</span></td>
+            </tr>`;
+        }).join('');
+    }
+
+    function animateVal(id, text) {
+        const el = document.getElementById(id);
+        if (!el || el.textContent === text) return;
+        el.textContent = text;
+        el.classList.remove('kpi-value--updated');
+        void el.offsetWidth;
+        el.classList.add('kpi-value--updated');
+        setTimeout(() => el.classList.remove('kpi-value--updated'), 600);
+    }
+
+    function showLiveDot(id) {
+        const dot = document.getElementById(id);
+        if (dot) dot.style.display = 'inline-block';
+    }
+
+    function updateKPIs(alertas) {
+        const sev = (v) => (v || '').toLowerCase();
+        const critico = alertas.filter(a => ['crítico', 'critico'].includes(sev(a.severidade))).length;
+        const aviso = alertas.filter(a => ['alto', 'aviso'].includes(sev(a.severidade))).length;
+        const info = alertas.filter(a => ['medio', 'médio', 'info'].includes(sev(a.severidade))).length;
+        animateVal('kpiCritico', String(critico));
+        animateVal('kpiAviso', String(aviso));
+        animateVal('kpiInfo', String(info));
+        animateVal('kpiTotal', String(alertas.length));
+        // Activate live cards and dots
+        if (critico > 0) { document.getElementById('cardCritico')?.classList.add('kpi-card--live'); showLiveDot('dotCritico'); }
+        if (aviso > 0) { document.getElementById('cardAviso')?.classList.add('kpi-card--live'); showLiveDot('dotAviso'); }
+        if (info > 0) { document.getElementById('cardInfo')?.classList.add('kpi-card--live'); showLiveDot('dotInfo'); }
+        document.getElementById('cardTotal')?.classList.add('kpi-card--live');
+        showLiveDot('dotTotal');
+    }
+
+    function updateCharts(alertas) {
+        // Type distribution
+        const typeCounts = {};
+        alertas.forEach(a => { if (a.tipo) typeCounts[a.tipo] = (typeCounts[a.tipo] || 0) + 1; });
+
+        if (alertasState.charts.type) alertasState.charts.type.destroy();
+        alertasState.charts.type = new Chart(document.getElementById('alertsTypeChart'), {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(typeCounts).length ? Object.keys(typeCounts) : ['Sem dados'],
+                datasets: [{
+                    data: Object.keys(typeCounts).length ? Object.values(typeCounts) : [1],
+                    backgroundColor: ['rgba(239,68,68,0.8)', 'rgba(251,191,36,0.8)', 'rgba(59,130,246,0.8)', 'rgba(34,197,94,0.8)'],
+                    borderWidth: 2, hoverOffset: 8
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 } } } } }
+        });
+
+        // Volume by day
+        const days = [], critByDay = [], warnByDay = [];
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date(); d.setDate(d.getDate() - i);
+            const label = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'][d.getDay()];
+            const dayStr = d.toISOString().slice(0, 10);
+            days.push(label);
+            const dayAlerts = alertas.filter(a => (a.timestamp || a.created_at || '').startsWith(dayStr));
+            critByDay.push(dayAlerts.filter(a => ['crítico', 'critico'].includes((a.severidade || '').toLowerCase())).length);
+            warnByDay.push(dayAlerts.filter(a => ['alto', 'aviso'].includes((a.severidade || '').toLowerCase())).length);
+        }
+
+        if (alertasState.charts.volume) alertasState.charts.volume.destroy();
+        alertasState.charts.volume = new Chart(document.getElementById('alertsVolumeChart'), {
+            type: 'bar',
+            data: {
+                labels: days,
+                datasets: [
+                    { label: 'Crítico', data: critByDay, backgroundColor: 'rgba(239,68,68,0.8)', borderRadius: 4 },
+                    { label: 'Aviso', data: warnByDay, backgroundColor: 'rgba(251,191,36,0.8)', borderRadius: 4 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, beginAtZero: true } },
+                plugins: { legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 } } } }
+            }
+        });
+    }
+
+    async function fetchAlertas() {
+        try {
+            const res = await API.getAlertas();
+            if (!res.ok) throw new Error(res.status);
+            const data = await res.json();
+            alertasState.data = Array.isArray(data) ? data : (data.alertas || []);
+            updateKPIs(alertasState.data);
+            updateCharts(alertasState.data);
+            renderActiveAlerts(alertasState.data);
+            renderHistoryTable(alertasState.data);
+        } catch (err) {
+            console.error('[Alertas] Erro:', err);
+            document.getElementById('activeAlertsList').innerHTML = `
+                <div class="text-center py-8 text-gray-400">
+                    <i class="icon-wifi-off text-3xl mb-2"></i>
+                    <p>Erro ao carregar alertas. Verifique a ligação.</p>
+                </div>`;
+        }
+    }
+
+    async function marcarLido(id, btn) {
+        if (!id) { btn.closest('.alert-item').remove(); return; }
+        try {
+            await fetch(`/api/alertas/${id}/lido`, { method: 'PUT', headers: { Authorization: 'Bearer ' + localStorage.getItem('agrocaua_token') } });
+        } catch { }
+        btn.closest('.alert-item').style.opacity = '0.4';
+        setTimeout(() => btn.closest('.alert-item').remove(), 400);
+    }
+
+    function openActionModal(alerta) {
+        const act = getAction(alerta.tipo);
+        const btnColor = { blue: 'bg-blue-600', red: 'bg-red-600', orange: 'bg-orange-500', gray: 'bg-gray-600', yellow: 'bg-yellow-500' }[act.color] || 'bg-green-600';
+        document.getElementById('actionModalContent').innerHTML = `
+            <h3 class="text-lg font-bold text-gray-900 mb-2">${act.icon} ${act.label}</h3>
+            <p class="text-sm text-gray-600 mb-4">${act.tip}</p>
+            <div class="bg-gray-50 rounded-lg p-3 text-sm text-gray-700 mb-4">
+                <p><strong>Alerta:</strong> ${alerta.mensagem || '--'}</p>
+                <p><strong>Tipo:</strong> ${alerta.tipo || '--'} &nbsp;|&nbsp; <strong>Severidade:</strong> ${alerta.severidade || '--'}</p>
+            </div>
+            <button onclick="closeActionModal()" class="w-full text-white font-600 py-2 px-4 rounded-lg ${btnColor} hover:opacity-90 transition-opacity">
+                ${act.icon} Confirmar Ação
+            </button>`;
+        const modal = document.getElementById('actionModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function closeActionModal() {
+        const modal = document.getElementById('actionModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    document.getElementById('actionModal').addEventListener('click', function (e) {
+        if (e.target === this) closeActionModal();
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchAlertas();
+        carregarRecomendacoesML();
+        alertasState.refreshInterval = setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                fetchAlertas();
+                carregarRecomendacoesML();
+            }
+        }, 60000);
+    });
+
+    // ══════════════════════════════════════════════════════════
+    // PAINEL ML — lógica de carregamento e renderização
+    // ══════════════════════════════════════════════════════════
+
+    const ML_NIVEIS = {
+        'seguro': { cor: '#15803d', bg: 'linear-gradient(135deg,#14532d,#166534,#15803d)', borda: '#16a34a', icon: '✅', label: 'Sistema Seguro' },
+        'atenção': { cor: '#b45309', bg: 'linear-gradient(135deg,#78350f,#92400e,#b45309)', borda: '#d97706', icon: '👁️', label: 'Atenção Necessária' },
+        'alerta': { cor: '#b91c1c', bg: 'linear-gradient(135deg,#7f1d1d,#991b1b,#b91c1c)', borda: '#ef4444', icon: '⚠️', label: 'Estado de Alerta' },
+        'crítico': { cor: '#7c2d12', bg: 'linear-gradient(135deg,#431407,#7c2d12,#9a3412)', borda: '#f97316', icon: '🚨', label: 'ACÇÃO URGENTE' },
+    };
+
+    const URGENCIA_ESTILO = {
+        'URGENTE': { fundo: '#fef2f2', borda: '#fca5a5', topo: '#dc2626', icone: '🚨', badge: 'bg-red-600' },
+        'ALTA': { fundo: '#fff7ed', borda: '#fdba74', topo: '#ea580c', icone: '⚠️', badge: 'bg-orange-500' },
+        'MÉDIA': { fundo: '#fefce8', borda: '#fde68a', topo: '#ca8a04', icone: '👁️', badge: 'bg-yellow-500' },
+        'BAIXA': { fundo: '#f0fdf4', borda: '#86efac', topo: '#16a34a', icone: 'ℹ️', badge: 'bg-green-600' },
+    };
+
+    async function carregarRecomendacoesML() {
+        const spinner = document.getElementById('mlRecomSpinner');
+        if (spinner) spinner.classList.add('animate-spin');
+        RecUI.setLoading('mlRecomLista');
+        try {
+            const resp = await API.ml.alertas();
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            const dados = await resp.json();
+            renderizarPainelML(dados);
+        } catch (err) {
+            console.warn('Erro ML alertas:', err);
+            RecUI.setError('mlRecomLista', err.message, carregarRecomendacoesML);
+        } finally {
+            if (spinner) spinner.classList.remove('animate-spin');
+        }
+    }
+
+    function renderizarPainelML(dados) {
+        const nivel = dados.nivel_geral || 'seguro';
+        const recom = dados.recomendacoes || {};
+        const recs = recom.recomendacoes || [];
+        const resumo = recom.resumo || 'Análise ML concluída.';
+        const numAlertas = dados.num_alertas || 0;
+        RecUI.renderBanner(nivel, resumo, numAlertas, 'mlRecomBanner', 'mlRecomBadge');
+        RecUI.renderLista(recs, 'mlRecomLista', carregarRecomendacoesML);
+    }
+
+    function _setText(id, txt) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = txt;
+    }
+
+    window.addEventListener('beforeunload', () => {
+        clearInterval(alertasState.refreshInterval);
+        Object.values(alertasState.charts).forEach(c => { try { c.destroy(); } catch { } });
+    });
+</script>
+<script>
+    (function realtimeAlertsOnPage() {
+        try {
+            const token = getToken();
+            if (!token) return;
+            const es = new EventSource('/api/alertas/stream');
+
+            // Debounce chart updates — charts are expensive, only update after 3s of silence
+            let chartDebounce = null;
+            function scheduleChartUpdate() {
+                if (chartDebounce) clearTimeout(chartDebounce);
+                chartDebounce = setTimeout(() => {
+                    updateCharts(alertasState.data);
+                    chartDebounce = null;
+                }, 3000);
+            }
+
+            es.onmessage = async (e) => {
+                try {
+                    const a = JSON.parse(e.data);
+                    a.status = a.status || 'ativo';
+                    a.timestamp = a.timestamp || a.published_at;
+                    alertasState.data.unshift(a);
+                    // UI updates are cheap — do immediately
+                    updateKPIs(alertasState.data);
+                    renderActiveAlerts(alertasState.data);
+                    renderHistoryTable(alertasState.data);
+                    // Charts are expensive — debounce to avoid crash on rapid messages
+                    scheduleChartUpdate();
+                } catch { }
+            };
+            es.onerror = () => { try { es.close(); } catch { } };
+            window._alerts_sse = es;
+        } catch { }
+    })();
+</script>
+{% endblock %}

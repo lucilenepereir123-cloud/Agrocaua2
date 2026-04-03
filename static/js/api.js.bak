@@ -1,0 +1,239 @@
+<<<<<<< HEAD
+/**
+ * AgroCaua API Client
+ * Handles all HTTP requests to the Flask backend with JWT authentication
+ */
+
+const API_BASE = window.location.origin;
+
+/**
+ * Get JWT token from localStorage
+ */
+function getToken() {
+  return localStorage.getItem('agrocaua_token');
+}
+
+/**
+ * Save JWT token to localStorage
+ */
+function saveToken(token) {
+  localStorage.setItem('agrocaua_token', token);
+}
+
+/**
+ * Remove JWT token from localStorage
+ */
+function clearToken() {
+  localStorage.removeItem('agrocaua_token');
+}
+
+/**
+ * Fetch with JWT authentication
+ */
+async function authenticatedFetch(endpoint, options = {}) {
+  const token = getToken();
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options.headers
+  };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  try {
+    const response = await fetch(`${API_BASE}${endpoint}`, {
+      ...options,
+      headers
+    });
+    
+    // Handle 401 Unauthorized
+    if (response.status === 401) {
+      clearToken();
+      window.location.href = '/login';
+      throw new Error('Authentication required');
+    }
+    
+    return response;
+  } catch (error) {
+    console.error('API request failed:', error);
+    throw error;
+  }
+}
+
+/**
+ * API Endpoints
+ */
+const API = {
+  // Authentication
+  login: async (email, password) => {
+    const response = await fetch(`${API_BASE}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    return response;
+  },
+  
+  register: async (nome, email, password) => {
+    const response = await fetch(`${API_BASE}/api/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome, email, password })
+    });
+    return response;
+  },
+  
+  logout: async () => {
+    const response = await authenticatedFetch('/api/logout', { 
+      method: 'POST' 
+    });
+    return response;
+  },
+  
+  deleteAccount: async () => {
+    const response = await authenticatedFetch('/api/delete-account', { 
+      method: 'DELETE' 
+    });
+    return response;
+  },
+
+  // User Profile
+  getProfile: async () => {
+    const response = await authenticatedFetch('/api/profile');
+    return response;
+  },
+  
+  // Sensor Data
+  getAllData: async () => {
+    const response = await authenticatedFetch('/api/dados_sensores');
+    return response;
+  },
+  
+  getGPS: async () => {
+    const response = await authenticatedFetch('/api/gps');
+    return response;
+  },
+  
+  getBME280: async () => {
+    const response = await authenticatedFetch('/api/bme280');
+    return response;
+  },
+  
+  getSolo: async () => {
+    const response = await authenticatedFetch('/api/solo');
+    return response;
+  },
+  
+  getVibracao: async () => {
+    const response = await authenticatedFetch('/api/vibracao');
+    return response;
+  },
+  
+  getVisao: async () => {
+    const response = await authenticatedFetch('/api/visao');
+    return response;
+  },
+
+  getAlertas: async () => {
+    const response = await authenticatedFetch('/api/alertas');
+    return response;
+  }
+};
+=======
+/**
+ * AgroCaua API Client — v2
+ */
+// Se o frontend estiver noutro servidor (ex: XAMPP porta 80),
+// esta linha aponta sempre para o backend Flask na porta 5000.
+// Em produção, mude para o URL do seu servidor: 'https://api.seudominio.com'
+const API_BASE = window.location.port === '5000'
+    ? window.location.origin
+    : 'http://localhost:5000';
+
+function getToken() { return localStorage.getItem('agrocaua_token'); }
+function saveToken(t) { localStorage.setItem('agrocaua_token', t); }
+function clearToken() { localStorage.removeItem('agrocaua_token'); localStorage.removeItem('agrocaua_user'); }
+
+async function authenticatedFetch(endpoint, options = {}) {
+    const token = getToken();
+    const headers = { 'Content-Type': 'application/json', ...options.headers };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    try {
+        const response = await fetch(`${API_BASE}${endpoint}`, { ...options, headers });
+        if (response.status === 401) { clearToken(); window.location.href = '/login'; throw new Error('Authentication required'); }
+        return response;
+    } catch (error) { console.error('API request failed:', error); throw error; }
+}
+
+const API = {
+    // ── Auth ──
+    login: (email, password) => fetch(`${API_BASE}/api/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) }),
+    register: (nome, email, password) => fetch(`${API_BASE}/api/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nome, email, password }) }),
+    logout: () => authenticatedFetch('/api/logout', { method: 'POST' }),
+    deleteAccount: () => authenticatedFetch('/api/delete-account', { method: 'DELETE' }),
+
+    // ── Perfil ──
+    getProfile: () => authenticatedFetch('/api/profile'),
+    updateProfile: (data) => authenticatedFetch('/api/profile', { method: 'PUT', body: JSON.stringify(data) }),
+
+    // ── Sensor Data ──
+    getAllData: () => authenticatedFetch('/api/dados_sensores'),
+    getGPS: () => authenticatedFetch('/api/gps'),
+    getBME280: () => authenticatedFetch('/api/bme280'),
+    getSolo: () => authenticatedFetch('/api/solo'),
+    getVibracao: () => authenticatedFetch('/api/vibracao'),
+    getVisao: () => authenticatedFetch('/api/visao'),
+    getAlertas: () => authenticatedFetch('/api/alertas'),
+
+    // ── Admin ──
+    admin: {
+        getStats: () => authenticatedFetch('/api/admin/stats'),
+        // Utilizadores
+        getUsers: () => authenticatedFetch('/api/admin/users'),
+        createUser: (d) => authenticatedFetch('/api/admin/users', { method: 'POST', body: JSON.stringify(d) }),
+        updateUser: (id, d) => authenticatedFetch(`/api/admin/users/${id}`, { method: 'PUT', body: JSON.stringify(d) }),
+        deleteUser: (id) => authenticatedFetch(`/api/admin/users/${id}`, { method: 'DELETE' }),
+        // Fazendas
+        getFazendas: () => authenticatedFetch('/api/admin/fazendas'),
+        createFazenda: (d) => authenticatedFetch('/api/admin/fazendas', { method: 'POST', body: JSON.stringify(d) }),
+        updateFazenda: (id, d) => authenticatedFetch(`/api/admin/fazendas/${id}`, { method: 'PUT', body: JSON.stringify(d) }),
+        deleteFazenda: (id) => authenticatedFetch(`/api/admin/fazendas/${id}`, { method: 'DELETE' }),
+        // Sensores
+        getSensores: () => authenticatedFetch('/api/admin/sensores'),
+        createSensor: (d) => authenticatedFetch('/api/admin/sensores', { method: 'POST', body: JSON.stringify(d) }),
+        updateSensor: (id, d) => authenticatedFetch(`/api/admin/sensores/${id}`, { method: 'PUT', body: JSON.stringify(d) }),
+        deleteSensor: (id) => authenticatedFetch(`/api/admin/sensores/${id}`, { method: 'DELETE' }),
+        // Logs
+        getLogs: (limit = 200, offset = 0) => authenticatedFetch(`/api/admin/logs?limit=${limit}&offset=${offset}`),
+    }
+};
+
+// ─────────────────────────────────────────────
+// HELPERS DE SESSÃO
+// ─────────────────────────────────────────────
+
+/** Retorna o utilizador guardado em localStorage (ou null) */
+function getCurrentUser() {
+    try { return JSON.parse(localStorage.getItem('agrocaua_user')); } catch { return null; }
+}
+
+/** Verifica se o utilizador atual tem um dos roles fornecidos */
+function hasRole(...roles) {
+    const u = getCurrentUser();
+    return u && roles.includes(u.role);
+}
+
+/** Redireciona para login superadmin se não for superadmin */
+function requireSuperAdmin() {
+    if (!hasRole('superadmin')) {
+        clearToken();
+        window.location.href = '/admin/login';
+    }
+}
+
+/** Redireciona para login normal se não estiver autenticado */
+function requireAuth() {
+    if (!getToken()) window.location.href = '/login';
+}
+>>>>>>> 955b517415ac3a61e71d7f17f5e1d348940e4c1e

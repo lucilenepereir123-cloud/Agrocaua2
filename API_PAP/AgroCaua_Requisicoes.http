@@ -1,0 +1,641 @@
+### ============================================================
+###  AgroCaua — Ficheiro de Requisições HTTP
+###  Compatível com: VS Code REST Client, IntelliJ HTTP Client,
+###                  Insomnia (importar como .http)
+###
+###  BASE URL: http://localhost:5000
+###  Substitua {{BASE_URL}} pelo seu endereço de servidor.
+###  Após login, copie o access_token para a variável @token
+### ============================================================
+
+@BASE_URL = http://localhost:5000
+@token = COLE_O_SEU_TOKEN_AQUI
+@admin_token = COLE_O_TOKEN_ADMIN_AQUI
+
+
+# ╔══════════════════════════════════════════════════════════════╗
+# ║  1. AUTENTICAÇÃO                                            ║
+# ╚══════════════════════════════════════════════════════════════╝
+
+### [1.1] Registar novo utilizador (agricultor)
+POST {{BASE_URL}}/api/register
+Content-Type: application/json
+
+{
+  "nome": "João Silva",
+  "email": "joao@agrocaua.com",
+  "password": "senha123",
+  "role": "agricultor"
+}
+
+###
+
+### [1.2] Login — Agricultor
+# Copie o access_token da resposta para @token acima
+POST {{BASE_URL}}/api/login
+Content-Type: application/json
+
+{
+  "email": "joao@agrocaua.com",
+  "password": "senha123"
+}
+
+###
+
+### [1.3] Login — Superadmin (padrão do sistema)
+# Copie o access_token da resposta para @admin_token acima
+POST {{BASE_URL}}/api/login
+Content-Type: application/json
+
+{
+  "email": "admin@agrocaua.com",
+  "password": "admin123"
+}
+
+###
+
+### [1.4] Obter perfil do utilizador autenticado
+GET {{BASE_URL}}/api/profile
+Authorization: Bearer {{token}}
+
+###
+
+### [1.5] Actualizar perfil
+PUT {{BASE_URL}}/api/profile
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nome": "João Manuel Silva",
+  "email": "joao.novo@agrocaua.com",
+  "password": "novaSenha456"
+}
+
+###
+
+### [1.6] Logout
+POST {{BASE_URL}}/api/logout
+Authorization: Bearer {{token}}
+
+###
+
+### [1.7] Formulário de contacto (sem autenticação)
+POST {{BASE_URL}}/api/contacto
+Content-Type: application/json
+
+{
+  "nome": "Maria Ferreira",
+  "email": "maria@email.com",
+  "telefone": "+244 923 456 789",
+  "assunto": "Dúvida sobre sensores",
+  "conteudo": "Gostaria de saber como instalar o sensor de solo."
+}
+
+
+# ╔══════════════════════════════════════════════════════════════╗
+# ║  2. DADOS IOT — INGESTÃO DE SENSORES                        ║
+# ╚══════════════════════════════════════════════════════════════╝
+
+### [2.1] Enviar dados completos do dispositivo IoT
+# Este é o endpoint chamado pelo microcontrolador/ESP32
+POST {{BASE_URL}}/api/dados
+Content-Type: application/json
+
+{
+  "device_id": "sensor-001",
+  "latitude": -8.8383,
+  "longitude": 13.2344,
+  "localizacao": "Luanda, Angola",
+  "temperatura_ar": 28.5,
+  "humidade_ar": 72.3,
+  "pressao_ar": 1013.2,
+  "humidade_solo": 45.8,
+  "vibracao": false,
+  "detecao_praga": false,
+  "tipo_praga": null,
+  "confianca": null
+}
+
+###
+
+### [2.2] Enviar dados com praga detectada (alerta!)
+POST {{BASE_URL}}/api/dados
+Content-Type: application/json
+
+{
+  "device_id": "sensor-001",
+  "latitude": -8.8383,
+  "longitude": 13.2344,
+  "localizacao": "Luanda, Angola",
+  "temperatura_ar": 34.1,
+  "humidade_ar": 58.0,
+  "pressao_ar": 1008.5,
+  "humidade_solo": 18.2,
+  "vibracao": true,
+  "detecao_praga": true,
+  "tipo_praga": "lagarta",
+  "confianca": 0.87
+}
+
+###
+
+### [2.3] Enviar dados de segundo sensor
+POST {{BASE_URL}}/api/dados
+Content-Type: application/json
+
+{
+  "device_id": "sensor-002",
+  "latitude": -8.8391,
+  "longitude": 13.2355,
+  "localizacao": "Luanda, Angola",
+  "temperatura_ar": 26.9,
+  "humidade_ar": 80.1,
+  "pressao_ar": 1014.0,
+  "humidade_solo": 62.4,
+  "vibracao": false,
+  "detecao_praga": false
+}
+
+###
+
+### [2.4] Consultar últimas leituras (padrão: 50)
+GET {{BASE_URL}}/api/dados_sensores
+Authorization: Bearer {{token}}
+
+###
+
+### [2.5] Consultar últimas leituras (limite personalizado)
+GET {{BASE_URL}}/api/dados_sensores?limit=10
+Authorization: Bearer {{token}}
+
+###
+
+### [2.6] Último valor GPS
+GET {{BASE_URL}}/api/gps
+
+###
+
+### [2.7] Último valor BME280 (temperatura, humidade ar, pressão)
+GET {{BASE_URL}}/api/bme280
+
+###
+
+### [2.8] Último valor humidade do solo
+GET {{BASE_URL}}/api/solo
+
+###
+
+### [2.9] Último valor vibração
+GET {{BASE_URL}}/api/vibracao
+
+###
+
+### [2.10] Última detecção de visão / câmara
+GET {{BASE_URL}}/api/visao
+
+###
+
+### [2.11] Lista de alertas activos
+GET {{BASE_URL}}/api/alertas
+
+
+# ╔══════════════════════════════════════════════════════════════╗
+# ║  3. MACHINE LEARNING                                        ║
+# ╚══════════════════════════════════════════════════════════════╝
+
+### [3.1] Previsões ML recentes
+GET {{BASE_URL}}/api/previsoes/recentes
+
+###
+
+### [3.2] Alertas ML (resumo)
+GET {{BASE_URL}}/api/ml/alertas
+
+###
+
+### [3.3] Analisar e gerar recomendações agronómicas
+POST {{BASE_URL}}/api/ml/analisar
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "device_id": "sensor-001"
+}
+
+
+# ╔══════════════════════════════════════════════════════════════╗
+# ║  4. FAZENDA E SENSORES DO AGRICULTOR                        ║
+# ╚══════════════════════════════════════════════════════════════╝
+
+### [4.1] Perfil completo da fazenda do utilizador autenticado
+GET {{BASE_URL}}/api/fazenda/perfil
+Authorization: Bearer {{token}}
+
+###
+
+### [4.2] Sensores da fazenda (com último dado de cada sensor)
+GET {{BASE_URL}}/api/fazenda/sensores
+Authorization: Bearer {{token}}
+
+
+# ╔══════════════════════════════════════════════════════════════╗
+# ║  5. ZONAS DE CULTIVO                                        ║
+# ╚══════════════════════════════════════════════════════════════╝
+
+### [5.1] Listar zonas do utilizador
+GET {{BASE_URL}}/api/zones
+Authorization: Bearer {{token}}
+
+###
+
+### [5.2] Criar nova zona
+POST {{BASE_URL}}/api/zones
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nome": "Zona Norte — Milho",
+  "cultura": "milho",
+  "tipo": "campo_aberto",
+  "area_ha": 5.2,
+  "estagio": "crescimento",
+  "saude": "boa",
+  "acoes": "Irrigação prevista para amanhã"
+}
+
+###
+
+### [5.3] Actualizar zona (substitua 1 pelo ID real)
+PUT {{BASE_URL}}/api/zones/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "estagio": "colheita",
+  "saude": "atenção",
+  "acoes": "Verificar sinais de praga na secção A3"
+}
+
+###
+
+### [5.4] Eliminar zona (substitua 1 pelo ID real)
+DELETE {{BASE_URL}}/api/zones/1
+Authorization: Bearer {{token}}
+
+
+# ╔══════════════════════════════════════════════════════════════╗
+# ║  6. RELATÓRIOS E EXPORTAÇÃO                                 ║
+# ╚══════════════════════════════════════════════════════════════╝
+
+### [6.1] Dados do relatório — Admin (últimos 30 dias, todas as fazendas)
+GET {{BASE_URL}}/api/admin/relatorios/dados?periodo=30
+Authorization: Bearer {{admin_token}}
+
+###
+
+### [6.2] Dados do relatório — Admin (últimos 7 dias, fazenda específica)
+GET {{BASE_URL}}/api/admin/relatorios/dados?periodo=7&fazenda_id=1
+Authorization: Bearer {{admin_token}}
+
+###
+
+### [6.3] Dados do relatório — Agricultor (período mensal)
+GET {{BASE_URL}}/api/admin/relatorios/agricultor?periodo=mensal
+Authorization: Bearer {{token}}
+
+###
+
+### [6.4] Exportar relatório XLSX — Agricultor (período semanal)
+# A resposta é um ficheiro binário .xlsx para download
+POST {{BASE_URL}}/api/relatorios/exportar
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "formato": "xlsx",
+  "periodo": "semanal"
+}
+
+###
+
+### [6.5] Exportar relatório PDF — Agricultor (período mensal)
+POST {{BASE_URL}}/api/relatorios/exportar
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "formato": "pdf",
+  "periodo": "mensal"
+}
+
+###
+
+### [6.6] Exportar relatório XLSX — Admin (anual, fazenda específica)
+POST {{BASE_URL}}/api/relatorios/exportar
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "formato": "xlsx",
+  "periodo": "anual",
+  "fazenda_id": 1
+}
+
+
+# ╔══════════════════════════════════════════════════════════════╗
+# ║  7. ADMINISTRAÇÃO — UTILIZADORES                            ║
+# ╚══════════════════════════════════════════════════════════════╝
+
+### [7.1] Estatísticas gerais da plataforma
+GET {{BASE_URL}}/api/admin/stats
+Authorization: Bearer {{admin_token}}
+
+###
+
+### [7.2] Listar todos os utilizadores
+GET {{BASE_URL}}/api/admin/users
+Authorization: Bearer {{admin_token}}
+
+###
+
+### [7.3] Criar utilizador admin (requer superadmin)
+POST {{BASE_URL}}/api/admin/users
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "nome": "Gestor Regional",
+  "email": "gestor@agrocaua.com",
+  "password": "gestorPass123",
+  "role": "admin"
+}
+
+###
+
+### [7.4] Criar agricultor e associar a fazenda
+POST {{BASE_URL}}/api/admin/users
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "nome": "António Lopes",
+  "email": "antonio@agrocaua.com",
+  "password": "agric123",
+  "role": "agricultor",
+  "fazenda_id": 1
+}
+
+###
+
+### [7.5] Actualizar utilizador (substitua 2 pelo ID)
+PUT {{BASE_URL}}/api/admin/users/2
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "nome": "António Lopes Silva",
+  "is_active": true,
+  "fazenda_id": 2
+}
+
+###
+
+### [7.6] Desativar utilizador
+PUT {{BASE_URL}}/api/admin/users/2
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "is_active": false
+}
+
+###
+
+### [7.7] Eliminar utilizador (requer superadmin)
+DELETE {{BASE_URL}}/api/admin/users/2
+Authorization: Bearer {{admin_token}}
+
+
+# ╔══════════════════════════════════════════════════════════════╗
+# ║  8. ADMINISTRAÇÃO — FAZENDAS                                ║
+# ╚══════════════════════════════════════════════════════════════╝
+
+### [8.1] Listar fazendas
+GET {{BASE_URL}}/api/admin/fazendas
+Authorization: Bearer {{admin_token}}
+
+###
+
+### [8.2] Criar fazenda
+POST {{BASE_URL}}/api/admin/fazendas
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "nome": "Fazenda São João",
+  "proprietario": "Carlos Mendes",
+  "localizacao": "Malanje, Angola",
+  "hectares": 120.5,
+  "culturas": ["milho", "feijão", "mandioca"],
+  "activation_code": "7741"
+}
+
+###
+
+### [8.3] Actualizar fazenda (substitua 1 pelo ID)
+PUT {{BASE_URL}}/api/admin/fazendas/1
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "nome": "Fazenda São João — Norte",
+  "hectares": 145.0,
+  "status": "active",
+  "culturas": ["milho", "feijão", "mandioca", "tomate"]
+}
+
+###
+
+### [8.4] Ativar fazenda com código de ativação
+POST {{BASE_URL}}/api/admin/fazendas/1/ativar
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "activation_code": "7741"
+}
+
+###
+
+### [8.5] Detalhes completos da fazenda (sensores, stats, alertas)
+GET {{BASE_URL}}/api/admin/fazendas/1/detalhes
+Authorization: Bearer {{admin_token}}
+
+###
+
+### [8.6] Eliminar fazenda
+DELETE {{BASE_URL}}/api/admin/fazendas/1
+Authorization: Bearer {{admin_token}}
+
+
+# ╔══════════════════════════════════════════════════════════════╗
+# ║  9. ADMINISTRAÇÃO — SENSORES                                ║
+# ╚══════════════════════════════════════════════════════════════╝
+
+### [9.1] Listar todos os sensores
+GET {{BASE_URL}}/api/admin/sensores
+Authorization: Bearer {{admin_token}}
+
+###
+
+### [9.2] Criar sensor e associar a fazenda
+# IMPORTANTE: o campo "nome" deve ser igual ao device_id enviado pelo dispositivo IoT
+POST {{BASE_URL}}/api/admin/sensores
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "nome": "sensor-001",
+  "tipo": "Clima",
+  "fazenda_id": 1,
+  "status": "online",
+  "bateria": 95
+}
+
+###
+
+### [9.3] Criar sensor GPS
+POST {{BASE_URL}}/api/admin/sensores
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "nome": "sensor-002",
+  "tipo": "GPS",
+  "fazenda_id": 1,
+  "status": "online",
+  "bateria": 88
+}
+
+###
+
+### [9.4] Actualizar sensor (substitua 1 pelo ID)
+PUT {{BASE_URL}}/api/admin/sensores/1
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "status": "warn",
+  "bateria": 23
+}
+
+###
+
+### [9.5] Ver device_ids sem sensor registado
+# Útil para descobrir novos dispositivos que já enviaram dados
+GET {{BASE_URL}}/api/admin/sensores/device_ids_desconhecidos
+Authorization: Bearer {{admin_token}}
+
+###
+
+### [9.6] Eliminar sensor
+DELETE {{BASE_URL}}/api/admin/sensores/1
+Authorization: Bearer {{admin_token}}
+
+
+# ╔══════════════════════════════════════════════════════════════╗
+# ║  10. MENSAGENS E APOIO                                      ║
+# ╚══════════════════════════════════════════════════════════════╝
+
+### [10.1] Agricultor envia mensagem de apoio
+POST {{BASE_URL}}/api/admin/mensagens
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "assunto": "Sensor offline há 2 dias",
+  "conteudo": "O sensor-001 não envia dados desde segunda-feira. Já verifiquei a alimentação e está ligado.",
+  "prioridade": "alto"
+}
+
+###
+
+### [10.2] Agricultor consulta as suas mensagens
+GET {{BASE_URL}}/api/admin/mensagens/minhas
+Authorization: Bearer {{token}}
+
+###
+
+### [10.3] Admin lista todas as mensagens
+GET {{BASE_URL}}/api/admin/mensagens
+Authorization: Bearer {{admin_token}}
+
+###
+
+### [10.4] Admin responde a mensagem (substitua 1 pelo ID)
+PUT {{BASE_URL}}/api/admin/mensagens/1/responder
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "resposta": "Verificámos o sensor e detectámos um problema de rede. Equipa técnica em deslocação amanhã."
+}
+
+###
+
+### [10.5] Admin marca mensagem como lida
+PUT {{BASE_URL}}/api/admin/mensagens/1/ler
+Authorization: Bearer {{admin_token}}
+
+
+# ╔══════════════════════════════════════════════════════════════╗
+# ║  11. LOGS E CONFIGURAÇÕES                                   ║
+# ╚══════════════════════════════════════════════════════════════╝
+
+### [11.1] Logs do sistema (últimas acções)
+GET {{BASE_URL}}/api/admin/logs
+Authorization: Bearer {{admin_token}}
+
+###
+
+### [11.2] Ler configurações da plataforma
+GET {{BASE_URL}}/api/admin/configuracoes
+Authorization: Bearer {{admin_token}}
+
+###
+
+### [11.3] Guardar configurações
+POST {{BASE_URL}}/api/admin/configuracoes
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "nome_plataforma": "AgroCaua Angola",
+  "email_suporte": "suporte@agrocaua.com",
+  "limite_alertas_criticos": 5,
+  "intervalo_leitura_segundos": 30
+}
+
+
+# ╔══════════════════════════════════════════════════════════════╗
+# ║  12. SEQUÊNCIA DE TESTE COMPLETA                            ║
+# ╚══════════════════════════════════════════════════════════════╝
+# Execute nesta ordem para testar a plataforma de raiz:
+#
+# 1. [1.3] Login como superadmin → guardar token em @admin_token
+# 2. [8.2] Criar fazenda
+# 3. [8.4] Ativar fazenda com código
+# 4. [9.2] Criar sensor-001 (Clima) na fazenda
+# 5. [9.3] Criar sensor-002 (GPS) na fazenda
+# 6. [7.4] Criar utilizador agricultor associado à fazenda
+# 7. [1.2] Login como agricultor → guardar token em @token
+# 8. [2.1] Enviar 5-10 leituras IoT (sensor-001)
+# 9. [2.2] Enviar leitura com praga (para gerar alerta)
+# 10. [4.2] Verificar sensores da fazenda
+# 11. [6.3] Ver relatório do agricultor
+# 12. [6.4] Exportar XLSX
+# 13. [6.5] Exportar PDF
+# 14. [10.1] Enviar mensagem de apoio
+# 15. [10.3] Admin consulta mensagens
+# 16. [10.4] Admin responde
+# ============================================================

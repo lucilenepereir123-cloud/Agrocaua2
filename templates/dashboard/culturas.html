@@ -1,0 +1,513 @@
+{% extends "base.html" %}
+
+{% block title %}Culturas - AgroCaua{% endblock %}
+
+{% block page_title %}Gestão de Culturas{% endblock %}
+{% block page_icon %}<i class="icon-leaf text-green-600"></i>{% endblock %}
+{% block page_subtitle %}Visão geral do desempenho e saúde das suas plantações{% endblock %}
+
+{% block content %}
+
+<!-- KPI Cards Row 1 - Main Metrics -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+    <!-- Health Index Card -->
+    <div class="kpi-card group cursor-pointer hover:border-green-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Índice de Saúde</p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-gray-900" id="healthIndex">--</p>
+                <p class="text-sm font-600 text-green-600">Bom estado</p>
+            </div>
+        </div>
+        <div class="kpi-icon-wrapper bg-gradient-to-br from-green-100 to-green-50 group-hover:scale-110 transition-transform duration-300">
+            <i class="icon-heart text-green-600 text-2xl"></i>
+        </div>
+    </div>
+
+    <!-- Cultivated Area Card -->
+    <div class="kpi-card group cursor-pointer hover:border-blue-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Área Cultivada</p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-gray-900" id="cultivatedArea">--</p>
+                <p class="text-sm font-600 text-blue-600">3 zonas ativas</p>
+            </div>
+        </div>
+        <div class="kpi-icon-wrapper bg-gradient-to-br from-blue-100 to-blue-50 group-hover:scale-110 transition-transform duration-300">
+            <i class="icon-layers text-blue-600 text-2xl"></i>
+        </div>
+    </div>
+
+    <!-- Harvest Days Card -->
+    <div class="kpi-card group cursor-pointer hover:border-amber-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Dias até Colheita</p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-gray-900" id="harvestDays">--</p>
+                <p class="text-sm font-600 text-amber-600">Estimativa média</p>
+            </div>
+        </div>
+        <div class="kpi-icon-wrapper bg-gradient-to-br from-amber-100 to-amber-50 group-hover:scale-110 transition-transform duration-300">
+            <i class="icon-calendar text-amber-600 text-2xl"></i>
+        </div>
+    </div>
+
+    <!-- Estimated Production Card -->
+    <div class="kpi-card group cursor-pointer hover:border-green-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Produção Estimada</p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-gray-900" id="estimatedProduction">--</p>
+                <p class="text-sm font-600 text-green-600">Por hectare</p>
+            </div>
+        </div>
+        <div class="kpi-icon-wrapper bg-gradient-to-br from-green-100 to-green-50 group-hover:scale-110 transition-transform duration-300">
+            <i class="icon-trending-up text-green-600 text-2xl"></i>
+        </div>
+    </div>
+
+    <!-- Active Zones Card -->
+    <div class="kpi-card group cursor-pointer hover:border-purple-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Zonas Ativas</p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-gray-900">5</p>
+                <p class="text-sm font-600 text-purple-600">Monitoradas</p>
+            </div>
+        </div>
+        <div class="kpi-icon-wrapper bg-gradient-to-br from-purple-100 to-purple-50 group-hover:scale-110 transition-transform duration-300">
+            <i class="icon-map text-purple-600 text-2xl"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <!-- Growth Stage Donut Chart -->
+    <div class="card chart-container group hover:shadow-xl hover:border-green-200 transition-all duration-300 slide-in-up" style="animation-delay: 0.1s">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <i class="icon-pie-chart text-green-600 text-xl"></i>
+                Estágio de Crescimento
+            </h3>
+            <span class="text-xs font-500 text-gray-500">Distribuição atual</span>
+        </div>
+        <div class="chart-wrapper">
+            <canvas id="growthStageChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Environmental Conditions Bar Chart -->
+    <div class="card chart-container group hover:shadow-xl hover:border-blue-200 transition-all duration-300 lg:col-span-2 slide-in-up" style="animation-delay: 0.2s">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <i class="icon-bar-chart-2 text-blue-600 text-xl"></i>
+                Condições Ambientais
+            </h3>
+            <span class="text-xs font-500 text-gray-500">Média capturada pelos sensores</span>
+        </div>
+        <div class="chart-wrapper">
+            <canvas id="environmentalConditionsChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Soil Quality Trend Line Chart -->
+<div class="card chart-container group hover:shadow-xl hover:border-green-200 transition-all duration-300 mb-8 slide-in-up" style="animation-delay: 0.3s">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <i class="icon-trending-up text-green-600 text-xl"></i>
+            Tendência de Qualidade do Solo
+        </h3>
+        <div class="flex items-center gap-2">
+            <span class="text-xs font-500 text-gray-500">Acompanhamento nutricional e hídrico</span>
+            <select class="form-input text-xs w-24" id="soilTrendFilter" onchange="updateSoilTrendChart()">
+                <option value="semanas">Semanas</option>
+                <option value="meses">Meses</option>
+            </select>
+        </div>
+    </div>
+    <div class="chart-wrapper">
+        <canvas id="soilTrendChart"></canvas>
+    </div>
+</div>
+
+<!-- Cultivation Zones Table -->
+<div class="card group hover:shadow-lg transition-all duration-300">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <i class="icon-grid text-green-600 text-xl"></i>
+                Zonas de Cultivo
+            </h3>
+            <p class="text-sm text-gray-500 mt-1">Detalhamento por talhão e acompanhamento de saúde</p>
+        </div>
+        <button onclick="openNewZoneModal()" class="btn btn-primary">
+            <i class="icon-plus text-lg"></i>
+            <span>Nova Zona</span>
+        </button>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b border-gray-200 bg-gray-50">
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Zona</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Cultura</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Área Total</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Estágio Atual</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Status de Saúde</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Ações</th>
+                </tr>
+            </thead>
+            <tbody id="zonesTableBody">
+                <tr>
+                    <td colspan="6" class="text-center py-8 text-gray-500">
+                        <div class="spinner mx-auto"></div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
+        <p class="text-sm text-gray-500">Mostrando 1-5 de 12 zonas ativas</p>
+        <div class="flex gap-2">
+            <button class="btn btn-sm btn-secondary">Anterior</button>
+            <button class="btn btn-sm btn-secondary">Próximo</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+    const culturaState = {
+        charts: {},
+        refreshInterval: null
+    };
+
+    // Configure Chart.js
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.color = '#6B7280';
+
+    function initCharts() {
+        console.log('[Culturas] Initializing charts...');
+
+        // Growth Stage Donut Chart - Empty data initially
+        culturaState.charts.growthStage = new Chart(document.getElementById('growthStageChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Germinação', 'Floração', 'Maturação', 'Repouso'],
+                datasets: [{
+                    data: [0, 0, 0, 0],
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.85)',
+                        'rgba(34, 197, 94, 0.85)',
+                        'rgba(245, 158, 11, 0.85)',
+                        'rgba(107, 114, 128, 0.85)'
+                    ],
+                    borderColor: [
+                        'rgb(59, 130, 246)',
+                        'rgb(34, 197, 94)',
+                        'rgb(245, 158, 11)',
+                        'rgb(107, 114, 128)'
+                    ],
+                    borderWidth: 2,
+                    spacing: 3,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { padding: 20, font: { size: 12, weight: '500' } }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: { size: 13, weight: '600' },
+                        bodyFont: { size: 12 }
+                    }
+                }
+            }
+        });
+
+        // Environmental Conditions Bar Chart - Empty data initially
+        culturaState.charts.envConditions = new Chart(document.getElementById('environmentalConditionsChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Temperatura', 'Humidade', 'Luminosidade', 'pH Solo', 'Nutrientes'],
+                datasets: [{
+                    label: 'Valor',
+                    data: [0, 0, 0, 0, 0],
+                    backgroundColor: [
+                        'rgba(239, 68, 68, 0.85)',
+                        'rgba(59, 130, 246, 0.85)',
+                        'rgba(251, 191, 36, 0.85)',
+                        'rgba(34, 197, 94, 0.85)',
+                        'rgba(139, 92, 246, 0.85)'
+                    ],
+                    borderColor: [
+                        'rgb(239, 68, 68)',
+                        'rgb(59, 130, 246)',
+                        'rgb(251, 191, 36)',
+                        'rgb(34, 197, 94)',
+                        'rgb(139, 92, 246)'
+                    ],
+                    borderWidth: 1.5,
+                    borderRadius: 6,
+                    barPercentage: 0.7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        bodyFont: { size: 12 }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                    }
+                }
+            }
+        });
+
+        // Soil Quality Trend Line Chart - Empty data initially
+        culturaState.charts.soilTrend = new Chart(document.getElementById('soilTrendChart'), {
+            type: 'line',
+            data: {
+                labels: ['Sem 1', 'Sem 3', 'Sem 5', 'Sem 7', 'Sem 9', 'Sem 11', 'Sem 13'],
+                datasets: [
+                    {
+                        label: 'Nível pH',
+                        data: [0, 0, 0, 0, 0, 0, 0],
+                        borderColor: 'rgb(251, 191, 36)',
+                        backgroundColor: 'rgba(251, 191, 36, 0.08)',
+                        borderWidth: 2.5,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: 'rgb(251, 191, 36)',
+                        pointBorderColor: 'white',
+                        pointBorderWidth: 2
+                    },
+                    {
+                        label: 'Humidade (%)',
+                        data: [0, 0, 0, 0, 0, 0, 0],
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.08)',
+                        borderWidth: 2.5,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: 'rgb(59, 130, 246)',
+                        pointBorderColor: 'white',
+                        pointBorderWidth: 2
+                    },
+                    {
+                        label: 'Nutrientes (índice)',
+                        data: [0, 0, 0, 0, 0, 0, 0],
+                        borderColor: 'rgb(34, 197, 94)',
+                        backgroundColor: 'rgba(34, 197, 94, 0.08)',
+                        borderWidth: 2.5,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: 'rgb(34, 197, 94)',
+                        pointBorderColor: 'white',
+                        pointBorderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { intersect: false, mode: 'index' },
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { padding: 20, font: { size: 12, weight: '500' } }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: { size: 13, weight: '600' },
+                        bodyFont: { size: 12 }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    }
+
+    function updateKPIs(data) {
+        // Only update KPIs if we have real data from API
+        if (!data || data.length === 0) {
+            // Show zeros/dashes when no data is available
+            document.getElementById('healthIndex').textContent = '0';
+            document.getElementById('cultivatedArea').textContent = '0';
+            document.getElementById('harvestDays').textContent = '0';
+            document.getElementById('estimatedProduction').textContent = '0';
+            return;
+        }
+        
+        const latest = data[0];
+        
+        // Calculate health index based on sensor data if available
+        let healthScore = 0;
+        let hasValidBMEData = false;
+        
+        if (latest.bme280?.temperatura != null && latest.bme280?.humidade != null) {
+            hasValidBMEData = true;
+            const temp = latest.bme280.temperatura;
+            const humidity = latest.bme280.humidade;
+            
+            // Calculate health score based on optimal ranges
+            let score = 50; // Base score
+            if (temp >= 15 && temp <= 30) score += 25; // Optimal temperature
+            if (humidity >= 40 && humidity <= 70) score += 25; // Optimal humidity
+            healthScore = Math.round(score);
+        }
+        
+        // Display KPI values only if we have valid sensor data
+        // Note: cultivatedArea, harvestDays, and estimatedProduction are derived from crop data
+        // which is not available in the current API, so we show 0 as placeholder
+        if (hasValidBMEData) {
+            document.getElementById('healthIndex').textContent = healthScore + '%';
+        } else {
+            document.getElementById('healthIndex').textContent = '0';
+        }
+        
+        // These values should come from crop management data (not in current API)
+        document.getElementById('cultivatedArea').textContent = '0';
+        document.getElementById('harvestDays').textContent = '0';
+        document.getElementById('estimatedProduction').textContent = '0';
+    }
+
+    function updateZonesTable(data) {
+        // Generate zones based on available data
+        const zones = [
+            { zone: 'Zona Monitorada', crop: 'Vários', area: '12.5 ha', stage: 'Crescimento', health: 'Bom' }
+        ];
+
+        const tbody = document.getElementById('zonesTableBody');
+        if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-gray-500">Sem dados de zonas disponíveis</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = zones.map(z => `
+            <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                <td class="py-3 px-4 font-500 text-gray-900">${z.zone}</td>
+                <td class="py-3 px-4 text-gray-700">${z.crop}</td>
+                <td class="py-3 px-4 text-gray-700">${z.area}</td>
+                <td class="py-3 px-4 text-gray-700">${z.stage}</td>
+                <td class="py-3 px-4">
+                    <span class="badge ${z.health === 'Excelente' ? 'badge-success' : z.health === 'Bom' ? 'badge-info' : 'badge-warning'}">
+                        ${z.health}
+                    </span>
+                </td>
+                <td class="py-3 px-4">
+                    <button class="text-green-600 hover:text-green-700 font-500">Detalhes</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    // Setup auto-refresh
+    function setupAutoRefresh() {
+        if (culturaState.refreshInterval) {
+            clearInterval(culturaState.refreshInterval);
+        }
+        
+        culturaState.refreshInterval = setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                console.log('[Culturas] Auto-refreshing...');
+                fetchCulturasData();
+            }
+        }, 60000); // 60 seconds
+    }
+
+    function updateSoilTrendChart() {
+        // This function is called when filter changes
+        console.log('[Culturas] Updating soil trend chart...');
+    }
+
+    function openNewZoneModal() {
+        showInfo('Funcionalidade de nova zona em desenvolvimento');
+    }
+
+    // Fetch and update data
+    async function fetchCulturasData() {
+        try {
+            const response = await API.getAllData();
+            if (response.ok) {
+                const data = await response.json();
+                if (Array.isArray(data) && data.length > 0) {
+                    updateKPIs(data);
+                    updateZonesTable(data);
+                    console.log('[Culturas] Data updated successfully');
+                } else {
+                    showWarning('Nenhum dado disponível');
+                }
+            }
+        } catch (error) {
+            console.error('[Culturas] Error:', error);
+            showError('Erro ao carregar dados das culturas');
+        }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('[Culturas] Initializing...');
+        initCharts();
+        fetchCulturasData();
+        setupAutoRefresh();
+    });
+
+    // Cleanup
+    window.addEventListener('beforeunload', () => {
+        if (culturaState.refreshInterval) {
+            clearInterval(culturaState.refreshInterval);
+        }
+        Object.values(culturaState.charts).forEach(chart => {
+            if (chart) {
+                try {
+                    chart.destroy();
+                } catch (e) {
+                    console.warn('Error destroying chart:', e);
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

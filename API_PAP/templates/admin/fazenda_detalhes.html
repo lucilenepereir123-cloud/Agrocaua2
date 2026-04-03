@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes da Fazenda — AgroCaua</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/lucide-static/font/lucide.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',sans-serif;background:#f3f4f6;color:#111827}
+        .topbar{background:white;border-bottom:1px solid #e5e7eb;padding:.75rem 1.5rem;display:flex;align-items:center;gap:1rem;position:sticky;top:0;z-index:30}
+        .back-btn{display:flex;align-items:center;gap:.4rem;color:#6b7280;text-decoration:none;font-size:.85rem;font-weight:500;padding:.4rem .75rem;border-radius:8px;transition:background .15s}
+        .back-btn:hover{background:#f3f4f6;color:#111827}
+        .page-wrap{max-width:1300px;margin:0 auto;padding:1.5rem}
+        .card{background:white;border-radius:14px;border:1px solid #e5e7eb;padding:1.25rem}
+        .section-title{font-size:.8rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#9ca3af;margin-bottom:.875rem;display:flex;align-items:center;gap:.4rem}
+        .kv{display:flex;flex-direction:column;gap:.15rem}
+        .kv-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af}
+        .kv-val{font-size:.925rem;font-weight:600;color:#111827}
+        .pill{display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .6rem;border-radius:999px;font-size:.73rem;font-weight:600}
+        .pill-green{background:#ecfdf5;color:#065f46}
+        .pill-red{background:#fef2f2;color:#991b1b}
+        .pill-gray{background:#f3f4f6;color:#6b7280}
+        .pill-yellow{background:#fef9c3;color:#854d0e}
+        .pill-dot{width:5px;height:5px;border-radius:50%;background:currentColor}
+        .stat-box{background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:.875rem 1rem;text-align:center}
+        .stat-box-val{font-size:1.75rem;font-weight:800;color:#111827;line-height:1}
+        .stat-box-lbl{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-top:.25rem}
+        .sh-card{background:white;border-radius:10px;border:1.5px solid #e5e7eb;padding:.875rem}
+        .sh-card.online{border-color:#bbf7d0}
+        .sh-card.warn{border-color:#fde68a}
+        .sh-card.offline{border-color:#fecaca}
+        .sh-pulse{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+        .sh-pulse.online{background:#10b981;animation:pulse 2s infinite}
+        .sh-pulse.warn{background:#f59e0b}
+        .sh-pulse.offline{background:#ef4444}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+        .tag{display:inline-flex;padding:.17rem .55rem;border-radius:6px;font-size:.73rem;font-weight:500;background:#f3f4f6;color:#374151}
+        .chart-wrap{position:relative;height:220px}
+        .chart-wrap.tall{height:280px}
+        .health-bar{height:8px;border-radius:999px;background:#e5e7eb;overflow:hidden;margin-top:.4rem}
+        .health-fill{height:100%;border-radius:999px;transition:width .5s}
+        .alert-box{border-radius:10px;padding:.875rem 1rem;display:flex;align-items:flex-start;gap:.75rem;margin-bottom:.5rem}
+        .loader{text-align:center;padding:3rem;color:#9ca3af}
+    </style>
+</head>
+<body>
+
+<!-- Topbar -->
+<div class="topbar">
+    <a href="/admin" class="back-btn"><i class="icon-arrow-left text-lg"></i>Voltar ao Painel</a>
+    <div style="flex:1">
+        <h1 id="fazendaNome" style="font-size:1.1rem;font-weight:700;color:#111827">A carregar...</h1>
+        <p style="font-size:.75rem;color:#9ca3af" id="fazendaMeta">—</p>
+    </div>
+    <span id="fazendaStatusBadge" class="pill pill-gray"><span class="pill-dot"></span><span>—</span></span>
+</div>
+
+<div class="page-wrap" id="mainContent">
+    <div class="loader"><i class="icon-loader text-4xl block mb-2" style="opacity:.4"></i>A carregar dados da fazenda...</div>
+</div>
+
+<script src="{{ url_for('static', filename='js/api.js') }}"></script>
+<script>
+const FAZENDA_ID = {{ fazenda_id }};
+let charts = {};
+
+async function loadAll() {
+    try {
+        const [rFaz, rIoT] = await Promise.all([
+            fetch(`/api/admin/fazendas/${FAZENDA_ID}/detalhes`, { headers: { Authorization: 'Bearer ' + getToken() } }),
+            fetch('/api/dados_sensores?limit=90', { headers: { Authorization: 'Bearer ' + getToken() } }),
+        ]);
+
+        if (!rFaz.ok) { showError('Sem acesso ou fazenda não encontrada'); return; }
+
+        const d   = await rFaz.json();
+        const iot = rIoT.ok ? await rIoT.json() : [];
+
+        renderPage(d, Array.isArray(iot) ? iot : []);
+    } catch(e) {
+        document.getElementById('mainContent').innerHTML = `<div class="loader" style="color:#dc2626">Erro ao carregar dados: ${e.message}</div>`;
+    }
+}
+
+function renderPage(d, iotRows) {
+    const faz = d.fazenda || {};
+    const sensores = d.sensores || [];
+    const iot = d.iot_ultimo || {};
+    const cultura = d.cultura_info || {};
+    const saude = d.saude_solo || 'sem_dados';
+
+    // Topbar
+    document.getElementById('fazendaNome').textContent = faz.nome || '—';
+    document.getElementById('fazendaMeta').textContent = [faz.proprietario, faz.localizacao, faz.hectares ? faz.hectares + ' ha' : null].filter(Boolean).join(' · ');
+    const sb = document.getElementById('fazendaStatusBadge');
+    sb.className = 'pill ' + (faz.status === 'active' ? 'pill-green' : 'pill-gray');
+    sb.innerHTML = `<span class="pill-dot"></span><span>${faz.status === 'active' ? 'Ativa' : 'Inativa'}</span>`;
+
+    // Build page HTML
+    document.getElementById('mainContent').innerHTML = buildHTML(faz, sensores, iot, cultura, saude, iotRows);
+    renderCharts(iotRows, iot);
+}
+
+function saudeLabel(s) {
+    return {bom:'Solo Saudável', atencao:'Atenção', critico:'Crítico', sem_dados:'Sem Dados'}[s] || s;
+}
+function saudePill(s) {
+    const cls = {bom:'pill-green', atencao:'pill-yellow', critico:'pill-red', sem_dados:'pill-gray'}[s] || 'pill-gray';
+    return `<span class="pill ${cls}"><span class="pill-dot"></span>${saudeLabel(s)}</span>`;
+}
+function fmt(v, unit='') { return (v !== null && v !== undefined) ? v + unit : ('0' + unit); }
+
+function buildHTML(faz, sensores, iot, cultura, saude, iotRows) {
+    const onlineC = sensores.filter(s => s.status === 'online').length;
+    const offlineC = sensores.filter(s => s.status === 'offline').length;
+    const warnC = sensores.filter(s => s.status === 'warn').length;
+
+    return `
+    <!-- Linha 1: KPIs -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem">
+        <div class="stat-box" style="background:#ecfdf5;border-color:#bbf7d0">
+            <div class="stat-box-val" style="color:#166534">${fmt(iot.humidade_solo, '%')}</div>
+            <div class="stat-box-lbl">Humidade Solo</div>
+            <div class="health-bar" style="margin-top:.5rem"><div class="health-fill" style="width:${iot.humidade_solo||0}%;background:${(iot.humidade_solo||0)>=60?'#10b981':(iot.humidade_solo||0)>=30?'#f59e0b':'#ef4444'}"></div></div>
+        </div>
+        <div class="stat-box" style="background:#fef9c3;border-color:#fde68a">
+            <div class="stat-box-val" style="color:#854d0e">${fmt(iot.temperatura_ar, '°C')}</div>
+            <div class="stat-box-lbl">Temperatura</div>
+        </div>
+        <div class="stat-box" style="background:#eff6ff;border-color:#bfdbfe">
+            <div class="stat-box-val" style="color:#1d4ed8">${fmt(iot.humidade_ar, '%')}</div>
+            <div class="stat-box-lbl">Humidade Ar</div>
+        </div>
+        <div class="stat-box" style="background:${iot.detecao_praga?'#fef2f2':'#f9fafb'};border-color:${iot.detecao_praga?'#fecaca':'#e5e7eb'}">
+            <div class="stat-box-val" style="color:${iot.detecao_praga?'#dc2626':'#374151'};font-size:1.1rem">${iot.detecao_praga ? '🐛 ' + (iot.tipo_praga||'Detetada') : '✅ Sem pragas'}</div>
+            <div class="stat-box-lbl">Estado Pragas</div>
+            ${iot.detecao_praga ? `<div style="font-size:.72rem;color:#dc2626;margin-top:.3rem">Confiança: ${((iot.confianca||0)*100).toFixed(0)}%</div>` : ''}
+        </div>
+    </div>
+
+    <!-- Linha 2: Info + Sensores + Cultura -->
+    <div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:1rem;margin-bottom:1.5rem">
+
+        <!-- Info Geral -->
+        <div class="card">
+            <div class="section-title"><i class="icon-wheat" style="color:#2E8B57"></i>Informações da Fazenda</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.875rem">
+                <div class="kv"><span class="kv-label">Proprietário</span><span class="kv-val">${faz.proprietario||'—'}</span></div>
+                <div class="kv"><span class="kv-label">Localização</span><span class="kv-val">${faz.localizacao||'—'}</span></div>
+                <div class="kv"><span class="kv-label">Área</span><span class="kv-val">${faz.hectares ? faz.hectares + ' ha' : '—'}</span></div>
+                <div class="kv"><span class="kv-label">Cultura</span><span class="kv-val">${faz.cultura||'—'}</span></div>
+                <div class="kv"><span class="kv-label">Estado Solo</span><span class="kv-val">${saudePill(saude)}</span></div>
+                <div class="kv"><span class="kv-label">Registada em</span><span class="kv-val" style="font-size:.8rem">${faz.created_at ? new Date(faz.created_at).toLocaleDateString('pt-PT') : '—'}</span></div>
+            </div>
+        </div>
+
+        <!-- Sensores -->
+        <div class="card">
+            <div class="section-title"><i class="icon-cpu" style="color:#2563eb"></i>Sensores
+                <span style="margin-left:auto;display:flex;gap:.4rem">
+                    <span style="font-size:.7rem;background:#ecfdf5;color:#166534;border-radius:6px;padding:.1rem .4rem;font-weight:700">${onlineC} online</span>
+                    ${offlineC > 0 ? `<span style="font-size:.7rem;background:#fef2f2;color:#991b1b;border-radius:6px;padding:.1rem .4rem;font-weight:700">${offlineC} offline</span>` : ''}
+                </span>
+            </div>
+            ${sensores.length === 0 ? '<p style="color:#9ca3af;font-size:.825rem;text-align:center;padding:1rem">Nenhum sensor atribuído</p>' :
+            `<div style="display:flex;flex-direction:column;gap:.5rem;max-height:180px;overflow-y:auto">
+                ${sensores.map(s => `
+                <div class="sh-card ${s.status}" style="padding:.6rem .75rem">
+                    <div style="display:flex;align-items:center;justify-content:space-between">
+                        <span style="font-size:.825rem;font-weight:600">${s.nome}</span>
+                        <div class="sh-pulse ${s.status}"></div>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;margin-top:.2rem">
+                        <span class="tag" style="font-size:.68rem">${s.tipo}</span>
+                        <span style="font-size:.72rem;color:#9ca3af">🔋${s.bateria||0}%</span>
+                    </div>
+                </div>`).join('')}
+            </div>`}
+        </div>
+
+        <!-- Cultura -->
+        <div class="card">
+            <div class="section-title"><i class="icon-leaf" style="color:#16a34a"></i>Cultura &amp; Solo Ideal</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+                <div class="stat-box"><div class="stat-box-val" style="font-size:1.1rem">${cultura.nome||'—'}</div><div class="stat-box-lbl">Cultura</div></div>
+                <div class="stat-box"><div class="stat-box-val">${cultura.ph_ideal||'—'}</div><div class="stat-box-lbl">pH Ideal</div></div>
+                <div class="stat-box"><div class="stat-box-val">${cultura.humidade_ideal||'—'}%</div><div class="stat-box-lbl">Hum. Ideal</div></div>
+                <div class="stat-box"><div class="stat-box-val">${cultura.temp_ideal||'—'}°C</div><div class="stat-box-lbl">Temp. Ideal</div></div>
+            </div>
+            <div style="margin-top:.875rem">
+                <div style="font-size:.75rem;font-weight:600;color:#374151;margin-bottom:.4rem">Humidade Solo Atual vs Ideal</div>
+                <div style="display:flex;align-items:center;gap:.5rem">
+                    <div class="health-bar" style="flex:1">
+                        <div class="health-fill" style="width:${iot.humidade_solo||0}%;background:${(iot.humidade_solo||0)>=60?'#10b981':(iot.humidade_solo||0)>=30?'#f59e0b':'#ef4444'}"></div>
+                    </div>
+                    <span style="font-size:.75rem;font-weight:700;color:#374151;white-space:nowrap">${fmt(iot.humidade_solo, '%')} / ${cultura.humidade_ideal||'?'}%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Linha 3: Gráficos -->
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:1rem;margin-bottom:1.5rem">
+        <div class="card">
+            <div class="section-title"><i class="icon-line-chart" style="color:#2E8B57"></i>Temperatura &amp; Humidade do Solo — Série Temporal</div>
+            <div class="chart-wrap tall"><canvas id="chartTempHumSolo"></canvas></div>
+        </div>
+        <div class="card">
+            <div class="section-title"><i class="icon-pie-chart" style="color:#7c3aed"></i>Distribuição de Sensores</div>
+            <div class="chart-wrap"><canvas id="chartSensoresPie"></canvas></div>
+        </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
+        <div class="card">
+            <div class="section-title"><i class="icon-bar-chart-2" style="color:#2563eb"></i>Humidade do Ar &amp; Pressão</div>
+            <div class="chart-wrap"><canvas id="chartHumAr"></canvas></div>
+        </div>
+        <div class="card">
+            <div class="section-title"><i class="icon-activity" style="color:#f59e0b"></i>Detecção de Pragas — Últimos registos</div>
+            <div class="chart-wrap"><canvas id="chartPragas"></canvas></div>
+        </div>
+    </div>
+
+    <!-- Linha 4: Histórico IoT tabela -->
+    <div class="card">
+        <div class="section-title" style="justify-content:space-between">
+            <span><i class="icon-table" style="color:#6b7280"></i>Últimas Leituras IoT</span>
+            <span style="font-size:.75rem;color:#9ca3af;text-transform:none;letter-spacing:0">Atualizadas automaticamente</span>
+        </div>
+        <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;font-size:.8rem">
+                <thead><tr style="border-bottom:1px solid #f3f4f6;background:#fafafa">
+                    <th style="text-align:left;padding:.5rem .75rem;color:#6b7280;font-size:.72rem;text-transform:uppercase">Data/Hora</th>
+                    <th style="text-align:left;padding:.5rem .75rem;color:#6b7280;font-size:.72rem;text-transform:uppercase">Temp (°C)</th>
+                    <th style="text-align:left;padding:.5rem .75rem;color:#6b7280;font-size:.72rem;text-transform:uppercase">Hum Solo (%)</th>
+                    <th style="text-align:left;padding:.5rem .75rem;color:#6b7280;font-size:.72rem;text-transform:uppercase">Hum Ar (%)</th>
+                    <th style="text-align:left;padding:.5rem .75rem;color:#6b7280;font-size:.72rem;text-transform:uppercase">Pressão (hPa)</th>
+                    <th style="text-align:left;padding:.5rem .75rem;color:#6b7280;font-size:.72rem;text-transform:uppercase">Pragas</th>
+                </tr></thead>
+                <tbody id="iotTableBody">
+                    <tr><td colspan="6" style="text-align:center;padding:1.5rem;color:#9ca3af">Sem dados de IoT</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>`;
+}
+
+function renderCharts(iotRows, latest) {
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.color = '#6B7280';
+
+    const labels = iotRows.slice(-30).map(r => {
+        const ts = r.timestamp || r.ts;
+        return ts ? new Date(ts).toLocaleDateString('pt-PT', {day:'2-digit',month:'2-digit'}) : '';
+    });
+    const temps    = iotRows.slice(-30).map(r => r.temperatura_ar ?? r.bme280?.temperatura ?? null);
+    const humSolo  = iotRows.slice(-30).map(r => r.humidade_solo ?? null);
+    const humAr    = iotRows.slice(-30).map(r => r.humidade_ar ?? r.bme280?.humidade ?? null);
+    const pressao  = iotRows.slice(-30).map(r => r.pressao_ar ?? r.bme280?.pressao ?? null);
+    const pragas   = iotRows.slice(-30).map(r => (r.detecao_praga || r.visao?.detecao_praga) ? 1 : 0);
+
+    const baseOpts = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 12 } } },
+        scales: { x: { grid: { display: false } }, y: { grid: { color: 'rgba(0,0,0,.05)' } } }
+    };
+
+    // Chart 1: Temp + Hum Solo (linha)
+    const c1 = document.getElementById('chartTempHumSolo');
+    if (c1) charts.c1 = new Chart(c1, {
+        type: 'line',
+        data: { labels,
+            datasets: [
+                { label: 'Temperatura (°C)', data: temps, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,.08)', tension: .35, pointRadius: 2, borderWidth: 2 },
+                { label: 'Humidade Solo (%)', data: humSolo, borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,.08)', tension: .35, pointRadius: 2, borderWidth: 2 }
+            ]
+        },
+        options: { ...baseOpts }
+    });
+
+    // Chart 2: Sensores pie
+    const sTypes = {};
+    fetch(`/api/admin/fazendas/${FAZENDA_ID}/detalhes`, { headers: { Authorization: 'Bearer ' + getToken() } })
+        .then(r => r.json()).then(d => {
+            (d.sensores || []).forEach(s => sTypes[s.tipo] = (sTypes[s.tipo]||0)+1);
+            const c2 = document.getElementById('chartSensoresPie');
+            if (c2) charts.c2 = new Chart(c2, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(sTypes),
+                    datasets: [{ data: Object.values(sTypes), backgroundColor: ['#2E8B57','#2563eb','#f59e0b','#7c3aed'], hoverOffset: 8, borderWidth: 2 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } } }
+            });
+        });
+
+    // Chart 3: Hum Ar + Pressão (barras)
+    const c3 = document.getElementById('chartHumAr');
+    if (c3) charts.c3 = new Chart(c3, {
+        type: 'bar',
+        data: { labels,
+            datasets: [
+                { label: 'Humidade Ar (%)', data: humAr, backgroundColor: 'rgba(37,99,235,.7)', borderRadius: 3 },
+                { label: 'Pressão (÷10 hPa)', data: pressao.map(p => p ? p/10 : null), backgroundColor: 'rgba(124,58,237,.5)', borderRadius: 3 }
+            ]
+        },
+        options: { ...baseOpts }
+    });
+
+    // Chart 4: Pragas detections (linha área)
+    const c4 = document.getElementById('chartPragas');
+    if (c4) charts.c4 = new Chart(c4, {
+        type: 'bar',
+        data: { labels, datasets: [{ label: 'Praga detetada', data: pragas, backgroundColor: 'rgba(220,38,38,.7)', borderRadius: 4 }] },
+        options: { ...baseOpts, scales: { ...baseOpts.scales, y: { ...baseOpts.scales.y, ticks: { stepSize: 1 }, max: 1 } } }
+    });
+
+    // Table
+    const tbody = document.getElementById('iotTableBody');
+    if (tbody && iotRows.length) {
+        tbody.innerHTML = iotRows.slice(-20).reverse().map(r => {
+            const ts = r.timestamp || r.ts;
+            const praga = r.detecao_praga || r.visao?.detecao_praga;
+            const temp = r.temperatura_ar ?? r.bme280?.temperatura ?? '—';
+            const hs   = r.humidade_solo ?? '—';
+            const ha   = r.humidade_ar ?? r.bme280?.humidade ?? '—';
+            const p    = r.pressao_ar ?? r.bme280?.pressao ?? '—';
+            return `<tr style="border-bottom:1px solid #f9fafb">
+                <td style="padding:.5rem .75rem;color:#6b7280">${ts ? new Date(ts).toLocaleString('pt-PT') : '—'}</td>
+                <td style="padding:.5rem .75rem;font-weight:600">${temp !== '—' ? temp + '°C' : '—'}</td>
+                <td style="padding:.5rem .75rem">${hs !== '—' ? hs + '%' : '—'}</td>
+                <td style="padding:.5rem .75rem">${ha !== '—' ? ha + '%' : '—'}</td>
+                <td style="padding:.5rem .75rem">${p !== '—' ? p + ' hPa' : '—'}</td>
+                <td style="padding:.5rem .75rem">${praga ? '<span style="color:#dc2626;font-weight:700">🐛 Sim</span>' : '<span style="color:#10b981">✓ Não</span>'}</td>
+            </tr>`;
+        }).join('');
+    }
+}
+
+window.addEventListener('beforeunload', () => {
+    Object.values(charts).forEach(c => { try { c.destroy(); } catch(e) {} });
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (!getToken()) { window.location.href = '/admin/login'; return; }
+    loadAll();
+});
+</script>
+</body>
+</html>

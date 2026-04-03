@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin — AgroCaua</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/lucide-static/font/lucide.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        [x-cloak]{display:none!important}
+        body{font-family:'Inter',sans-serif;background:#f3f4f6;color:#111827;display:flex;min-height:100vh}
+
+        /* SIDEBAR */
+        .sb{width:232px;min-height:100vh;background:white;border-right:1px solid #e5e7eb;display:flex;flex-direction:column;position:fixed;left:0;top:0;z-index:40}
+        .sb-logo{padding:1rem;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:.5rem;text-decoration:none}
+        .sb-logo-icon{width:30px;height:30px;background:linear-gradient(135deg,#2E8B57,#38A169);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .sb-logo-text{font-size:.9rem;font-weight:700;color:#111827}
+        .sb-badge{font-size:.6rem;background:#dbeafe;color:#1d4ed8;border-radius:4px;padding:.1rem .35rem;font-weight:700;margin-left:.25rem}
+        .sb-nav{flex:1;padding:.5rem .625rem;overflow-y:auto}
+        .sb-section{font-size:.63rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#9ca3af;padding:.65rem .75rem .2rem}
+        .sb-link{display:flex;align-items:center;gap:.625rem;padding:.525rem .75rem;border-radius:8px;font-size:.825rem;font-weight:500;color:#6b7280;cursor:pointer;border:none;background:none;width:100%;transition:background .15s,color .15s;position:relative}
+        .sb-link:hover{background:#f9fafb;color:#374151}
+        .sb-link.on{background:#ecfdf5;color:#2E8B57;font-weight:600}
+        .sb-badge-num{margin-left:auto;background:#ef4444;color:white;font-size:.62rem;font-weight:700;border-radius:999px;padding:.08rem .42rem;line-height:1.4}
+        .sb-badge-num.g{background:#2E8B57}
+        .sb-bottom{padding:.625rem;border-top:1px solid #f3f4f6}
+        .sb-logout{display:flex;align-items:center;gap:.625rem;padding:.525rem .75rem;border-radius:8px;font-size:.825rem;font-weight:500;color:#6b7280;cursor:pointer;border:none;background:none;width:100%;transition:background .15s,color .15s}
+        .sb-logout:hover{background:#fef2f2;color:#dc2626}
+
+        /* MAIN */
+        .main{margin-left:232px;flex:1;display:flex;flex-direction:column;min-height:100vh}
+        .topbar{background:white;border-bottom:1px solid #e5e7eb;padding:.65rem 1.5rem;display:flex;align-items:center;gap:.875rem;position:sticky;top:0;z-index:30}
+        .tb-title{font-size:.95rem;font-weight:700;color:#111827}
+        .tb-actions{display:flex;align-items:center;gap:.375rem;margin-left:auto}
+        .tb-btn{width:34px;height:34px;border-radius:8px;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#6b7280;position:relative;transition:background .15s}
+        .tb-btn:hover{background:#f3f4f6}
+        .tb-dot{position:absolute;top:5px;right:5px;width:6px;height:6px;background:#ef4444;border-radius:50%;border:1.5px solid white}
+        .tb-avatar{width:32px;height:32px;border-radius:50%;background:#ecfdf5;border:2px solid #2E8B57;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#2E8B57;cursor:pointer}
+        .tb-name{font-size:.82rem;font-weight:600;color:#374151}
+
+        /* CONTENT */
+        .content{padding:1.5rem;flex:1}
+        .page-head{margin-bottom:1.5rem}
+        .page-title{font-size:1.35rem;font-weight:700;color:#111827;margin-bottom:.2rem}
+        .page-sub{font-size:.825rem;color:#6b7280}
+
+        /* STAT CARDS */
+        .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem}
+        @media(max-width:1100px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+        .stat-card{background:white;border-radius:12px;padding:1.1rem 1.25rem;border:1px solid #e5e7eb;display:flex;align-items:center;gap:.875rem}
+        .stat-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .stat-val{font-size:1.5rem;font-weight:700;color:#111827;line-height:1}
+        .stat-label{font-size:.78rem;color:#6b7280;margin-top:.25rem}
+        .delta-up{color:#2E8B57;font-size:.78rem;font-weight:600}
+        .delta-warn{color:#d97706;font-size:.78rem;font-weight:600}
+        .delta-red{color:#dc2626;font-size:.78rem;font-weight:600}
+
+        /* TABLES */
+        .card{background:white;border-radius:12px;border:1px solid #e5e7eb;overflow:hidden;margin-bottom:1.25rem}
+        .card-head{padding:.875rem 1.25rem;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+        .card-title{font-size:.9rem;font-weight:700;color:#111827;display:flex;align-items:center;gap:.4rem}
+        .card-body{padding:0}
+        .tbl{width:100%;border-collapse:collapse;font-size:.825rem}
+        .tbl thead tr{background:#f9fafb;border-bottom:1px solid #e5e7eb}
+        .tbl th{padding:.65rem 1rem;text-align:left;font-size:.75rem;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+        .tbl td{padding:.7rem 1rem;border-bottom:1px solid #f3f4f6;color:#374151;vertical-align:middle}
+        .tbl tr:last-child td{border-bottom:none}
+        .tbl tr:hover td{background:#fafafa}
+        .empty{text-align:center;padding:2.5rem;color:#9ca3af;font-size:.85rem}
+
+        /* PILLS */
+        .pill{display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .6rem;border-radius:999px;font-size:.72rem;font-weight:600}
+        .pill-green{background:#ecfdf5;color:#2E8B57}
+        .pill-red{background:#fef2f2;color:#dc2626}
+        .pill-blue{background:#eff6ff;color:#2563eb}
+        .pill-gray{background:#f3f4f6;color:#6b7280}
+        .pill-orange{background:#fffbeb;color:#d97706}
+        .pill-dot{width:5px;height:5px;border-radius:50%;background:currentColor}
+
+        /* SENSOR STATUS */
+        .s-online{color:#2E8B57}.s-warn{color:#d97706}.s-offline{color:#dc2626}
+
+        /* ACTION BUTTONS */
+        .btn-primary{display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .9rem;background:#2E8B57;color:white;border:none;border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer;transition:background .15s}
+        .btn-primary:hover{background:#256b44}
+        .btn-secondary{display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .9rem;background:white;color:#374151;border:1px solid #e5e7eb;border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer;transition:background .15s}
+        .btn-secondary:hover{background:#f9fafb}
+        .btn-danger{display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .9rem;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer;transition:background .15s}
+        .btn-danger:hover{background:#fee2e2}
+        .ab{width:28px;height:28px;border-radius:6px;border:1px solid #e5e7eb;background:white;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:#6b7280;font-size:.8rem;transition:all .15s}
+        .ab:hover{background:#f3f4f6}
+        .ab.red:hover{background:#fef2f2;color:#dc2626;border-color:#fecaca}
+        .ab.green:hover{background:#ecfdf5;color:#2E8B57;border-color:#a7f3d0}
+
+        /* SEARCH / FILTER */
+        .filters{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+        .fi-search{position:relative}
+        .fi-search input{padding:.42rem .75rem .42rem 2rem;border:1.5px solid #e5e7eb;border-radius:8px;font-size:.8rem;font-family:inherit;color:#374151;outline:none;background:#f9fafb;transition:border-color .2s;width:200px}
+        .fi-search input:focus{border-color:#2E8B57;background:white}
+        .fi-search i{position:absolute;left:.65rem;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:.8rem}
+        .fi-select{padding:.42rem .75rem;border:1.5px solid #e5e7eb;border-radius:8px;font-size:.8rem;font-family:inherit;color:#374151;outline:none;background:white;cursor:pointer}
+        .fi-select:focus{border-color:#2E8B57}
+
+        /* MODAL */
+        .mo{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:flex;align-items:center;justify-content:center;padding:1rem}
+        .mo-box{background:white;border-radius:14px;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,.2);max-height:90vh;overflow-y:auto}
+        .mo-head{padding:1.1rem 1.25rem;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between}
+        .mo-title{font-size:.95rem;font-weight:700;color:#111827;display:flex;align-items:center;gap:.5rem}
+        .mo-close{width:28px;height:28px;border-radius:6px;border:1px solid #e5e7eb;background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#6b7280}
+        .mo-close:hover{background:#f3f4f6}
+        .mo-body{padding:1.25rem}
+        .mo-foot{padding:.875rem 1.25rem;border-top:1px solid #f3f4f6;display:flex;justify-content:flex-end;gap:.5rem}
+        .fl{font-size:.75rem;font-weight:600;color:#374151;display:block;margin-bottom:.35rem}
+        .fi{width:100%;padding:.55rem .75rem;border:1.5px solid #e5e7eb;border-radius:8px;font-size:.875rem;font-family:inherit;color:#111827;outline:none;margin-bottom:.875rem;transition:border-color .2s}
+        .fi:focus{border-color:#2E8B57}
+        .fi-sel{appearance:none;background:white;cursor:pointer}
+        .btn-save{padding:.55rem 1.1rem;background:#2E8B57;color:white;border:none;border-radius:8px;font-size:.83rem;font-weight:600;cursor:pointer}
+        .btn-save:hover{background:#256b44}
+        .btn-cancel{padding:.55rem 1.1rem;background:white;color:#374151;border:1px solid #e5e7eb;border-radius:8px;font-size:.83rem;font-weight:600;cursor:pointer}
+        .btn-cancel:hover{background:#f9fafb}
+
+        /* TOAST */
+        .toast-wrap{position:fixed;bottom:1.5rem;right:1.5rem;z-index:200;pointer-events:none}
+        .toast{padding:.65rem 1.1rem;border-radius:10px;font-size:.83rem;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.15);margin-top:.5rem;pointer-events:auto}
+        .toast-ok{background:#ecfdf5;color:#2E8B57;border:1px solid #a7f3d0}
+        .toast-err{background:#fef2f2;color:#dc2626;border:1px solid #fecaca}
+
+        /* CHARTS */
+        .charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem}
+        @media(max-width:900px){.charts-grid{grid-template-columns:1fr}}
+        .chart-card{background:white;border-radius:12px;border:1px solid #e5e7eb;padding:1.1rem}
+        .chart-title{font-size:.875rem;font-weight:700;color:#111827;margin-bottom:.875rem}
+        .chart-wrap{height:180px;position:relative}
+
+        /* LOADING */
+        .loading-wrap{display:flex;align-items:center;justify-content:center;min-height:300px;flex-direction:column;gap:1rem;color:#9ca3af}
+        .spinner{width:32px;height:32px;border:3px solid #e5e7eb;border-top-color:#2E8B57;border-radius:50%;animation:spin .7s linear infinite}
+        @keyframes spin{to{transform:rotate(360deg)}}
+
+        /* IOT DATA CARDS */
+        .iot-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.25rem}
+        @media(max-width:900px){.iot-grid{grid-template-columns:1fr}}
+        .iot-card{background:white;border-radius:12px;border:1px solid #e5e7eb;padding:1.1rem}
+        .iot-icon{font-size:1.5rem;margin-bottom:.5rem}
+        .iot-val{font-size:1.6rem;font-weight:700;color:#111827}
+        .iot-unit{font-size:.8rem;color:#9ca3af;margin-left:.2rem}
+        .iot-label{font-size:.78rem;color:#6b7280;margin-top:.2rem}
+        .iot-time{font-size:.72rem;color:#9ca3af;margin-top:.4rem}
+    </style>
+</head>
+<body x-data="adminNormal()" x-init="init()">
+
+<!-- TOAST -->
+<div class="toast-wrap">
+    <div x-show="toast.show" x-transition class="toast" :class="toast.type==='ok'?'toast-ok':'toast-err'" x-text="toast.msg"></div>
+</div>
+
+<!-- MODAL: Criar/Editar Utilizador -->
+<div class="mo" x-show="showUserModal" x-cloak x-transition.opacity @click.self="showUserModal=false">
+    <div class="mo-box">
+        <div class="mo-head">
+            <div class="mo-title">
+                <i class="icon-user-plus" style="font-size:.95rem;color:#2E8B57"></i>
+                <span x-text="editingUser ? 'Editar Utilizador' : 'Novo Utilizador'"></span>
+            </div>
+            <button class="mo-close" @click="showUserModal=false"><i class="icon-x" style="font-size:.9rem"></i></button>
+        </div>
+        <div class="mo-body">
+            <label class="fl">Nome completo</label>
+            <input class="fi" type="text" placeholder="João Silva" x-model="userForm.nome">
+            <label class="fl">Email</label>
+            <input class="fi" type="email" placeholder="joao@agrocaua.com" x-model="userForm.email">
+            <label class="fl">Papel</label>
+            <select class="fi fi-sel" x-model="userForm.role">
+                <option value="agricultor">Agricultor</option>
+                <option value="admin">Admin</option>
+            </select>
+            <label class="fl" x-text="editingUser ? 'Nova Palavra-passe (deixar vazio para manter)' : 'Palavra-passe'"></label>
+            <input class="fi" type="password" placeholder="••••••••" x-model="userForm.password" style="margin-bottom:0">
+        </div>
+        <div class="mo-foot">
+            <button class="btn-cancel" @click="showUserModal=false">Cancelar</button>
+            <button class="btn-save" @click="saveUser()">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sb">
+    <a href="/admin/normal" class="sb-logo">
+        <div class="sb-logo-icon">
+            <svg width="16" height="16" fill="none" stroke="white" stroke-width="2.2" viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 1 0 20"/><path d="M12 2C6.48 2 2 6.48 2 12"/><path d="M2 12c0 2.5 3 6 10 8"/><path d="M22 12c0 2.5-3 6-10 8"/></svg>
+        </div>
+        <span class="sb-logo-text">AgroCaua</span>
+        <span class="sb-badge">ADMIN</span>
+    </a>
+
+    <nav class="sb-nav">
+        <span class="sb-section">Principal</span>
+        <button class="sb-link" :class="{on:tab==='dashboard'}" @click="tab='dashboard'">
+            <i class="icon-layout-dashboard" style="font-size:.95rem"></i><span>Dashboard</span>
+        </button>
+
+        <span class="sb-section">Gestão</span>
+        <button class="sb-link" :class="{on:tab==='users'}" @click="tab='users'">
+            <i class="icon-users" style="font-size:.95rem"></i><span>Utilizadores</span>
+            <span class="sb-badge-num g" x-show="users.length>0" x-text="users.length"></span>
+        </button>
+        <button class="sb-link" :class="{on:tab==='farms'}" @click="tab='farms'">
+            <i class="icon-wheat" style="font-size:.95rem"></i><span>Fazendas</span>
+        </button>
+        <button class="sb-link" :class="{on:tab==='sensors'}" @click="tab='sensors'">
+            <i class="icon-cpu" style="font-size:.95rem"></i><span>Sensores</span>
+            <span class="sb-badge-num" x-show="offlineSensors>0" x-text="offlineSensors"></span>
+        </button>
+
+        <span class="sb-section">Monitoramento</span>
+        <button class="sb-link" :class="{on:tab==='iot'}" @click="tab='iot'">
+            <i class="icon-activity" style="font-size:.95rem"></i><span>Dados IoT</span>
+        </button>
+        <button class="sb-link" :class="{on:tab==='alerts'}" @click="tab='alerts'">
+            <i class="icon-bell" style="font-size:.95rem"></i><span>Alertas</span>
+            <span class="sb-badge-num" x-show="alerts.length>0" x-text="alerts.length"></span>
+        </button>
+    </nav>
+
+    <div class="sb-bottom">
+        <button class="sb-logout" onclick="handleLogout()">
+            <i class="icon-log-out" style="font-size:.9rem"></i><span>Terminar Sessão</span>
+        </button>
+    </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <div class="tb-title" x-text="{'dashboard':'Dashboard','users':'Utilizadores','farms':'Fazendas','sensors':'Sensores','iot':'Dados IoT','alerts':'Alertas'}[tab]||'Admin'"></div>
+        <div class="tb-actions">
+            <button class="tb-btn" @click="tab='alerts'" title="Alertas">
+                <i class="icon-bell" style="font-size:.95rem"></i>
+                <span class="tb-dot" x-show="alerts.length>0"></span>
+            </button>
+            <div class="tb-avatar" x-text="initials(adminName)"></div>
+            <span class="tb-name" x-text="adminName"></span>
+        </div>
+    </div>
+
+    <div class="content" x-show="loading">
+        <div class="loading-wrap"><div class="spinner"></div><span>A carregar dados...</span></div>
+    </div>
+
+    <div class="content" x-show="!loading" x-cloak>
+
+        <!-- ══ DASHBOARD ══ -->
+        <div x-show="tab==='dashboard'">
+            <div class="page-head">
+                <div class="page-title">Visão Geral</div>
+                <div class="page-sub">Resumo do estado actual da plataforma</div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:#ecfdf5"><i class="icon-users" style="color:#2E8B57;font-size:1.2rem"></i></div>
+                    <div><div class="stat-val" x-text="users.length"></div><div class="stat-label">Utilizadores</div>
+                    <div class="delta-up" x-text="users.filter(u=>u.is_active).length + ' activos'"></div></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:#eff6ff"><i class="icon-wheat" style="color:#2563eb;font-size:1.2rem"></i></div>
+                    <div><div class="stat-val" x-text="farms.length"></div><div class="stat-label">Fazendas</div>
+                    <div class="delta-up" x-text="farms.filter(f=>f.status==='active').length + ' activas'"></div></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:#faf5ff"><i class="icon-cpu" style="color:#7c3aed;font-size:1.2rem"></i></div>
+                    <div><div class="stat-val" x-text="sensors.length"></div><div class="stat-label">Sensores</div>
+                    <div :class="offlineSensors>0?'delta-warn':'delta-up'" x-text="onlineSensors+' online'+(offlineSensors>0?' · '+offlineSensors+' offline':'')"></div></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:#fffbeb"><i class="icon-bell" style="color:#d97706;font-size:1.2rem"></i></div>
+                    <div><div class="stat-val" x-text="alerts.length"></div><div class="stat-label">Alertas activos</div>
+                    <div :class="alerts.filter(a=>a.severidade==='crítico').length>0?'delta-red':'delta-warn'"
+                         x-text="alerts.filter(a=>a.severidade==='crítico').length + ' críticos'"></div></div>
+                </div>
+            </div>
+
+            <!-- Latest IoT reading summary -->
+            <div class="iot-grid" x-show="latestIoT">
+                <div class="iot-card">
+                    <div class="iot-icon">🌡️</div>
+                    <div class="iot-val" x-text="latestIoT?.bme280?.temperatura?.toFixed(1) ?? '—'"><span class="iot-unit">°C</span></div>
+                    <div class="iot-label">Temperatura do Ar</div>
+                    <div class="iot-time" x-text="latestIoT ? 'Última leitura: ' + fmtDate(latestIoT.timestamp) : ''"></div>
+                </div>
+                <div class="iot-card">
+                    <div class="iot-icon">💧</div>
+                    <div class="iot-val" x-text="(latestIoT?.solo?.humidade ?? latestIoT?.bme280?.humidade ?? '—')"><span class="iot-unit">%</span></div>
+                    <div class="iot-label">Humidade</div>
+                    <div class="iot-time" x-text="latestIoT ? latestIoT.device_id : ''"></div>
+                </div>
+                <div class="iot-card">
+                    <div class="iot-icon" x-text="latestIoT?.visao?.detecao_praga ? '🚨' : '✅'"></div>
+                    <div class="iot-val" style="font-size:1rem" x-text="latestIoT?.visao?.detecao_praga ? 'Praga detectada' : 'Sem pragas'"></div>
+                    <div class="iot-label">Visão Computacional</div>
+                    <div class="iot-time" x-text="latestIoT?.visao?.tipo_praga || 'Sistema normal'"></div>
+                </div>
+            </div>
+
+            <!-- Quick alerts table -->
+            <div class="card" x-show="alerts.length > 0">
+                <div class="card-head">
+                    <div class="card-title"><i class="icon-bell" style="color:#d97706"></i> Alertas Recentes</div>
+                    <button class="btn-secondary" @click="tab='alerts'" style="font-size:.78rem;padding:.35rem .75rem">Ver todos</button>
+                </div>
+                <div class="card-body">
+                    <table class="tbl">
+                        <thead><tr><th>Tipo</th><th>Mensagem</th><th>Severidade</th><th>Data</th></tr></thead>
+                        <tbody>
+                            <template x-for="a in alerts.slice(0,5)" :key="a.id">
+                                <tr>
+                                    <td x-text="a.tipo||a.type||'—'"></td>
+                                    <td x-text="a.mensagem||a.message||'—'"></td>
+                                    <td><span class="pill" :class="(a.severidade||a.severity)==='crítico'?'pill-red':'pill-orange'" x-text="a.severidade||a.severity||'aviso'"></span></td>
+                                    <td style="font-size:.78rem;color:#9ca3af" x-text="fmtDate(a.timestamp)"></td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Sensors quick status -->
+            <div class="card">
+                <div class="card-head">
+                    <div class="card-title"><i class="icon-cpu" style="color:#2563eb"></i> Estado dos Sensores</div>
+                    <button class="btn-secondary" @click="tab='sensors'" style="font-size:.78rem;padding:.35rem .75rem">Gerir</button>
+                </div>
+                <div class="card-body">
+                    <table class="tbl">
+                        <thead><tr><th>Sensor</th><th>Tipo</th><th>Fazenda</th><th>Estado</th><th>Bateria</th></tr></thead>
+                        <tbody>
+                            <template x-for="s in sensors.slice(0,6)" :key="s.id">
+                                <tr>
+                                    <td x-text="s.nome"></td>
+                                    <td x-text="s.tipo||'—'"></td>
+                                    <td x-text="s.fazenda||'—'"></td>
+                                    <td>
+                                        <span class="pill" :class="s.status==='online'?'pill-green':s.status==='warn'?'pill-orange':'pill-red'">
+                                            <span class="pill-dot"></span>
+                                            <span x-text="s.status==='online'?'Online':s.status==='warn'?'Aviso':'Offline'"></span>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div style="display:flex;align-items:center;gap:.5rem">
+                                            <div style="width:60px;height:6px;background:#e5e7eb;border-radius:99px;overflow:hidden">
+                                                <div style="height:100%;border-radius:99px;transition:width .3s"
+                                                     :style="'width:'+(s.bateria||0)+'%;background:'+(s.bateria>50?'#2E8B57':s.bateria>20?'#d97706':'#dc2626')"></div>
+                                            </div>
+                                            <span style="font-size:.75rem;color:#6b7280" x-text="(s.bateria||0)+'%'"></span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </template>
+                            <tr x-show="sensors.length===0"><td colspan="5" class="empty">Nenhum sensor registado</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ UTILIZADORES ══ -->
+        <div x-show="tab==='users'" x-cloak>
+            <div class="page-head">
+                <div class="page-title">Utilizadores</div>
+                <div class="page-sub">Gerir contas de acesso ao sistema</div>
+            </div>
+            <div class="card">
+                <div class="card-head">
+                    <div class="filters">
+                        <div class="fi-search"><i class="icon-search"></i><input type="text" placeholder="Pesquisar..." x-model="userSearch"></div>
+                        <select class="fi-select" x-model="userRoleFilter">
+                            <option value="">Todos os papéis</option>
+                            <option value="agricultor">Agricultor</option>
+                            <option value="admin">Admin</option>
+                            <option value="superadmin">Super Admin</option>
+                        </select>
+                        <select class="fi-select" x-model="userStatusFilter">
+                            <option value="">Todos os estados</option>
+                            <option value="active">Activo</option>
+                            <option value="inactive">Inactivo</option>
+                        </select>
+                    </div>
+                    <button class="btn-primary" @click="openUserModal(null)">
+                        <i class="icon-plus" style="font-size:.85rem"></i>Novo Utilizador
+                    </button>
+                </div>
+                <div class="card-body">
+                    <table class="tbl">
+                        <thead><tr><th>Utilizador</th><th>Papel</th><th>Estado</th><th>Criado em</th><th>Acções</th></tr></thead>
+                        <tbody>
+                            <template x-for="u in filteredUsers" :key="u.id">
+                                <tr>
+                                    <td>
+                                        <div style="display:flex;align-items:center;gap:.625rem">
+                                            <div style="width:32px;height:32px;border-radius:50%;background:#ecfdf5;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:#2E8B57;flex-shrink:0" x-text="initials(u.nome)"></div>
+                                            <div><div style="font-weight:600;font-size:.85rem" x-text="u.nome"></div><div style="font-size:.78rem;color:#9ca3af" x-text="u.email"></div></div>
+                                        </div>
+                                    </td>
+                                    <td><span class="pill" :class="u.role==='superadmin'?'pill-green':u.role==='admin'?'pill-blue':'pill-gray'" x-text="roleLabel(u.role)"></span></td>
+                                    <td><span class="pill" :class="u.is_active?'pill-green':'pill-red'"><span class="pill-dot"></span><span x-text="u.is_active?'Activo':'Inactivo'"></span></span></td>
+                                    <td style="font-size:.78rem;color:#9ca3af" x-text="fmtDate(u.created_at)"></td>
+                                    <td>
+                                        <div style="display:flex;gap:.3rem">
+                                            <button class="ab green" title="Editar" @click="openUserModal(u)"><i class="icon-pencil"></i></button>
+                                            <button class="ab" title="Activar/Desactivar" @click="toggleUserActive(u)"><i :class="u.is_active?'icon-toggle-right':'icon-toggle-left'"></i></button>
+                                            <button class="ab red" title="Remover" @click="deleteUser(u.id)"><i class="icon-trash-2"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </template>
+                            <tr x-show="filteredUsers.length===0"><td colspan="5" class="empty">Nenhum utilizador encontrado</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ FAZENDAS ══ -->
+        <div x-show="tab==='farms'" x-cloak>
+            <div class="page-head">
+                <div class="page-title">Fazendas</div>
+                <div class="page-sub">Propriedades registadas no sistema</div>
+            </div>
+            <div class="card">
+                <div class="card-head">
+                    <div class="filters">
+                        <div class="fi-search"><i class="icon-search"></i><input type="text" placeholder="Pesquisar..." x-model="farmSearch"></div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <table class="tbl">
+                        <thead><tr><th>Nome</th><th>Proprietário</th><th>Localização</th><th>Hectares</th><th>Cultura</th><th>Sensores</th><th>Estado</th></tr></thead>
+                        <tbody>
+                            <template x-for="f in filteredFarms" :key="f.id">
+                                <tr>
+                                    <td style="font-weight:600" x-text="f.nome"></td>
+                                    <td x-text="f.proprietario||'—'"></td>
+                                    <td x-text="f.localizacao||'—'"></td>
+                                    <td x-text="f.hectares ? f.hectares+' ha' : '—'"></td>
+                                    <td x-text="f.cultura||'—'"></td>
+                                    <td x-text="f.num_sensores||0"></td>
+                                    <td><span class="pill" :class="f.status==='active'?'pill-green':'pill-gray'"><span class="pill-dot"></span><span x-text="f.status==='active'?'Activa':'Inactiva'"></span></span></td>
+                                </tr>
+                            </template>
+                            <tr x-show="filteredFarms.length===0"><td colspan="7" class="empty">Nenhuma fazenda encontrada</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ SENSORES ══ -->
+        <div x-show="tab==='sensors'" x-cloak>
+            <div class="page-head">
+                <div class="page-title">Sensores</div>
+                <div class="page-sub">Estado e monitoramento dos dispositivos IoT</div>
+            </div>
+            <div class="card">
+                <div class="card-head">
+                    <div class="filters">
+                        <div class="fi-search"><i class="icon-search"></i><input type="text" placeholder="Pesquisar..." x-model="sensorSearch"></div>
+                        <select class="fi-select" x-model="sensorStatusFilter">
+                            <option value="">Todos os estados</option>
+                            <option value="online">Online</option>
+                            <option value="warn">Aviso</option>
+                            <option value="offline">Offline</option>
+                        </select>
+                        <select class="fi-select" x-model="sensorTypeFilter">
+                            <option value="">Todos os tipos</option>
+                            <option value="Solo">Solo</option>
+                            <option value="Clima">Clima</option>
+                            <option value="GPS">GPS</option>
+                            <option value="Câmara">Câmara</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <table class="tbl">
+                        <thead><tr><th>Nome</th><th>Tipo</th><th>Fazenda</th><th>Estado</th><th>Bateria</th><th>Último dado</th></tr></thead>
+                        <tbody>
+                            <template x-for="s in filteredSensors" :key="s.id">
+                                <tr>
+                                    <td style="font-weight:600" x-text="s.nome"></td>
+                                    <td x-text="s.tipo||'—'"></td>
+                                    <td x-text="s.fazenda||'—'"></td>
+                                    <td>
+                                        <span class="pill" :class="s.status==='online'?'pill-green':s.status==='warn'?'pill-orange':'pill-red'">
+                                            <span class="pill-dot"></span>
+                                            <span x-text="s.status==='online'?'Online':s.status==='warn'?'Aviso':'Offline'"></span>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div style="display:flex;align-items:center;gap:.5rem">
+                                            <div style="width:60px;height:6px;background:#e5e7eb;border-radius:99px;overflow:hidden">
+                                                <div :style="'width:'+(s.bateria||0)+'%;height:100%;border-radius:99px;background:'+(s.bateria>50?'#2E8B57':s.bateria>20?'#d97706':'#dc2626')"></div>
+                                            </div>
+                                            <span style="font-size:.75rem;color:#6b7280" x-text="(s.bateria||0)+'%'"></span>
+                                        </div>
+                                    </td>
+                                    <td style="font-size:.78rem;color:#9ca3af" x-text="s.ultimo_dado ? fmtDate(s.ultimo_dado) : 'Sem dados'"></td>
+                                </tr>
+                            </template>
+                            <tr x-show="filteredSensors.length===0"><td colspan="6" class="empty">Nenhum sensor encontrado</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ DADOS IOT ══ -->
+        <div x-show="tab==='iot'" x-cloak>
+            <div class="page-head">
+                <div class="page-title">Dados IoT</div>
+                <div class="page-sub">Leituras em tempo real dos dispositivos de campo</div>
+            </div>
+
+            <div class="iot-grid" x-show="latestIoT">
+                <div class="iot-card">
+                    <div class="iot-icon">🌡️</div>
+                    <div><span class="iot-val" x-text="latestIoT?.bme280?.temperatura?.toFixed(1) ?? '—'"></span><span class="iot-unit">°C</span></div>
+                    <div class="iot-label">Temperatura do Ar</div>
+                    <div class="iot-time" x-text="'Dispositivo: ' + (latestIoT?.device_id||'—')"></div>
+                </div>
+                <div class="iot-card">
+                    <div class="iot-icon">💦</div>
+                    <div><span class="iot-val" x-text="latestIoT?.bme280?.humidade?.toFixed(1) ?? '—'"></span><span class="iot-unit">%</span></div>
+                    <div class="iot-label">Humidade do Ar</div>
+                </div>
+                <div class="iot-card">
+                    <div class="iot-icon">🌫️</div>
+                    <div><span class="iot-val" x-text="latestIoT?.bme280?.pressao?.toFixed(1) ?? '—'"></span><span class="iot-unit">hPa</span></div>
+                    <div class="iot-label">Pressão Atmosférica</div>
+                </div>
+                <div class="iot-card">
+                    <div class="iot-icon">🌱</div>
+                    <div><span class="iot-val" x-text="latestIoT?.solo?.humidade?.toFixed(1) ?? '—'"></span><span class="iot-unit">%</span></div>
+                    <div class="iot-label">Humidade do Solo</div>
+                </div>
+                <div class="iot-card">
+                    <div class="iot-icon">📍</div>
+                    <div class="iot-val" style="font-size:.95rem" x-text="latestIoT?.gps ? latestIoT.gps.latitude?.toFixed(4)+', '+latestIoT.gps.longitude?.toFixed(4) : '—'"></div>
+                    <div class="iot-label">Coordenadas GPS</div>
+                </div>
+                <div class="iot-card">
+                    <div class="iot-icon" x-text="latestIoT?.visao?.detecao_praga ? '🚨' : '✅'"></div>
+                    <div class="iot-val" style="font-size:.95rem" x-text="latestIoT?.visao?.detecao_praga ? 'Praga detectada' : 'Sem pragas'"></div>
+                    <div class="iot-label">Visão Computacional</div>
+                    <div class="iot-time" x-text="latestIoT?.visao?.tipo_praga || ''"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-head">
+                    <div class="card-title"><i class="icon-database" style="color:#6b7280"></i> Histórico de Leituras</div>
+                    <button class="btn-secondary" @click="loadIoT()" style="font-size:.78rem;padding:.35rem .75rem">
+                        <i class="icon-refresh-cw" style="font-size:.8rem"></i> Actualizar
+                    </button>
+                </div>
+                <div class="card-body">
+                    <table class="tbl">
+                        <thead><tr><th>Dispositivo</th><th>Data/Hora</th><th>Temperatura</th><th>Hum. Solo</th><th>GPS</th><th>Vibração</th></tr></thead>
+                        <tbody>
+                            <template x-for="d in iotData.slice(0,20)" :key="d.id">
+                                <tr>
+                                    <td style="font-weight:600;font-family:monospace;font-size:.78rem" x-text="d.device_id"></td>
+                                    <td style="font-size:.78rem;color:#9ca3af" x-text="fmtDate(d.timestamp)"></td>
+                                    <td x-text="d.bme280?.temperatura ? d.bme280.temperatura.toFixed(1)+'°C' : '—'"></td>
+                                    <td x-text="d.solo?.humidade ? d.solo.humidade.toFixed(1)+'%' : '—'"></td>
+                                    <td style="font-size:.78rem" x-text="d.gps?.latitude ? d.gps.latitude.toFixed(3)+', '+d.gps.longitude.toFixed(3) : '—'"></td>
+                                    <td><span class="pill" :class="d.vibracao?.detectada?'pill-orange':'pill-green'" x-text="d.vibracao?.detectada?'Sim':'Não'"></span></td>
+                                </tr>
+                            </template>
+                            <tr x-show="iotData.length===0"><td colspan="6" class="empty">Nenhum dado disponível</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ ALERTAS ══ -->
+        <div x-show="tab==='alerts'" x-cloak>
+            <div class="page-head">
+                <div class="page-title">Alertas</div>
+                <div class="page-sub">Alertas automáticos gerados pelos dados IoT</div>
+            </div>
+            <div class="card">
+                <div class="card-head">
+                    <div class="filters">
+                        <select class="fi-select" x-model="alertFilter">
+                            <option value="">Todas as severidades</option>
+                            <option value="crítico">Crítico</option>
+                            <option value="aviso">Aviso</option>
+                        </select>
+                    </div>
+                    <button class="btn-secondary" @click="loadAlerts()" style="font-size:.78rem;padding:.35rem .75rem">
+                        <i class="icon-refresh-cw" style="font-size:.8rem"></i> Actualizar
+                    </button>
+                </div>
+                <div class="card-body">
+                    <table class="tbl">
+                        <thead><tr><th>Tipo</th><th>Mensagem</th><th>Severidade</th><th>Data</th></tr></thead>
+                        <tbody>
+                            <template x-for="a in filteredAlerts" :key="a.id">
+                                <tr>
+                                    <td style="font-weight:600" x-text="a.tipo||a.type||'—'"></td>
+                                    <td x-text="a.mensagem||a.message||'—'"></td>
+                                    <td>
+                                        <span class="pill" :class="(a.severidade||a.severity)==='crítico'?'pill-red':'pill-orange'">
+                                            <span class="pill-dot"></span>
+                                            <span x-text="a.severidade||a.severity||'aviso'"></span>
+                                        </span>
+                                    </td>
+                                    <td style="font-size:.78rem;color:#9ca3af" x-text="fmtDate(a.timestamp)"></td>
+                                </tr>
+                            </template>
+                            <tr x-show="filteredAlerts.length===0"><td colspan="4" class="empty">Sem alertas activos</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /content -->
+</div><!-- /main -->
+
+<script src="{{ url_for('static', filename='js/api.js') }}"></script>
+<script>
+function adminNormal() {
+    return {
+        tab: 'dashboard',
+        loading: true,
+        adminName: 'Admin',
+
+        users: [], farms: [], sensors: [], iotData: [], alerts: [],
+        latestIoT: null,
+
+        userSearch: '', userRoleFilter: '', userStatusFilter: '',
+        farmSearch: '',
+        sensorSearch: '', sensorStatusFilter: '', sensorTypeFilter: '',
+        alertFilter: '',
+
+        showUserModal: false,
+        editingUser: null,
+        userForm: {nome:'', email:'', role:'agricultor', password:''},
+
+        get filteredUsers(){
+            return this.users.filter(u => {
+                const q = this.userSearch.toLowerCase();
+                const m = !q || u.nome.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
+                const r = !this.userRoleFilter || u.role === this.userRoleFilter;
+                const s = !this.userStatusFilter ||
+                    (this.userStatusFilter === 'active' ? u.is_active : !u.is_active);
+                return m && r && s;
+            });
+        },
+        get filteredFarms(){
+            const q = this.farmSearch.toLowerCase();
+            return this.farms.filter(f =>
+                !q || f.nome.toLowerCase().includes(q) || (f.localizacao||'').toLowerCase().includes(q)
+            );
+        },
+        get filteredSensors(){
+            return this.sensors.filter(s => {
+                const q = this.sensorSearch.toLowerCase();
+                const m = !q || s.nome.toLowerCase().includes(q) || (s.fazenda||'').toLowerCase().includes(q);
+                const st = !this.sensorStatusFilter || s.status === this.sensorStatusFilter;
+                const tp = !this.sensorTypeFilter || s.tipo === this.sensorTypeFilter;
+                return m && st && tp;
+            });
+        },
+        get filteredAlerts(){
+            return this.alerts.filter(a =>
+                !this.alertFilter || (a.severidade||a.severity) === this.alertFilter
+            );
+        },
+        get onlineSensors(){ return this.sensors.filter(s => s.status === 'online').length; },
+        get offlineSensors(){ return this.sensors.filter(s => s.status === 'offline').length; },
+
+        async init(){
+            try {
+                const stored = localStorage.getItem('agrocaua_user');
+                if (stored) { const u = JSON.parse(stored); this.adminName = u.nome || 'Admin'; }
+            } catch(e){}
+
+            await Promise.all([
+                this.loadUsers(),
+                this.loadFarms(),
+                this.loadSensors(),
+                this.loadIoT(),
+                this.loadAlerts(),
+            ]);
+            this.loading = false;
+        },
+
+        async loadUsers(){
+            try { const r = await API.admin.getUsers(); if(r.ok) this.users = await r.json(); } catch(e){}
+        },
+        async loadFarms(){
+            try { const r = await API.admin.getFazendas(); if(r.ok) this.farms = await r.json(); } catch(e){}
+        },
+        async loadSensors(){
+            try { const r = await API.admin.getSensores(); if(r.ok) this.sensors = await r.json(); } catch(e){}
+        },
+        async loadIoT(){
+            try {
+                const r = await API.getAllData();
+                if(r.ok){
+                    this.iotData  = await r.json();
+                    this.latestIoT = this.iotData[0] || null;
+                }
+            } catch(e){}
+        },
+        async loadAlerts(){
+            try { const r = await API.getAlertas(); if(r.ok) this.alerts = await r.json(); } catch(e){}
+        },
+
+        // ── Utilizadores ──
+        openUserModal(u){
+            this.editingUser = u;
+            this.userForm = u
+                ? { nome: u.nome, email: u.email, role: u.role, password: '' }
+                : { nome: '', email: '', role: 'agricultor', password: '' };
+            this.showUserModal = true;
+        },
+        async saveUser(){
+            if(!this.userForm.nome || !this.userForm.email){
+                this.notify('Preencha nome e email.', 'err'); return;
+            }
+            try {
+                let r;
+                if(this.editingUser){
+                    const payload = { nome: this.userForm.nome, role: this.userForm.role };
+                    if(this.userForm.password) payload.password = this.userForm.password;
+                    r = await API.admin.updateUser(this.editingUser.id, payload);
+                } else {
+                    if(!this.userForm.password){ this.notify('Palavra-passe obrigatória.','err'); return; }
+                    r = await API.admin.createUser(this.userForm);
+                }
+                if(r.ok){
+                    await this.loadUsers();
+                    this.showUserModal = false;
+                    this.notify(this.editingUser ? 'Utilizador actualizado!' : 'Utilizador criado!');
+                } else {
+                    const e = await r.json();
+                    this.notify(e.erro || 'Erro ao guardar.', 'err');
+                }
+            } catch(e){ this.notify('Erro de ligação.', 'err'); }
+        },
+        async toggleUserActive(u){
+            await API.admin.updateUser(u.id, { is_active: !u.is_active });
+            await this.loadUsers();
+            this.notify('Estado actualizado.');
+        },
+        async deleteUser(id){
+            if(!confirm('Remover utilizador permanentemente?')) return;
+            const r = await API.admin.deleteUser(id);
+            if(r.ok){ await this.loadUsers(); this.notify('Utilizador removido.'); }
+            else this.notify('Erro ao remover.', 'err');
+        },
+
+        // ── Helpers ──
+        initials(nome){ return (nome||'?').split(' ').map(p=>p[0]).join('').substring(0,2).toUpperCase(); },
+        roleLabel(r){ return {superadmin:'Super Admin', admin:'Admin', agricultor:'Agricultor'}[r]||r; },
+        fmtDate(d){ try{ return new Date(d).toLocaleString('pt-PT'); }catch(e){ return d||'—'; } },
+        notify(msg, type='ok'){
+            this.toast = { show: true, msg, type };
+            setTimeout(() => { this.toast.show = false; }, 3000);
+        },
+        toast: { show: false, msg: '', type: 'ok' },
+    };
+}
+
+function handleLogout(){
+    if(confirm('Tem a certeza que deseja terminar a sessão?')){
+        clearToken();
+        window.location.href = '/login';
+    }
+}
+</script>
+</body>
+</html>

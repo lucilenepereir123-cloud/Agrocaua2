@@ -1,0 +1,808 @@
+{% extends "base.html" %}
+
+{% block title %}Culturas - AgroCaua{% endblock %}
+
+{% block page_title %}Gestão de Culturas{% endblock %}
+{% block page_icon %}<i class="icon-leaf text-green-600"></i>{% endblock %}
+{% block page_subtitle %}Visão geral do desempenho e saúde das suas plantações{% endblock %}
+
+{% block content %}
+
+<!-- KPI Cards Row 1 - Main Metrics -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+    <!-- Health Index Card -->
+    <div class="kpi-card group cursor-pointer hover:border-green-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Índice de Saúde</p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-gray-900" id="healthIndex">--</p>
+                <p class="text-sm font-600 text-green-600">Bom estado</p>
+            </div>
+        </div>
+        <div class="kpi-icon-wrapper bg-gradient-to-br from-green-100 to-green-50 group-hover:scale-110 transition-transform duration-300">
+            <i class="icon-heart text-green-600 text-2xl"></i>
+        </div>
+    </div>
+
+    <!-- Cultivated Area Card -->
+    <div class="kpi-card group cursor-pointer hover:border-blue-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Área Cultivada</p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-gray-900" id="cultivatedArea">--</p>
+                <p class="text-sm font-600 text-blue-600">zonas ativas</p>
+            </div>
+        </div>
+        <div class="kpi-icon-wrapper bg-gradient-to-br from-blue-100 to-blue-50 group-hover:scale-110 transition-transform duration-300">
+            <i class="icon-layers text-blue-600 text-2xl"></i>
+        </div>
+    </div>
+
+    <!-- Harvest Days Card -->
+    <div class="kpi-card group cursor-pointer hover:border-amber-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Dias até Colheita</p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-gray-900" id="harvestDays">--</p>
+                <p class="text-sm font-600 text-amber-600">Estimativa média</p>
+            </div>
+        </div>
+        <div class="kpi-icon-wrapper bg-gradient-to-br from-amber-100 to-amber-50 group-hover:scale-110 transition-transform duration-300">
+            <i class="icon-calendar text-amber-600 text-2xl"></i>
+        </div>
+    </div>
+
+    <!-- Estimated Production Card -->
+    <div class="kpi-card group cursor-pointer hover:border-green-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Produção Estimada</p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-gray-900" id="estimatedProduction">--</p>
+                <p class="text-sm font-600 text-green-600">Por hectare</p>
+            </div>
+        </div>
+        <div class="kpi-icon-wrapper bg-gradient-to-br from-green-100 to-green-50 group-hover:scale-110 transition-transform duration-300">
+            <i class="icon-trending-up text-green-600 text-2xl"></i>
+        </div>
+    </div>
+
+    <!-- Active Zones Card -->
+    <div class="kpi-card group cursor-pointer hover:border-purple-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Zonas Ativas</p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-gray-900">5</p>
+                <p class="text-sm font-600 text-purple-600">Monitoradas</p>
+            </div>
+        </div>
+        <div class="kpi-icon-wrapper bg-gradient-to-br from-purple-100 to-purple-50 group-hover:scale-110 transition-transform duration-300">
+            <i class="icon-map text-purple-600 text-2xl"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <!-- Growth Stage Donut Chart -->
+    <div class="card chart-container group hover:shadow-xl hover:border-green-200 transition-all duration-300 slide-in-up" style="animation-delay: 0.1s">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <i class="icon-pie-chart text-green-600 text-xl"></i>
+                Estágio de Crescimento
+            </h3>
+            <span class="text-xs font-500 text-gray-500">Distribuição atual</span>
+        </div>
+        <div class="chart-wrapper">
+            <canvas id="growthStageChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Environmental Conditions Bar Chart -->
+    <div class="card chart-container group hover:shadow-xl hover:border-blue-200 transition-all duration-300 lg:col-span-2 slide-in-up" style="animation-delay: 0.2s">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <i class="icon-bar-chart-2 text-blue-600 text-xl"></i>
+                Condições Ambientais
+            </h3>
+            <span class="text-xs font-500 text-gray-500">Média capturada pelos sensores</span>
+        </div>
+        <div class="chart-wrapper">
+            <canvas id="environmentalConditionsChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Soil Quality Trend Line Chart -->
+<div class="card chart-container group hover:shadow-xl hover:border-green-200 transition-all duration-300 mb-8 slide-in-up" style="animation-delay: 0.3s">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <i class="icon-trending-up text-green-600 text-xl"></i>
+            Tendência de Qualidade do Solo
+        </h3>
+        <div class="flex items-center gap-2">
+            <span class="text-xs font-500 text-gray-500">Acompanhamento nutricional e hídrico</span>
+            <select class="form-input text-xs w-24" id="soilTrendFilter" onchange="updateSoilTrendChart()">
+                <option value="semanas">Semanas</option>
+                <option value="meses">Meses</option>
+            </select>
+        </div>
+    </div>
+    <div class="chart-wrapper">
+        <canvas id="soilTrendChart"></canvas>
+    </div>
+</div>
+
+<!-- Painel ML por Cultura -->
+<div class="rec-panel mb-8">
+    <div class="rec-banner nivel-seguro" id="mlCulturaBanner">
+        <div class="rec-banner-left">
+            <div class="rec-banner-icon">🤖</div>
+            <div class="rec-banner-text">
+                <div class="rec-banner-eyebrow">ML AgroCaua — Análise por Cultura</div>
+                <div class="rec-banner-title" data-rec-title>Análise ML por Cultura Activa</div>
+                <div class="rec-banner-subtitle" data-rec-subtitle>Recomendações personalizadas com base na cultura seleccionada</div>
+            </div>
+        </div>
+        <div class="rec-banner-right">
+            <span id="mlCulturaBadge" class="rec-nivel-badge hidden"></span>
+            <div class="flex items-center gap-2">
+                <select id="mlCulturaSelect" class="form-input text-xs w-32" onchange="carregarMLCultura()">
+                    <option value="">Geral</option>
+                    <option value="cafe">Café</option>
+                    <option value="milho">Milho</option>
+                    <option value="soja">Soja</option>
+                </select>
+                <button onclick="carregarMLCultura()" class="rec-refresh-btn">
+                    <i class="icon-refresh-cw" id="cultMLSpinner"></i> Analisar
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="p-4" id="mlCulturaPrevisao" style="display:none">
+        <!-- Previsão climática para a cultura -->
+    </div>
+    <div class="rec-lista" id="mlCulturaConteudo">
+        <div class="rec-empty">
+            <div class="rec-empty-icon">🌿</div>
+            <p class="rec-empty-title">Seleccione uma cultura</p>
+            <p class="rec-empty-sub">Escolha uma cultura e clique em Analisar para obter recomendações personalizadas do modelo ML.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Cultivation Zones Table -->
+<div class="card group hover:shadow-lg transition-all duration-300">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <i class="icon-grid text-green-600 text-xl"></i>
+                Zonas de Cultivo
+            </h3>
+            <p class="text-sm text-gray-500 mt-1">Detalhamento por talhão e acompanhamento de saúde</p>
+        </div>
+        <button onclick="openNewZoneModal()" class="btn btn-primary">
+            <i class="icon-plus text-lg"></i>
+            <span>Dividir Zona</span>
+        </button>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b border-gray-200 bg-gray-50">
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Zona</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Cultura</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Área Total</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Estágio Total</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Estado de Saúde</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Ações</th>
+                </tr>
+            </thead>
+            <tbody id="zonesTableBody">
+                <tr>
+                    <td colspan="6" class="text-center py-8 text-gray-500">
+                        <div class="spinner mx-auto"></div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
+        <p class="text-sm text-gray-500">Mostrando 1-5 de 12 zonas ativas</p>
+        <div class="flex gap-2">
+            <button class="btn btn-sm btn-secondary">Anterior</button>
+            <button class="btn btn-sm btn-secondary">Próximo</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Dividir Zona -->
+<div id="zoneModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 p-6">
+    <h3 class="text-lg font-bold text-gray-900 mb-4">Dividir Zona</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="form-label">Zona <span class="text-red-500">*</span></label>
+        <input id="zoneNome" class="form-input" placeholder="Ex.: Talhão A" />
+        <p class="text-xs text-red-500 hidden mt-1" id="errZoneNome">Nome da zona obrigatório</p>
+      </div>
+      <div>
+        <label class="form-label">Cultura <span class="text-red-500">*</span></label>
+        <input id="zoneCultura" class="form-input" placeholder="Ex.: Milho" />
+        <p class="text-xs text-red-500 hidden mt-1" id="errZoneCultura">Cultura obrigatória</p>
+      </div>
+      <div>
+        <label class="form-label">Tipo de Cultivo</label>
+        <select id="zoneTipo" class="form-input">
+          <option>Milho</option>
+          <option>Feijão</option>
+          <option>Trigo</option>
+          <option>Arroz</option>
+          <option>Soja</option>
+          <option>Hortaliças</option>
+          <option>Frutíferas</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Área Total (ha) <span class="text-red-500">*</span></label>
+        <input id="zoneArea" type="number" step="0.01" min="0.01" class="form-input" placeholder="Ex.: 2.5" />
+        <p class="text-xs text-red-500 hidden mt-1" id="errZoneArea">Área deve ser maior que 0</p>
+      </div>
+      <div>
+        <label class="form-label">Estágio Total</label>
+        <select id="zoneEstagio" class="form-input">
+          <option>Germinação</option>
+          <option>Crescimento</option>
+          <option>Floração</option>
+          <option>Maturação</option>
+          <option>Colheita</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Estado de Saúde</label>
+        <select id="zoneSaude" class="form-input">
+          <option>Excelente</option>
+          <option>Bom</option>
+          <option>Atenção</option>
+          <option>Crítico</option>
+        </select>
+      </div>
+      <div class="md:col-span-2">
+        <label class="form-label">Ações</label>
+        <textarea id="zoneAcoes" rows="3" class="form-input" placeholder="Ex.: Irrigar 30min, aplicar fertilizante NPK..."></textarea>
+      </div>
+    </div>
+    <div class="mt-6 flex gap-3">
+      <button onclick="closeZoneModal()" class="btn btn-secondary w-1/3">Cancelar</button>
+      <button onclick="saveZone()" class="btn btn-primary w-2/3">Guardar</button>
+    </div>
+  </div>
+  <div onclick="closeZoneModal()" class="absolute inset-0 -z-10"></div>
+  <style>
+    .form-label{display:block;font-size:.8rem;color:#6b7280;margin-bottom:.25rem}
+    .form-input{width:100%;border:1px solid #e5e7eb;border-radius:.625rem;padding:.5rem .75rem;font-size:.9rem}
+  </style>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+    const culturaState = {
+        charts: {},
+        refreshInterval: null,
+        isNewAccount: true
+    };
+
+    // Configure Chart.js
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.color = '#6B7280';
+
+    function initCharts() {
+        console.log('[Culturas] Initializing charts...');
+
+        // Growth Stage Donut Chart - Empty data initially
+        culturaState.charts.growthStage = new Chart(document.getElementById('growthStageChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Germinação', 'Crescimento', 'Floração', 'Maturação', 'Colheita', 'Repouso'],
+                datasets: [{
+                    data: [0, 0, 0, 0, 0, 0],
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.85)',
+                        'rgba(34, 197, 94, 0.85)',
+                        'rgba(245, 158, 11, 0.85)',
+                        'rgba(239, 68, 68, 0.85)',
+                        'rgba(168, 85, 247, 0.85)',
+                        'rgba(107, 114, 128, 0.85)'
+                    ],
+                    borderColor: [
+                        'rgb(59, 130, 246)',
+                        'rgb(34, 197, 94)',
+                        'rgb(245, 158, 11)',
+                        'rgb(239, 68, 68)',
+                        'rgb(168, 85, 247)',
+                        'rgb(107, 114, 128)'
+                    ],
+                    borderWidth: 2,
+                    spacing: 3,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { padding: 20, font: { size: 12, weight: '500' } }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: { size: 13, weight: '600' },
+                        bodyFont: { size: 12 }
+                    }
+                }
+            }
+        });
+
+        // Environmental Conditions Bar Chart - Empty data initially
+        culturaState.charts.envConditions = new Chart(document.getElementById('environmentalConditionsChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Temperatura (°C)', 'Hum Solo (%)', 'Hum Ar (%)', 'Pressão (hPa)'],
+                datasets: [{
+                    label: 'Valor',
+                    data: [],
+                    backgroundColor: [
+                        'rgba(239, 68, 68, 0.85)',
+                        'rgba(59, 130, 246, 0.85)',
+                        'rgba(34, 197, 94, 0.85)',
+                        'rgba(124, 58, 237, 0.85)'
+                    ],
+                    borderColor: [
+                        'rgb(239, 68, 68)',
+                        'rgb(59, 130, 246)',
+                        'rgb(34, 197, 94)',
+                        'rgb(124, 58, 237)'
+                    ],
+                    borderWidth: 1.5,
+                    borderRadius: 6,
+                    barPercentage: 0.7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        bodyFont: { size: 12 }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                    }
+                }
+            }
+        });
+
+        // Soil Quality Trend Line Chart - Empty data initially
+        culturaState.charts.soilTrend = new Chart(document.getElementById('soilTrendChart'), {
+            type: 'line',
+            data: {
+                labels: ['Sem 1', 'Sem 3', 'Sem 5', 'Sem 7', 'Sem 9', 'Sem 11', 'Sem 13'],
+                datasets: [
+                    {
+                        label: 'Nível pH',
+                        data: [0, 0, 0, 0, 0, 0, 0],
+                        borderColor: 'rgb(251, 191, 36)',
+                        backgroundColor: 'rgba(251, 191, 36, 0.08)',
+                        borderWidth: 2.5,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: 'rgb(251, 191, 36)',
+                        pointBorderColor: 'white',
+                        pointBorderWidth: 2
+                    },
+                    {
+                        label: 'Humidade (%)',
+                        data: [0, 0, 0, 0, 0, 0, 0],
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.08)',
+                        borderWidth: 2.5,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: 'rgb(59, 130, 246)',
+                        pointBorderColor: 'white',
+                        pointBorderWidth: 2
+                    },
+                    {
+                        label: 'Nutrientes (índice)',
+                        data: [0, 0, 0, 0, 0, 0, 0],
+                        borderColor: 'rgb(34, 197, 94)',
+                        backgroundColor: 'rgba(34, 197, 94, 0.08)',
+                        borderWidth: 2.5,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: 'rgb(34, 197, 94)',
+                        pointBorderColor: 'white',
+                        pointBorderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { intersect: false, mode: 'index' },
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { padding: 20, font: { size: 12, weight: '500' } }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: { size: 13, weight: '600' },
+                        bodyFont: { size: 12 }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    }
+
+    function updateKPIs(data) {
+        let zones = Array.isArray(culturaState.zones) ? culturaState.zones : [];
+        const healthMap = { 'Excelente': 100, 'Bom': 80, 'Atenção': 60, 'Crítico': 30 };
+        const harvestMap = { 'Milho': 90, 'Feijão': 70, 'Trigo': 120, 'Arroz': 120, 'Soja': 110, 'Hortaliças': 60, 'Frutíferas': 180 };
+        const yieldMap = { 'Milho': 6, 'Feijão': 1.8, 'Trigo': 4, 'Arroz': 5, 'Soja': 3, 'Hortaliças': 20, 'Frutíferas': 15 };
+        const totalArea = zones.reduce((s,z)=>s+(parseFloat(z.area)||0),0);
+        const avgHealth = zones.length ? Math.round(zones.reduce((s,z)=>s+(healthMap[z.saude]||60),0)/zones.length) : 0;
+        const avgHarvest = zones.length ? Math.round(zones.reduce((s,z)=>s+(harvestMap[z.tipo]||90),0)/zones.length) : 0;
+        const avgYield = zones.length ? (zones.reduce((s,z)=>s+(yieldMap[z.tipo]||5),0)/zones.length).toFixed(1) : '0';
+        document.getElementById('healthIndex').textContent = zones.length ? (avgHealth+'%') : '0';
+        document.getElementById('cultivatedArea').textContent = totalArea ? (totalArea.toFixed(1)+' ha') : '0';
+        document.getElementById('harvestDays').textContent = zones.length ? avgHarvest : '0';
+        document.getElementById('estimatedProduction').textContent = avgYield + ' t/ha';
+    }
+
+    function updateZonesTable() {
+        let zones = Array.isArray(culturaState.zones) ? culturaState.zones : [];
+        const tbody = document.getElementById('zonesTableBody');
+        if (!zones.length) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-gray-500">Sem zonas divididas. Clique em "Dividir Zona" para adicionar.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = zones.map((z, idx) => `
+            <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                <td class="py-3 px-4 font-500 text-gray-900">${z.nome}</td>
+                <td class="py-3 px-4 text-gray-700">${z.cultura} <span class="text-xs text-gray-400">(${z.tipo})</span></td>
+                <td class="py-3 px-4 text-gray-700">${parseFloat(z.area||0).toFixed(2)} ha</td>
+                <td class="py-3 px-4 text-gray-700">${z.estagio}</td>
+                <td class="py-3 px-4">
+                    <span class="badge ${z.saude === 'Excelente' ? 'badge-success' : z.saude === 'Bom' ? 'badge-info' : z.saude==='Atenção' ? 'badge-warning' : 'badge-danger'}">
+                        ${z.saude}
+                    </span>
+                </td>
+                <td class="py-3 px-4">
+                    <button class="text-green-600 hover:text-green-700 font-500" onclick="showZone('${idx}')">Detalhes</button>
+                    <button class="text-red-600 hover:text-red-700 font-500 ml-3" onclick="deleteZone('${z.id}')">Eliminar</button>
+                </td>
+            </tr>
+        `).join('');
+        // Atualiza gráfico de estágios
+        const counts = { 'Germinação':0, 'Crescimento':0, 'Floração':0, 'Maturação':0, 'Colheita':0, 'Repouso':0 };
+        zones.forEach(z => { if(counts[z.estagio]!=null) counts[z.estagio]++; });
+        if (culturaState.charts.growthStage) {
+            const ds = culturaState.charts.growthStage.data.datasets[0];
+            culturaState.charts.growthStage.data.labels = Object.keys(counts);
+            ds.data = Object.values(counts);
+            culturaState.charts.growthStage.update();
+        }
+    }
+
+    // Setup auto-refresh
+    function setupAutoRefresh() {
+        if (culturaState.refreshInterval) {
+            clearInterval(culturaState.refreshInterval);
+        }
+        
+        culturaState.refreshInterval = setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                console.log('[Culturas] Auto-refreshing...');
+                fetchCulturasData();
+            }
+        }, 60000); // 60 seconds
+    }
+
+    function updateSoilTrendChart() {
+        const ch = culturaState.charts.soilTrend;
+        if (!ch) return;
+        const filter = document.getElementById('soilTrendFilter')?.value || 'dias';
+        const cache = window._ag_relatorio || { grafico_diario: [] };
+        const arr = cache.grafico_diario || [];
+        if (!arr.length) { ch.update(); return; }
+        const step = filter === 'meses' ? Math.ceil(arr.length/12)||1 : 1;
+        const labels = []; const hum = [];
+        for (let i=0;i<arr.length;i+=step) {
+            const d = arr[i];
+            labels.push((d.data||'').slice(5));
+            hum.push(d.hum_solo ?? null);
+        }
+        ch.data.labels = labels.slice(-12);
+        ch.data.datasets[1].data = hum.slice(-12);
+        ch.update();
+    }
+
+    function openNewZoneModal() {
+        document.getElementById('zoneNome').value = '';
+        document.getElementById('zoneCultura').value = '';
+        document.getElementById('zoneTipo').value = 'Milho';
+        document.getElementById('zoneArea').value = '';
+        document.getElementById('zoneEstagio').value = 'Crescimento';
+        document.getElementById('zoneSaude').value = 'Bom';
+        document.getElementById('zoneAcoes').value = '';
+        const m = document.getElementById('zoneModal');
+        m.classList.remove('hidden'); m.classList.add('flex');
+    }
+    function closeZoneModal() {
+        const m = document.getElementById('zoneModal');
+        m.classList.add('hidden'); m.classList.remove('flex');
+    }
+    function _zoneFieldErr(inputId, errId, show) {
+        const inp = document.getElementById(inputId);
+        const err = document.getElementById(errId);
+        if (!inp || !err) return;
+        if (show) { inp.style.borderColor = '#f87171'; err.classList.remove('hidden'); }
+        else       { inp.style.borderColor = ''; err.classList.add('hidden'); }
+    }
+    function _clearZoneErrors() {
+        [['zoneNome','errZoneNome'],['zoneCultura','errZoneCultura'],['zoneArea','errZoneArea']]
+            .forEach(([i,e]) => _zoneFieldErr(i, e, false));
+    }
+    async function saveZone() {
+        _clearZoneErrors();
+        const nome    = document.getElementById('zoneNome').value.trim();
+        const cultura = document.getElementById('zoneCultura').value.trim();
+        const area    = parseFloat(document.getElementById('zoneArea').value || '0');
+        let valid = true;
+        if (!nome)          { _zoneFieldErr('zoneNome',    'errZoneNome',    true); valid = false; }
+        if (!cultura)       { _zoneFieldErr('zoneCultura', 'errZoneCultura', true); valid = false; }
+        if (!area || area <= 0) { _zoneFieldErr('zoneArea', 'errZoneArea', true); valid = false; }
+        if (!valid) return;
+        const z = {
+            nome, cultura,
+            tipo:    document.getElementById('zoneTipo').value,
+            area,
+            estagio: document.getElementById('zoneEstagio').value,
+            saude:   document.getElementById('zoneSaude').value,
+            acoes:   document.getElementById('zoneAcoes').value.trim(),
+            timestamp: new Date().toISOString()
+        };
+        try {
+            const m = document.getElementById('zoneModal');
+            const editId = m.dataset.editId || '';
+            if (editId) {
+                const resU = await API.zones.update(editId, z);
+                if (!resU.ok) { const er = await resU.json().catch(()=>({})); showError(er.erro||'Erro ao atualizar zona'); return; }
+                m.dataset.editId = '';
+                showSuccess('Zona atualizada');
+            } else {
+                const res = await API.zones.create(z);
+                if (!res.ok) { const er = await res.json().catch(()=>({})); showError(er.erro||'Erro ao guardar zona'); return; }
+                showSuccess('Zona dividida com sucesso');
+            }
+            closeZoneModal();
+            await fetchCulturasData();
+        } catch (e) { console.error(e); showError('Erro ao guardar zona'); }
+    }
+    async function deleteZone(zoneId) {
+        if (!zoneId) return;
+        if (!confirm('Tem a certeza que quer eliminar esta zona? Esta acção é irreversível.')) return;
+        try {
+            const resp = await API.zones.remove(zoneId);
+            if (resp.ok) {
+                showSuccess('Zona eliminada com sucesso');
+                await fetchCulturasData();
+            } else {
+                const err = await resp.json().catch(() => ({}));
+                showError(err.erro || 'Erro ao eliminar zona');
+            }
+        } catch (e) {
+            console.error(e);
+            showError('Erro de ligação ao servidor');
+        }
+    }
+
+    function showZone(idx) {
+        const z = (culturaState.zones||[])[parseInt(idx,10)];
+        if (!z) return;
+        if (confirm(`Zona: ${z.nome}\nCultura: ${z.cultura} (${z.tipo||'-'})\nÁrea: ${z.area?z.area.toFixed(2):'0'} ha\nEstágio: ${z.estagio||'-'}\nSaúde: ${z.saude||'-'}\nAções: ${z.acoes||'-'}\n\nEditar esta zona?`)) {
+            document.getElementById('zoneNome').value = z.nome || '';
+            document.getElementById('zoneCultura').value = z.cultura || '';
+            document.getElementById('zoneTipo').value = z.tipo || 'Milho';
+            document.getElementById('zoneArea').value = z.area || '';
+            document.getElementById('zoneEstagio').value = z.estagio || 'Crescimento';
+            document.getElementById('zoneSaude').value = z.saude || 'Bom';
+            document.getElementById('zoneAcoes').value = z.acoes || '';
+            const m = document.getElementById('zoneModal');
+            m.dataset.editId = z.id;
+            m.classList.remove('hidden'); m.classList.add('flex');
+        }
+    }
+
+    // Fetch and update data
+    async function fetchCulturasData() {
+        try {
+            try {
+                const res = await API.zones.list();
+                if (res.ok) {
+                    const arr = await res.json();
+                    culturaState.zones = Array.isArray(arr) ? arr : [];
+                } else {
+                    culturaState.zones = [];
+                }
+            } catch { culturaState.zones = []; }
+            updateZonesTable();
+            updateKPIs();
+            const r = await API.admin.relatoriosAgricultor('mensal');
+            if (r.ok) {
+                const j = await r.json();
+                window._ag_relatorio = j;
+                const resumo = j.resumo || {};
+                    culturaState.isNewAccount = !resumo.total_leituras;
+                    const di = j.grafico_diario || [];
+                    const pVals = di.map(d => d.pressao).filter(v => v !== null && v !== undefined);
+                    const pressaoMed = pVals.length ? Math.round(pVals.reduce((a, b) => a + b, 0) / pVals.length) : null;
+                    const env = culturaState.charts.envConditions;
+                    const total = resumo.total_leituras ?? 0;
+                    if (!total) {
+                        env.data.labels = [];
+                        env.data.datasets[0].data = [];
+                    } else {
+                        env.data.labels = ['Temperatura (°C)', 'Hum Solo (%)', 'Hum Ar (%)', 'Pressão (hPa)'];
+                        env.data.datasets[0].data = [
+                            resumo.temp_media ?? null,
+                            resumo.hum_solo_media ?? null,
+                            resumo.hum_ar_media ?? null,
+                            pressaoMed ?? null
+                        ];
+                    }
+                    env.update();
+                updateSoilTrendChart();
+            }
+        } catch (error) {
+            console.error('[Culturas] Error:', error);
+            showError('Erro ao carregar dados das culturas');
+                try {
+                    const env = culturaState.charts.envConditions;
+                    env.data.labels = [];
+                    env.data.datasets[0].data = [];
+                    env.update();
+                } catch(e){}
+        }
+    }
+
+    // ── ML: Análise por cultura ──────────────────────────────────────────────
+    async function carregarMLCultura() {
+        const spin    = document.getElementById('cultMLSpinner');
+        const cultura = document.getElementById('mlCulturaSelect').value;
+        if (spin) spin.classList.add('animate-spin');
+        try {
+            const resp = await API.ml.analisar({ cultura: cultura || null });
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            const dados = await resp.json();
+            renderizarMLCultura(dados, cultura);
+        } catch(e) {
+            const c = document.getElementById('mlCulturaConteudo');
+            if (c) c.innerHTML = '<div class="col-span-2 text-center text-gray-400 text-sm py-4">Análise ML indisponível. Verifique o servidor.</div>';
+        } finally {
+            if (spin) spin.classList.remove('animate-spin');
+        }
+    }
+
+    function renderizarMLCultura(dados, cultura) {
+        const recom  = dados.recomendacoes || {};
+        const recs   = recom.recomendacoes || [];
+        const resumo = recom.resumo || '';
+        const nivel  = dados.nivel_geral || recom.nivel_geral || 'seguro';
+        const prev   = dados.previsoes   || {};
+        const climaF = prev.clima_futuro || {};
+        const nomeCultura = { cafe:'Café', milho:'Milho', soja:'Soja', '':`Geral` }[cultura] || cultura;
+
+        // Update banner
+        RecUI.renderBanner(nivel, resumo || `Análise para ${nomeCultura} concluída.`, 0, 'mlCulturaBanner', 'mlCulturaBadge');
+
+        // Show climate forecast if available
+        const prevEl = document.getElementById('mlCulturaPrevisao');
+        if (prevEl && (climaF.temperatura_prevista != null || climaF.humidade_prevista != null)) {
+            prevEl.style.display = '';
+            prevEl.innerHTML = `<div class="grid grid-cols-2 gap-3">
+                ${climaF.temperatura_prevista != null ? `<div class="bg-white rounded-xl p-3 border border-blue-100 text-center">
+                    <p class="text-xs text-gray-500 uppercase font-600 mb-1">Temp. Prevista</p>
+                    <p class="text-xl font-bold text-blue-700">${climaF.temperatura_prevista.toFixed(1)}°C</p>
+                </div>` : ''}
+                ${climaF.humidade_prevista != null ? `<div class="bg-white rounded-xl p-3 border border-blue-100 text-center">
+                    <p class="text-xs text-gray-500 uppercase font-600 mb-1">Hum. Prevista</p>
+                    <p class="text-xl font-bold text-blue-700">${climaF.humidade_prevista.toFixed(1)}%</p>
+                </div>` : ''}
+            </div>`;
+        } else if (prevEl) {
+            prevEl.style.display = 'none';
+        }
+
+        // Render recommendation cards
+        RecUI.renderLista(recs, 'mlCulturaConteudo', carregarMLCultura);
+    }
+
+    // Detectar cultura dominante nas zonas e pré-seleccionar
+    function autoSelectCultura() {
+        const zones = culturaState.zones || [];
+        if (!zones.length) return;
+        const counts = {};
+        zones.forEach(z => { if (z.cultura) counts[z.cultura.toLowerCase()] = (counts[z.cultura.toLowerCase()]||0) + 1; });
+        const dominant = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
+        if (dominant) {
+            const sel = document.getElementById('mlCulturaSelect');
+            if (sel && ['cafe','milho','soja'].includes(dominant[0])) {
+                sel.value = dominant[0];
+            }
+        }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('[Culturas] Initializing...');
+        initCharts();
+        fetchCulturasData().then(() => {
+            autoSelectCultura();
+            carregarMLCultura();
+        });
+        setupAutoRefresh();
+    });
+
+    // Cleanup
+    window.addEventListener('beforeunload', () => {
+        if (culturaState.refreshInterval) {
+            clearInterval(culturaState.refreshInterval);
+        }
+        Object.values(culturaState.charts).forEach(chart => {
+            if (chart) {
+                try {
+                    chart.destroy();
+                } catch (e) {
+                    console.warn('Error destroying chart:', e);
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

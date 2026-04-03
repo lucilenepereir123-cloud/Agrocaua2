@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AgroCaua{% endblock %}</title>
+    
+    <!-- Lucide Icons -->
+    <link href="https://unpkg.com/lucide-static/font/lucide.css" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center">
+    <div class="w-full max-w-md px-6">
+        <!-- Logo -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center gap-3 mb-4">
+                <i class="icon-sprout text-5xl text-green-600"></i>
+                <h1 class="text-4xl font-bold text-green-700">AgroCaua</h1>
+            </div>
+            <p class="text-gray-500">Sistema de Monitoramento Agrícola Inteligente</p>
+        </div>
+        
+        <!-- Auth Card -->
+        <div class="card fade-in">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+    
+    <!-- Global Scripts -->
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+    
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

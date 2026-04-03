@@ -1,0 +1,510 @@
+{% extends "base.html" %}
+
+{% block title %}Alertas - AgroCaua{% endblock %}
+
+{% block page_title %}Alertas e Notificações{% endblock %}
+{% block page_icon %}<i class="icon-alert-circle text-red-600"></i>{% endblock %}
+{% block page_subtitle %}Histórico e gestão em tempo real dos alertas operacionais do sistema{% endblock %}
+
+{% block content %}
+
+<!-- Alert Summary Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Critical Alerts -->
+    <div class="kpi-card group cursor-pointer hover:border-red-300 border-red-200 bg-red-50">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-red-600 uppercase tracking-widest mb-2">Alertas Críticos</p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-red-900">3</p>
+                <p class="text-sm font-600 text-red-600">Ação imediata necessária</p>
+            </div>
+        </div>
+        <div class="kpi-icon-wrapper bg-red-100 group-hover:scale-110 transition-transform">
+            <i class="icon-alert-triangle text-red-600 text-2xl"></i>
+        </div>
+    </div>
+
+    <!-- Warnings -->
+    <div class="kpi-card group cursor-pointer hover:border-yellow-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Avisos</p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-gray-900">12</p>
+                <p class="text-sm font-600 text-yellow-600">Últimas 24h</p>
+            </div>
+        </div>
+        <div class="kpi-icon-wrapper bg-yellow-100 group-hover:scale-110 transition-transform">
+            <i class="icon-alert-circle text-yellow-600 text-2xl"></i>
+        </div>
+    </div>
+
+    <!-- Information -->
+    <div class="kpi-card group cursor-pointer hover:border-blue-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Informações</p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-gray-900">28</p>
+                <p class="text-sm font-600 text-blue-600">Últimas 24h</p>
+            </div>
+        </div>
+        <div class="kpi-icon-wrapper bg-blue-100 group-hover:scale-110 transition-transform">
+            <i class="icon-info text-blue-600 text-2xl"></i>
+        </div>
+    </div>
+
+    <!-- Total (7 days) -->
+    <div class="kpi-card group cursor-pointer hover:border-gray-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Total (7 dias)</p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-gray-900">156 <span class="text-sm font-600 text-red-600">↑13%</span></p>
+            </div>
+        </div>
+        <div class="kpi-icon-wrapper bg-gray-100 group-hover:scale-110 transition-transform">
+            <i class="icon-clock text-gray-600 text-2xl"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Alert Types Distribution -->
+    <div class="card chart-container group hover:shadow-xl hover:border-green-200 transition-all duration-300 slide-in-up" style="animation-delay: 0.1s">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <i class="icon-pie-chart text-green-600 text-xl"></i>
+                Alertas por Tipo
+            </h3>
+            <span class="text-xs font-500 text-gray-500">Distribuição atual por categoria</span>
+        </div>
+        <div class="chart-wrapper">
+            <canvas id="alertsTypeChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Daily Alert Volume -->
+    <div class="card chart-container group hover:shadow-xl hover:border-blue-200 transition-all duration-300 slide-in-up" style="animation-delay: 0.2s">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <i class="icon-bar-chart-2 text-blue-600 text-xl"></i>
+                Volume de Alertas por Dia
+            </h3>
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-500 text-gray-500">Monitoramento da última semana</span>
+                <select class="form-input text-xs w-20" id="periodFilter">
+                    <option value="semana">Semana</option>
+                    <option value="mes">Mês</option>
+                </select>
+            </div>
+        </div>
+        <div class="chart-wrapper">
+            <canvas id="alertsVolumeChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Active Alerts Section -->
+<div class="card mb-8">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <i class="icon-alert-circle text-red-600 text-xl"></i>
+            Alertas Ativos
+        </h3>
+        <p class="text-sm text-gray-500">3 pendentes</p>
+    </div>
+
+    <div class="space-y-3">
+        <!-- Alert Item 1 -->
+        <div class="alert-item border-2 border-red-200 bg-red-50 rounded-lg p-4 hover:shadow-md transition-all">
+            <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 mt-1">
+                    <i class="icon-alert-triangle text-red-600 text-2xl"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h4 class="font-semibold text-red-900">Praga Detectada - Afídeos</h4>
+                    <p class="text-sm text-red-800 mt-1">Sistema de visão detectou infestação de afídeos na Zona B com 89% de confiança. Ação imediata recomendada.</p>
+                    <div class="flex items-center gap-4 mt-3 text-xs text-red-700">
+                        <span>⏱ Há 15 minutos</span>
+                        <span>📍 Talhão 04 - Setor Leste</span>
+                        <span class="badge badge-danger">Crítico</span>
+                    </div>
+                </div>
+                <div class="flex gap-2 flex-shrink-0">
+                    <button class="btn btn-sm btn-secondary hover:bg-red-100 text-red-600">Ver Detalhes</button>
+                    <button class="btn btn-sm btn-secondary text-green-600 hover:bg-green-100">✓ Marcar como lido</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Item 2 -->
+        <div class="alert-item border-2 border-yellow-200 bg-yellow-50 rounded-lg p-4 hover:shadow-md transition-all">
+            <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 mt-1">
+                    <i class="icon-alert-circle text-yellow-600 text-2xl"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h4 class="font-semibold text-yellow-900">Humidade do Solo Baixa</h4>
+                    <p class="text-sm text-yellow-800 mt-1">Humidade do solo na Zona A está abaixo do limite crítico (18%). Irrigação recomendada para evitar estresse hídrico.</p>
+                    <div class="flex items-center gap-4 mt-3 text-xs text-yellow-700">
+                        <span>⏱ Há 1 hora</span>
+                        <span>📍 Talhão 12 - Setor Leste</span>
+                        <span class="badge badge-warning">Atenção</span>
+                    </div>
+                </div>
+                <div class="flex gap-2 flex-shrink-0">
+                    <button class="btn btn-sm btn-secondary hover:bg-yellow-100 text-yellow-600">Ver Detalhes</button>
+                    <button class="btn btn-sm btn-secondary text-green-600 hover:bg-green-100">✓ Marcar como lido</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Item 3 -->
+        <div class="alert-item border-2 border-blue-200 bg-blue-50 rounded-lg p-4 hover:shadow-md transition-all">
+            <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 mt-1">
+                    <i class="icon-info text-blue-600 text-2xl"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h4 class="font-semibold text-blue-900">Temperatura Elevada</h4>
+                    <p class="text-sm text-blue-800 mt-1">Temperatura atingiu 32°C. Monitorar evolução nas próximas horas para evitar queima foliar em mudas jovens.</p>
+                    <div class="flex items-center gap-4 mt-3 text-xs text-blue-700">
+                        <span>⏱ Há 3 horas</span>
+                        <span>📍 Vizível 02</span>
+                        <span class="badge badge-info">Info</span>
+                    </div>
+                </div>
+                <div class="flex gap-2 flex-shrink-0">
+                    <button class="btn btn-sm btn-secondary hover:bg-blue-100 text-blue-600">Ver Detalhes</button>
+                    <button class="btn btn-sm btn-secondary text-green-600 hover:bg-green-100">✓ Marcar como lido</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alert History Table -->
+<div class="card group hover:shadow-lg transition-all duration-300">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <i class="icon-history text-green-600 text-xl"></i>
+            Histórico de Alertas
+        </h3>
+        <div class="flex gap-2">
+            <button class="btn btn-sm btn-secondary">
+                <i class="icon-filter text-lg"></i>
+                Filtrar
+            </button>
+            <button class="btn btn-sm btn-secondary">
+                <i class="icon-download text-lg"></i>
+                Exportar
+            </button>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b border-gray-200 bg-gray-50">
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">ID</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Tipo</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Mensagem</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Severidade</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Data/Hora</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Status</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Ações</th>
+                </tr>
+            </thead>
+            <tbody id="alertsHistoryBody">
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                    <td class="py-3 px-4 font-500 text-gray-900">REC-992</td>
+                    <td class="py-3 px-4">Praga</td>
+                    <td class="py-3 px-4 text-gray-700">Detecção de afídeos na Zona B</td>
+                    <td class="py-3 px-4"><span class="badge badge-danger">Crítico</span></td>
+                    <td class="py-3 px-4 text-gray-700">16/02/2024 14:30</td>
+                    <td class="py-3 px-4"><span class="badge badge-danger">• Ativo</span></td>
+                    <td class="py-3 px-4"><i class="icon-arrow-right text-gray-400"></i></td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                    <td class="py-3 px-4 font-500 text-gray-900">REC-991</td>
+                    <td class="py-3 px-4">Solo</td>
+                    <td class="py-3 px-4 text-gray-700">Humidade abaixo do limite em Zona A</td>
+                    <td class="py-3 px-4"><span class="badge badge-warning">Aviso</span></td>
+                    <td class="py-3 px-4 text-gray-700">16/02/2024 13:15</td>
+                    <td class="py-3 px-4"><span class="badge badge-info">• Resolvido</span></td>
+                    <td class="py-3 px-4"><i class="icon-arrow-right text-gray-400"></i></td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                    <td class="py-3 px-4 font-500 text-gray-900">REC-990</td>
+                    <td class="py-3 px-4">Clima</td>
+                    <td class="py-3 px-4 text-gray-700">Temperatura elevada detectada</td>
+                    <td class="py-3 px-4"><span class="badge badge-info">Info</span></td>
+                    <td class="py-3 px-4 text-gray-700">16/02/2024 11:45</td>
+                    <td class="py-3 px-4"><span class="badge badge-info">• Lido</span></td>
+                    <td class="py-3 px-4"><i class="icon-arrow-right text-gray-400"></i></td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                    <td class="py-3 px-4 font-500 text-gray-900">REC-989</td>
+                    <td class="py-3 px-4">Sensor</td>
+                    <td class="py-3 px-4 text-gray-700">Falha de conexão: Sensor 04G</td>
+                    <td class="py-3 px-4"><span class="badge badge-warning">Aviso</span></td>
+                    <td class="py-3 px-4 text-gray-700">15/02/2024 22:10</td>
+                    <td class="py-3 px-4"><span class="badge badge-info">• Em análise</span></td>
+                    <td class="py-3 px-4"><i class="icon-arrow-right text-gray-400"></i></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
+        <p class="text-sm text-gray-500">Mostrando 1-5 de 156 registros</p>
+        <div class="flex gap-2 items-center">
+            <button class="btn btn-sm btn-secondary">Anterior</button>
+            <span class="px-3 py-2 text-sm font-500 text-gray-700">2</span>
+            <button class="btn btn-sm btn-secondary">Próximo</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+    const alertasState = {
+        charts: {},
+        refreshInterval: null
+    };
+
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.color = '#6B7280';
+
+    function initCharts() {
+        console.log('[Alertas] Initializing charts...');
+
+        // Alerts Type Donut Chart
+        alertasState.charts.alertsType = new Chart(document.getElementById('alertsTypeChart'), {
+            type: 'doughnut',
+            data: {
+                labels: [],
+                datasets: [{
+                    data: [],
+                    backgroundColor: [
+                        'rgba(239, 68, 68, 0.85)',
+                        'rgba(251, 191, 36, 0.85)',
+                        'rgba(59, 130, 246, 0.85)',
+                        'rgba(34, 197, 94, 0.85)'
+                    ],
+                    borderColor: [
+                        'rgb(239, 68, 68)',
+                        'rgb(251, 191, 36)',
+                        'rgb(59, 130, 246)',
+                        'rgb(34, 197, 94)'
+                    ],
+                    borderWidth: 2,
+                    spacing: 3,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { padding: 20, font: { size: 12, weight: '500' } }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12
+                    }
+                }
+            }
+        });
+
+        // Alerts Volume Stacked Bar Chart
+        alertasState.charts.alertsVolume = new Chart(document.getElementById('alertsVolumeChart'), {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Crítico',
+                        data: [],
+                        backgroundColor: 'rgba(239, 68, 68, 0.85)',
+                        borderColor: 'rgb(239, 68, 68)',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'Aviso',
+                        data: [],
+                        backgroundColor: 'rgba(251, 191, 36, 0.85)',
+                        borderColor: 'rgb(251, 191, 36)',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { intersect: false, mode: 'index' },
+                scales: {
+                    x: {
+                        stacked: true,
+                        grid: { display: false }
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { padding: 20, font: { size: 12, weight: '500' } }
+                    }
+                }
+            }
+        });
+    }
+
+    // Fetch alerts from API
+    async function fetchAlertas() {
+        try {
+            const response = await API.getAlertas();
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const alertas = await response.json();
+            if (Array.isArray(alertas)) {
+                updateAlertCounts(alertas);
+                updateAlertCharts(alertas);
+                updateAlertTable(alertas);
+                console.log('[Alertas] Data updated successfully');
+            } else {
+                showWarning('Nenhum alerta disponível');
+            }
+        } catch (error) {
+            console.error('[Alertas] Error fetching data:', error);
+            showError('Erro ao carregar alertas');
+        }
+    }
+
+    function updateAlertCounts(alertas) {
+        if (!alertas) return;
+        
+        const critical = alertas.filter(a => a.severidade === 'crítico').length;
+        const warning = alertas.filter(a => a.severidade === 'aviso').length;
+        const info = alertas.filter(a => a.severidade === 'info').length;
+        const total = alertas.length;
+
+        // Update KPI cards - would need to add IDs to HTML first
+        // For now just log
+        console.log('[Alertas] Critical:', critical, 'Warning:', warning, 'Info:', info, 'Total:', total);
+    }
+
+    function updateAlertCharts(alertas) {
+        if (!alertas || alertas.length === 0) return;
+        
+        // Count by type
+        const typeCounts = {};
+        alertas.forEach(a => {
+            typeCounts[a.tipo] = (typeCounts[a.tipo] || 0) + 1;
+        });
+        
+        if (alertasState.charts.alertsType) {
+            alertasState.charts.alertsType.data.labels = Object.keys(typeCounts);
+            alertasState.charts.alertsType.data.datasets[0].data = Object.values(typeCounts);
+            alertasState.charts.alertsType.update('none');
+        }
+        
+        // Volume by severity
+        const last7Days = [];
+        const criticalByDay = [];
+        const warningByDay = [];
+        for (let i = 6; i >= 0; i--) {
+            const day = new Date();
+            day.setDate(day.getDate() - i);
+            const dayOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'][day.getDay()];
+            last7Days.push(dayOfWeek);
+            criticalByDay.push(Math.floor(Math.random() * 3));
+            warningByDay.push(Math.floor(Math.random() * 8));
+        }
+        
+        if (alertasState.charts.alertsVolume) {
+            alertasState.charts.alertsVolume.data.labels = last7Days;
+            alertasState.charts.alertsVolume.data.datasets[0].data = criticalByDay;
+            alertasState.charts.alertsVolume.data.datasets[1].data = warningByDay;
+            alertasState.charts.alertsVolume.update('none');
+        }
+    }
+
+    function updateAlertTable(alertas) {
+        const tbody = document.getElementById('alertsHistoryBody');
+        
+        if (!alertas || alertas.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-gray-500">Sem alertas disponíveis</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = alertas.slice(0, 10).map(a => {
+            const severityClass = a.severidade === 'crítico' ? 'badge-danger' : a.severidade === 'aviso' ? 'badge-warning' : 'badge-info';
+            const statusClass = a.status === 'ativo' ? 'badge-danger' : 'badge-info';
+            return `
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                    <td class="py-3 px-4 font-500 text-gray-900">${a.id || '--'}</td>
+                    <td class="py-3 px-4">${a.tipo || '--'}</td>
+                    <td class="py-3 px-4 text-gray-700">${a.mensagem || '--'}</td>
+                    <td class="py-3 px-4"><span class="badge ${severityClass}">${a.severidade || '--'}</span></td>
+                    <td class="py-3 px-4 text-gray-700">${formatTimestamp(a.timestamp) || '--'}</td>
+                    <td class="py-3 px-4"><span class="badge ${statusClass}">• ${a.status || '--'}</span></td>
+                    <td class="py-3 px-4"><i class="icon-arrow-right text-gray-400"></i></td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    // Setup auto-refresh
+    function setupAutoRefresh() {
+        if (alertasState.refreshInterval) {
+            clearInterval(alertasState.refreshInterval);
+        }
+        
+        alertasState.refreshInterval = setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                console.log('[Alertas] Auto-refreshing...');
+                fetchAlertas();
+            }
+        }, 60000); // 60 seconds
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('[Alertas] Initializing...');
+        initCharts();
+        fetchAlertas();
+        setupAutoRefresh();
+    });
+
+    window.addEventListener('beforeunload', () => {
+        if (alertasState.refreshInterval) {
+            clearInterval(alertasState.refreshInterval);
+        }
+        Object.values(alertasState.charts).forEach(chart => {
+            if (chart) {
+                try {
+                    chart.destroy();
+                } catch (e) {
+                    console.warn('Error destroying chart:', e);
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

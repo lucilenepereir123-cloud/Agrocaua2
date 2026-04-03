@@ -1,0 +1,896 @@
+
+{% extends "base.html" %}
+
+{% block title %}Configurações - AgroCaua{% endblock %}
+
+{% block page_title %}Configurações{% endblock %}
+{% block page_icon %}<i class="icon-settings text-gray-600"></i>{% endblock %}
+{% block page_subtitle %}Gerir preferências e configurações do sistema{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Settings Navigation -->
+    <div class="lg:col-span-1">
+        <div class="card">
+            <nav class="space-y-2">
+                <button onclick="showSection('profile')" class="settings-nav-item active" data-section="profile">
+                    <i class="icon-user"></i>
+                    <span>Perfil</span>
+                </button>
+                <button onclick="showSection('notifications')" class="settings-nav-item" data-section="notifications">
+                    <i class="icon-bell"></i>
+                    <span>Notificações</span>
+                </button>
+                <button onclick="showSection('sensors')" class="settings-nav-item" data-section="sensors">
+                    <i class="icon-circuit-board"></i>
+                    <span>Sensores</span>
+                </button>
+                <button onclick="showSection('thresholds')" class="settings-nav-item" data-section="thresholds">
+                    <i class="icon-sliders"></i>
+                    <span>Limites de Alerta</span>
+                </button>
+                <button onclick="showSection('system')" class="settings-nav-item" data-section="system">
+                    <i class="icon-settings"></i>
+                    <span>Sistema</span>
+                </button>
+                <div class="border-t border-gray-200 dark:border-gray-700 my-2"></div>
+                <button onclick="showSection('security')" class="settings-nav-item" data-section="security">
+                    <i class="icon-shield"></i>
+                    <span>Segurança</span>
+                </button>
+            </nav>
+        </div>
+    </div>
+    
+    <!-- Settings Content -->
+    <div class="lg:col-span-2 space-y-6">
+        <!-- Profile Section -->
+        <div id="section-profile" class="settings-section">
+            <div class="card">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Informações do Perfil</h3>
+                
+                <form class="space-y-4">
+                    <div>
+                        <label class="form-label">Nome Completo</label>
+                        <input type="text" class="form-input" id="profileNome" placeholder="João Silva" readonly>
+                    </div>
+                    
+                    <div>
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" id="profileEmail" placeholder="email@exemplo.com" readonly>
+                    </div>
+                    
+                    <div>
+                        <label class="form-label">Telefone</label>
+                        <input type="tel" class="form-input" placeholder="+351 912 345 678">
+                    </div>
+                    
+                    <div>
+                        <label class="form-label">Localização da Fazenda</label>
+                        <input type="text" class="form-input" placeholder="Localização">
+                    </div>
+                    
+                    <div class="flex gap-3 pt-4">
+                        <button type="submit" class="btn-primary">
+                            <i class="icon-save"></i>
+                            Guardar Alterações
+                        </button>
+                        <button type="button" class="btn-secondary">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Notifications Section -->
+        <div id="section-notifications" class="settings-section hidden">
+            <div class="card">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Preferências de Notificações</h3>
+                
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
+                        <div>
+                            <p class="font-semibold text-gray-900 dark:text-white">Alertas de Pragas</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Notificar quando uma praga for detectada</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
+                        <div>
+                            <p class="font-semibold text-gray-900 dark:text-white">Limites de Temperatura</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Avisar quando ultrapassar os limites configurados</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
+                        <div>
+                            <p class="font-semibold text-gray-900 dark:text-white">Humidade do Solo</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Alertar sobre níveis críticos de humidade</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
+                        <div>
+                            <p class="font-semibold text-gray-900 dark:text-white">Vibrações</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Notificar detecções de vibração</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
+                        <div>
+                            <p class="font-semibold text-gray-900 dark:text-white">Resumo Diário</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Receber relatório diário por email</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="flex items-center justify-between py-3">
+                        <div>
+                            <p class="font-semibold text-gray-900 dark:text-white">Sensores Offline</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Avisar quando um sensor ficar offline</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 pt-6">
+                    <button class="btn-primary">
+                        <i class="icon-save"></i>
+                        Guardar Preferências
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sensors Section -->
+        <div id="section-sensors" class="settings-section hidden">
+            <div class="card">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Configuração dos Sensores</h3>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="form-label">Intervalo de Leitura (segundos)</label>
+                        <input type="number" class="form-input" value="30" min="10" max="300">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Tempo entre leituras dos sensores (10-300s)</p>
+                    </div>
+                    
+                    <div>
+                        <label class="form-label">Device ID</label>
+                        <input type="text" class="form-input" value="AGRO-IOT-001" readonly>
+                    </div>
+                    
+                    <div class="pt-4">
+                        <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Calibração dos Sensores</h4>
+                        
+                        <div class="space-y-3">
+                            <button class="w-full btn-secondary text-left">
+                                <i class="icon-thermometer"></i>
+                                <span>Calibrar BME280</span>
+                            </button>
+                            <button class="w-full btn-secondary text-left">
+                                <i class="icon-droplet"></i>
+                                <span>Calibrar Sensor de Solo</span>
+                            </button>
+                            <button class="w-full btn-secondary text-left">
+                                <i class="icon-map-pin"></i>
+                                <span>Calibrar GPS</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 pt-6">
+                    <button class="btn-primary">
+                        <i class="icon-save"></i>
+                        Guardar Configurações
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Thresholds Section -->
+        <div id="section-thresholds" class="settings-section hidden">
+            <div class="card">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Limites de Alerta</h3>
+                
+                <div class="space-y-6">
+                    <div>
+                        <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Temperatura</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="form-label">Mínimo (°C)</label>
+                                <input type="number" class="form-input" value="15" step="0.1">
+                            </div>
+                            <div>
+                                <label class="form-label">Máximo (°C)</label>
+                                <input type="number" class="form-input" value="35" step="0.1">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Humidade do Ar</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="form-label">Mínimo (%)</label>
+                                <input type="number" class="form-input" value="30" step="1">
+                            </div>
+                            <div>
+                                <label class="form-label">Máximo (%)</label>
+                                <input type="number" class="form-input" value="80" step="1">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Humidade do Solo</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="form-label">Mínimo (%)</label>
+                                <input type="number" class="form-input" value="20" step="1">
+                            </div>
+                            <div>
+                                <label class="form-label">Máximo (%)</label>
+                                <input type="number" class="form-input" value="70" step="1">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 pt-6">
+                    <button class="btn-primary">
+                        <i class="icon-save"></i>
+                        Guardar Limites
+                    </button>
+                    <button class="btn-secondary">Restaurar Padrões</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- System Section -->
+        <div id="section-system" class="settings-section hidden">
+            <div class="card">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Configurações do Sistema</h3>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="form-label">Idioma</label>
+                        <select class="form-input">
+                            <option value="pt" selected>Português</option>
+                            <option value="en">English</option>
+                            <option value="es">Español</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="form-label">Fuso Horário</label>
+                        <select class="form-input">
+                            <option value="Europe/Lisbon" selected>Europa/Lisboa (WET)</option>
+                            <option value="Europe/Madrid">Europa/Madrid (CET)</option>
+                            <option value="America/Sao_Paulo">América/São Paulo (BRT)</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="form-label">Formato de Data</label>
+                        <select class="form-input">
+                            <option value="dd/mm/yyyy" selected>DD/MM/AAAA</option>
+                            <option value="mm/dd/yyyy">MM/DD/YYYY</option>
+                            <option value="yyyy-mm-dd">AAAA-MM-DD</option>
+                        </select>
+                    </div>
+                    
+                    <div class="pt-4">
+                        <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Armazenamento de Dados</h4>
+                        <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                            <div class="flex justify-between mb-2">
+                                <span class="text-sm text-gray-600 dark:text-gray-400">Utilização</span>
+                                <span class="text-sm font-semibold text-gray-900 dark:text-white">2.4 GB / 10 GB</span>
+                            </div>
+                            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                <div class="bg-green-600 h-2 rounded-full" style="width: 24%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 pt-6">
+                    <button class="btn-primary">
+                        <i class="icon-save"></i>
+                        Guardar Configurações
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Security Section -->
+        <div id="section-security" class="settings-section hidden">
+            <div class="card">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Segurança</h3>
+                
+                <div class="space-y-6">
+                    <div>
+                        <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Alterar Palavra-passe</h4>
+                        <form class="space-y-4">
+                            <div>
+                                <label class="form-label">Palavra-passe Atual</label>
+                                <input type="password" class="form-input" placeholder="••••••••">
+                            </div>
+                            <div>
+                                <label class="form-label">Nova Palavra-passe</label>
+                                <input type="password" class="form-input" placeholder="••••••••">
+                            </div>
+                            <div>
+                                <label class="form-label">Confirmar Nova Palavra-passe</label>
+                                <input type="password" class="form-input" placeholder="••••••••">
+                            </div>
+                            <button type="submit" class="btn-primary">
+                                <i class="icon-key"></i>
+                                Alterar Palavra-passe
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+                        <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Sessões Ativas</h4>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                <div class="flex items-center gap-3">
+                                    <i class="icon-monitor text-green-600 dark:text-green-400"></i>
+                                    <div>
+                                        <p class="text-sm font-semibold text-gray-900 dark:text-white">Windows - Chrome</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Lisboa, Portugal • Agora</p>
+                                    </div>
+                                </div>
+                                <span class="badge badge-success">Atual</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+                        <h4 class="font-semibold text-danger mb-3">Zona de Perigo</h4>
+                        <button onclick="handleAccountDelete()" class="btn-danger">
+                            <i class="icon-trash-2"></i>
+                            Eliminar Conta
+                        </button>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Esta ação é irreversível e todos os dados serão permanentemente removidos.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function showSection(sectionName) {
+        // Hide all sections
+        document.querySelectorAll('.settings-section').forEach(section => {
+            section.classList.add('hidden');
+        });
+        
+        // Remove active class from all nav items
+        document.querySelectorAll('.settings-nav-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        
+        // Show selected section
+        document.getElementById('section-' + sectionName).classList.remove('hidden');
+        
+        // Add active class to clicked nav item
+        document.querySelector(`[data-section="${sectionName}"]`).classList.add('active');
+    }
+
+    // Load user profile on page load
+    async function loadUserProfile() {
+        try {
+            const response = await API.getProfile();
+            if (response.ok) {
+                const userData = await response.json();
+                document.getElementById('profileNome').value = userData.nome || 'Utilizador';
+                document.getElementById('profileEmail').value = userData.email || 'user@example.com';
+                console.log('[Config] User profile loaded');
+            }
+        } catch (error) {
+            console.error('[Config] Error loading user profile:', error);
+        }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        loadUserProfile();
+    });
+</script>
+{% endblock %}
+=======
+{% extends "base.html" %}
+
+{% block title %}Configurações - AgroCaua{% endblock %}
+
+{% block page_title %}Configurações{% endblock %}
+{% block page_icon %}<i class="icon-settings text-gray-600"></i>{% endblock %}
+{% block page_subtitle %}Gerir preferências e configurações do sistema{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Settings Navigation -->
+    <div class="lg:col-span-1">
+        <div class="card">
+            <nav class="space-y-2">
+                <button onclick="showSection('profile')" class="settings-nav-item active" data-section="profile">
+                    <i class="icon-user"></i>
+                    <span>Perfil</span>
+                </button>
+                <button onclick="showSection('notifications')" class="settings-nav-item" data-section="notifications">
+                    <i class="icon-bell"></i>
+                    <span>Notificações</span>
+                </button>
+                <button onclick="showSection('sensors')" class="settings-nav-item" data-section="sensors">
+                    <i class="icon-circuit-board"></i>
+                    <span>Sensores</span>
+                </button>
+                <button onclick="showSection('thresholds')" class="settings-nav-item" data-section="thresholds">
+                    <i class="icon-sliders"></i>
+                    <span>Limites de Alerta</span>
+                </button>
+                <button onclick="showSection('system')" class="settings-nav-item" data-section="system">
+                    <i class="icon-settings"></i>
+                    <span>Sistema</span>
+                </button>
+                <div class="border-t border-gray-200 dark:border-gray-700 my-2"></div>
+                <button onclick="showSection('security')" class="settings-nav-item" data-section="security">
+                    <i class="icon-shield"></i>
+                    <span>Segurança</span>
+                </button>
+            </nav>
+        </div>
+    </div>
+    
+    <!-- Settings Content -->
+    <div class="lg:col-span-2 space-y-6">
+        <!-- Profile Section -->
+        <div id="section-profile" class="settings-section">
+            <div class="card">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Informações do Perfil</h3>
+                
+                <form class="space-y-4">
+                    <div>
+                        <label class="form-label">Nome Completo</label>
+                        <input type="text" class="form-input" id="profileNome" placeholder="João Silva" readonly>
+                    </div>
+                    
+                    <div>
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" id="profileEmail" placeholder="email@exemplo.com" readonly>
+                    </div>
+                    
+                    <div>
+                        <label class="form-label">Telefone</label>
+                        <input type="tel" class="form-input" placeholder="+351 912 345 678">
+                    </div>
+                    
+                    <div>
+                        <label class="form-label">Localização da Fazenda</label>
+                        <input type="text" class="form-input" placeholder="Localização">
+                    </div>
+                    
+                    <div class="flex gap-3 pt-4">
+                        <button type="submit" class="btn-primary">
+                            <i class="icon-save"></i>
+                            Guardar Alterações
+                        </button>
+                        <button type="button" class="btn-secondary">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Notifications Section -->
+        <div id="section-notifications" class="settings-section hidden">
+            <div class="card">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Preferências de Notificações</h3>
+                
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
+                        <div>
+                            <p class="font-semibold text-gray-900 dark:text-white">Alertas de Pragas</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Notificar quando uma praga for detectada</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
+                        <div>
+                            <p class="font-semibold text-gray-900 dark:text-white">Limites de Temperatura</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Avisar quando ultrapassar os limites configurados</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
+                        <div>
+                            <p class="font-semibold text-gray-900 dark:text-white">Humidade do Solo</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Alertar sobre níveis críticos de humidade</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
+                        <div>
+                            <p class="font-semibold text-gray-900 dark:text-white">Vibrações</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Notificar detecções de vibração</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
+                        <div>
+                            <p class="font-semibold text-gray-900 dark:text-white">Resumo Diário</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Receber relatório diário por email</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="flex items-center justify-between py-3">
+                        <div>
+                            <p class="font-semibold text-gray-900 dark:text-white">Sensores Offline</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Avisar quando um sensor ficar offline</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 pt-6">
+                    <button class="btn-primary">
+                        <i class="icon-save"></i>
+                        Guardar Preferências
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sensors Section -->
+        <div id="section-sensors" class="settings-section hidden">
+            <div class="card">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Configuração dos Sensores</h3>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="form-label">Intervalo de Leitura (segundos)</label>
+                        <input type="number" class="form-input" value="30" min="10" max="300">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Tempo entre leituras dos sensores (10-300s)</p>
+                    </div>
+                    
+                    <div>
+                        <label class="form-label">Device ID</label>
+                        <input type="text" class="form-input" value="AGRO-IOT-001" readonly>
+                    </div>
+                    
+                    <div class="pt-4">
+                        <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Calibração dos Sensores</h4>
+                        
+                        <div class="space-y-3">
+                            <button class="w-full btn-secondary text-left">
+                                <i class="icon-thermometer"></i>
+                                <span>Calibrar BME280</span>
+                            </button>
+                            <button class="w-full btn-secondary text-left">
+                                <i class="icon-droplet"></i>
+                                <span>Calibrar Sensor de Solo</span>
+                            </button>
+                            <button class="w-full btn-secondary text-left">
+                                <i class="icon-map-pin"></i>
+                                <span>Calibrar GPS</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 pt-6">
+                    <button class="btn-primary">
+                        <i class="icon-save"></i>
+                        Guardar Configurações
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Thresholds Section -->
+        <div id="section-thresholds" class="settings-section hidden">
+            <div class="card">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Limites de Alerta</h3>
+                
+                <div class="space-y-6">
+                    <div>
+                        <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Temperatura</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="form-label">Mínimo (°C)</label>
+                                <input type="number" class="form-input" value="15" step="0.1">
+                            </div>
+                            <div>
+                                <label class="form-label">Máximo (°C)</label>
+                                <input type="number" class="form-input" value="35" step="0.1">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Humidade do Ar</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="form-label">Mínimo (%)</label>
+                                <input type="number" class="form-input" value="30" step="1">
+                            </div>
+                            <div>
+                                <label class="form-label">Máximo (%)</label>
+                                <input type="number" class="form-input" value="80" step="1">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Humidade do Solo</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="form-label">Mínimo (%)</label>
+                                <input type="number" class="form-input" value="20" step="1">
+                            </div>
+                            <div>
+                                <label class="form-label">Máximo (%)</label>
+                                <input type="number" class="form-input" value="70" step="1">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 pt-6">
+                    <button class="btn-primary">
+                        <i class="icon-save"></i>
+                        Guardar Limites
+                    </button>
+                    <button class="btn-secondary">Restaurar Padrões</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- System Section -->
+        <div id="section-system" class="settings-section hidden">
+            <div class="card">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Configurações do Sistema</h3>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="form-label">Idioma</label>
+                        <select class="form-input">
+                            <option value="pt" selected>Português</option>
+                            <option value="en">English</option>
+                            <option value="es">Español</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="form-label">Fuso Horário</label>
+                        <select class="form-input">
+                            <option value="Europe/Lisbon" selected>Europa/Lisboa (WET)</option>
+                            <option value="Europe/Madrid">Europa/Madrid (CET)</option>
+                            <option value="America/Sao_Paulo">América/São Paulo (BRT)</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="form-label">Formato de Data</label>
+                        <select class="form-input">
+                            <option value="dd/mm/yyyy" selected>DD/MM/AAAA</option>
+                            <option value="mm/dd/yyyy">MM/DD/YYYY</option>
+                            <option value="yyyy-mm-dd">AAAA-MM-DD</option>
+                        </select>
+                    </div>
+                    
+                    <div class="pt-4">
+                        <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Armazenamento de Dados</h4>
+                        <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                            <div class="flex justify-between mb-2">
+                                <span class="text-sm text-gray-600 dark:text-gray-400">Utilização</span>
+                                <span class="text-sm font-semibold text-gray-900 dark:text-white">2.4 GB / 10 GB</span>
+                            </div>
+                            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                <div class="bg-green-600 h-2 rounded-full" style="width: 24%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 pt-6">
+                    <button class="btn-primary">
+                        <i class="icon-save"></i>
+                        Guardar Configurações
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Security Section -->
+        <div id="section-security" class="settings-section hidden">
+            <div class="card">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Segurança</h3>
+                
+                <div class="space-y-6">
+                    <div>
+                        <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Alterar Palavra-passe</h4>
+                        <form class="space-y-4">
+                            <div>
+                                <label class="form-label">Palavra-passe Atual</label>
+                                <input type="password" class="form-input" id="currentPassword" placeholder="••••••••">
+                            </div>
+                            <div>
+                                <label class="form-label">Nova Palavra-passe</label>
+                                <input type="password" class="form-input" id="newPassword" placeholder="••••••••">
+                            </div>
+                            <div>
+                                <label class="form-label">Confirmar Nova Palavra-passe</label>
+                                <input type="password" class="form-input" id="confirmPassword" placeholder="••••••••">
+                            </div>
+                            <button type="submit" class="btn-primary">
+                                <i class="icon-key"></i>
+                                Alterar Palavra-passe
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+                        <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Sessões Ativas</h4>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                <div class="flex items-center gap-3">
+                                    <i class="icon-monitor text-green-600 dark:text-green-400"></i>
+                                    <div>
+                                        <p class="text-sm font-semibold text-gray-900 dark:text-white">Windows - Chrome</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Lisboa, Portugal • Agora</p>
+                                    </div>
+                                </div>
+                                <span class="badge badge-success">Atual</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+                        <h4 class="font-semibold text-danger mb-3">Zona de Perigo</h4>
+                        <button onclick="handleAccountDelete()" class="btn-danger">
+                            <i class="icon-trash-2"></i>
+                            Eliminar Conta
+                        </button>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Esta ação é irreversível e todos os dados serão permanentemente removidos.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function showSection(sectionName) {
+        // Hide all sections
+        document.querySelectorAll('.settings-section').forEach(section => {
+            section.classList.add('hidden');
+        });
+        
+        // Remove active class from all nav items
+        document.querySelectorAll('.settings-nav-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        
+        // Show selected section
+        document.getElementById('section-' + sectionName).classList.remove('hidden');
+        
+        // Add active class to clicked nav item
+        document.querySelector(`[data-section="${sectionName}"]`).classList.add('active');
+    }
+
+    // Load user profile on page load
+    async function loadUserProfile() {
+        try {
+            const response = await API.getProfile();
+            if (response.ok) {
+                const userData = await response.json();
+                document.getElementById('profileNome').value = userData.nome || 'Utilizador';
+                document.getElementById('profileEmail').value = userData.email || 'user@example.com';
+                document.getElementById('profileNome').removeAttribute('readonly');
+                console.log('[Config] User profile loaded');
+            }
+        } catch (error) {
+            console.error('[Config] Error loading user profile:', error);
+        }
+    }
+
+    // Save profile
+    async function saveProfile(e) {
+        e.preventDefault();
+        const nome = document.getElementById('profileNome').value.trim();
+        try {
+            const res = await API.updateProfile({ nome });
+            if (res.ok) {
+                showSuccess('Perfil guardado com sucesso!');
+            } else {
+                const d = await res.json();
+                showError(d.erro || 'Erro ao guardar perfil');
+            }
+        } catch { showError('Erro de ligação ao servidor'); }
+    }
+
+    // Change password
+    async function changePassword(e) {
+        e.preventDefault();
+        const pw  = document.getElementById('newPassword')?.value || '';
+        const pw2 = document.getElementById('confirmPassword')?.value || '';
+        if (!pw) { showError('Insira a nova palavra-passe'); return; }
+        if (pw !== pw2) { showError('As palavras-passe não coincidem'); return; }
+        if (pw.length < 6) { showError('A palavra-passe deve ter pelo menos 6 caracteres'); return; }
+        try {
+            const res = await API.updateProfile({ password: pw });
+            if (res.ok) {
+                showSuccess('Palavra-passe alterada com sucesso!');
+                if (document.getElementById('newPassword')) document.getElementById('newPassword').value = '';
+                if (document.getElementById('confirmPassword')) document.getElementById('confirmPassword').value = '';
+            } else {
+                const d = await res.json();
+                showError(d.erro || 'Erro ao alterar palavra-passe');
+            }
+        } catch { showError('Erro de ligação ao servidor'); }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        loadUserProfile();
+        // Ligar botão guardar perfil
+        const profileForm = document.querySelector('#section-perfil form, #section-profile form');
+        if (profileForm) profileForm.addEventListener('submit', saveProfile);
+        // Ligar botão alterar password
+        const pwForm = document.querySelector('#section-seguranca form, #section-security form');
+        if (pwForm) pwForm.addEventListener('submit', changePassword);
+    });
+</script>
+{% endblock %}
+

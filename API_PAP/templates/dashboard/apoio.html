@@ -1,0 +1,398 @@
+{% extends "base.html" %}
+
+{% block title %}Apoio & Reclamações - AgroCaua{% endblock %}
+{% block page_title %}Apoio &amp; Reclamações{% endblock %}
+{% block page_icon %}<i class="icon-headphones text-green-600"></i>{% endblock %}
+{% block page_subtitle %}Envie mensagens ou reclamações à equipa de administração e acompanhe as respostas{% endblock %}
+
+{% block extra_head %}
+<style>
+    .apoio-tab { padding:.5rem 1.125rem; border:none; background:transparent; font-size:.875rem; font-weight:500; color:#6b7280; cursor:pointer; border-bottom:2.5px solid transparent; transition:color .15s,border-color .15s; white-space:nowrap; font-family:inherit; }
+    .apoio-tab:hover { color:#111827; }
+    .apoio-tab.active { color:#2e8b57; border-bottom-color:#2e8b57; font-weight:600; }
+    .apoio-panel { display:none; }
+    .apoio-panel.active { display:block; }
+    .msg-item { display:flex; align-items:flex-start; gap:.875rem; padding:1rem; border-radius:.75rem; transition:background .15s; cursor:pointer; border:1px solid #e5e7eb; margin-bottom:.625rem; background:white; }
+    .msg-item:hover { background:#f9fafb; border-color:#d1fae5; }
+    .msg-item.has-reply { border-left:3px solid #2e8b57; }
+    .msg-item.unread { background:#f0fdf4; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- KPI Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="kpi-card group cursor-pointer hover:border-green-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Total Enviadas</p>
+            <p class="text-2xl font-bold text-gray-900" id="totalEnviadas">--</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-green-100">
+            <i class="icon-send text-green-600 text-2xl"></i>
+        </div>
+    </div>
+    <div class="kpi-card group cursor-pointer hover:border-blue-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Respondidas</p>
+            <p class="text-2xl font-bold text-gray-900" id="totalRespondidas">--</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-blue-100">
+            <i class="icon-message-square text-blue-600 text-2xl"></i>
+        </div>
+    </div>
+    <div class="kpi-card group cursor-pointer hover:border-yellow-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Pendentes</p>
+            <p class="text-2xl font-bold text-gray-900" id="totalPendentes">--</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-yellow-100">
+            <i class="icon-clock text-yellow-600 text-2xl"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs -->
+<div class="card" style="padding:0;overflow:hidden;">
+    <div style="border-bottom:1px solid #e5e7eb;padding:0 1.25rem;display:flex;gap:0.25rem;">
+        <button class="apoio-tab active" onclick="switchApoioTab('nova')" id="atab-nova">
+            <i class="icon-edit-3" style="margin-right:4px;"></i>Nova Mensagem
+        </button>
+        <button class="apoio-tab" onclick="switchApoioTab('caixa')" id="atab-caixa">
+            <i class="icon-inbox" style="margin-right:4px;"></i>Caixa de Entrada
+            <span id="badgeNaoLidas" style="display:none;margin-left:4px;background:#ef4444;color:white;font-size:.65rem;font-weight:700;border-radius:999px;padding:.08rem .4rem;"></span>
+        </button>
+    </div>
+
+    <!-- Tab: Nova Mensagem -->
+    <div class="apoio-panel active" id="apanel-nova" style="padding:1.5rem;">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+                <label class="block text-sm font-500 text-gray-700 mb-1">Assunto <span class="text-red-500">*</span></label>
+                <input type="text" id="novoAssunto" placeholder="Ex: Problema com sensor de humidade"
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500 bg-gray-50 focus:bg-white transition-all">
+            </div>
+            <div>
+                <label class="block text-sm font-500 text-gray-700 mb-1">Prioridade</label>
+                <select id="novaPrioridade"
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500 bg-gray-50 focus:bg-white transition-all appearance-none">
+                    <option value="baixo">Baixa — Dúvida geral</option>
+                    <option value="normal" selected>Normal — Problema comum</option>
+                    <option value="alto">Alta — Afeta a produção</option>
+                    <option value="critico">Crítica — Urgente / Emergência</option>
+                </select>
+            </div>
+        </div>
+        <div class="mb-4">
+            <label class="block text-sm font-500 text-gray-700 mb-1">Mensagem <span class="text-red-500">*</span></label>
+            <textarea id="novoConteudo" rows="5" placeholder="Descreva o seu problema ou reclamação em detalhe..."
+                class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500 bg-gray-50 focus:bg-white transition-all resize-none"></textarea>
+        </div>
+
+        <!-- Aviso prioridade crítica -->
+        <div id="avisoCritico" class="hidden mb-4 bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
+            <i class="icon-alert-triangle text-red-600 text-lg flex-shrink-0 mt-0.5"></i>
+            <p class="text-sm text-red-700">
+                <strong>Atenção:</strong> Mensagens com prioridade <strong>Crítica</strong> são encaminhadas diretamente para o módulo de Alertas da administração e tratadas com urgência máxima.
+            </p>
+        </div>
+
+        <!-- BOTÃO DE ENVIAR — explicitamente visível -->
+        <div class="flex justify-end">
+            <button onclick="enviarMensagem()" id="btnEnviarMensagem"
+                style="display:inline-flex;align-items:center;gap:0.5rem;background:linear-gradient(135deg,#16a34a,#15803d);color:#ffffff;border:2px solid #15803d;padding:0.625rem 1.75rem;border-radius:0.5rem;font-size:0.875rem;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(22,163,74,0.35);transition:opacity .2s,transform .1s;"
+                onmouseover="this.style.opacity='0.9';this.style.transform='translateY(-1px)'"
+                onmouseout="this.style.opacity='1';this.style.transform='translateY(0)'">
+                <i class="icon-send" style="font-size:1rem;"></i>
+                Enviar Mensagem
+            </button>
+        </div>
+    </div>
+
+    <!-- Tab: Caixa de Entrada -->
+    <div class="apoio-panel" id="apanel-caixa" style="padding:1.25rem;">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-gray-700">As minhas mensagens e respostas</h3>
+            <button onclick="carregarMensagens()" class="text-sm text-green-600 hover:underline flex items-center gap-1">
+                <i class="icon-refresh-cw text-xs"></i> Atualizar
+            </button>
+        </div>
+        <div id="listaMensagens">
+            <div class="text-center py-10 text-gray-400">
+                <i class="icon-loader text-3xl block mb-2"></i>
+                A carregar mensagens...
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Ver/Responder Mensagem -->
+<div id="modalResposta" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+            <h4 class="font-700 text-gray-900 flex items-center gap-2">
+                <i class="icon-message-square text-green-600"></i>
+                <span id="modalResposta_assunto">Conversa</span>
+            </h4>
+            <button onclick="fecharModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="icon-x text-xl"></i>
+            </button>
+        </div>
+        <div class="p-5 space-y-3 overflow-y-auto max-h-96">
+            <!-- Mensagem do agricultor -->
+            <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="text-xs font-600 text-gray-600 uppercase">A minha mensagem</span>
+                    <span id="modal_badge_prio" class="text-xs px-2 py-0.5 rounded-full"></span>
+                </div>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-700" id="modalResposta_conteudo"></div>
+                <p class="text-xs text-gray-400 mt-1" id="modal_data_envio"></p>
+            </div>
+
+            <!-- Resposta do admin (se existir) -->
+            <div id="blocoResposta" class="hidden">
+                <div class="flex items-center gap-2 mb-1">
+                    <i class="icon-user-check text-green-600 text-sm"></i>
+                    <span class="text-xs font-600 text-green-700 uppercase">Resposta da Administração</span>
+                </div>
+                <div class="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-800" id="modalResposta_texto"></div>
+                <p class="text-xs text-gray-400 mt-1" id="modalResposta_info"></p>
+            </div>
+
+            <!-- Sem resposta ainda -->
+            <div id="blocoSemResposta" class="hidden bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-700 flex items-center gap-2">
+                <i class="icon-clock text-yellow-600"></i>
+                Ainda não foi respondida. Aguarde retorno da administração.
+            </div>
+
+            <!-- Área de resposta do agricultor (só aparece se admin já respondeu) -->
+            <div id="blocoResponderAgric" class="hidden pt-2 border-t border-gray-100">
+                <p class="text-xs font-600 text-gray-600 uppercase mb-2 flex items-center gap-1">
+                    <i class="icon-corner-down-right text-green-600"></i> Responder ao administrador
+                </p>
+                <textarea id="respostaAgricTexto" rows="3" placeholder="Escreva a sua resposta ou follow-up..."
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500 bg-gray-50 resize-none"></textarea>
+                <div class="flex justify-end mt-2">
+                    <button onclick="responderMensagem()"
+                        style="display:inline-flex;align-items:center;gap:0.375rem;background:linear-gradient(135deg,#16a34a,#15803d);color:#ffffff;border:2px solid #15803d;padding:0.5rem 1.25rem;border-radius:0.5rem;font-size:0.8125rem;font-weight:700;cursor:pointer;box-shadow:0 2px 6px rgba(22,163,74,.3);">
+                        <i class="icon-send text-sm"></i> Enviar Resposta
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="px-5 py-3 border-t border-gray-100 flex justify-end">
+            <button onclick="fecharModal()" class="px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">Fechar</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let msgAtual = null;
+
+    const PRIORIDADE_BADGE = {
+        critico: { text: 'Crítica',  bg: '#fee2e2', color: '#dc2626' },
+        alto:    { text: 'Alta',     bg: '#ffedd5', color: '#ea580c' },
+        normal:  { text: 'Normal',   bg: '#dbeafe', color: '#2563eb' },
+        baixo:   { text: 'Baixa',    bg: '#f3f4f6', color: '#6b7280' },
+    };
+
+    const STATUS_BADGE = {
+        aberto:     { text: 'Aberto',     bg: '#fef9c3', color: '#854d0e' },
+        respondido: { text: 'Respondido', bg: '#dcfce7', color: '#15803d' },
+        fechado:    { text: 'Fechado',    bg: '#f3f4f6', color: '#6b7280' },
+    };
+
+    function switchApoioTab(name) {
+        document.querySelectorAll('.apoio-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.apoio-panel').forEach(p => p.classList.remove('active'));
+        document.getElementById('atab-' + name).classList.add('active');
+        document.getElementById('apanel-' + name).classList.add('active');
+        if (name === 'caixa') carregarMensagens();
+    }
+
+    document.getElementById('novaPrioridade').addEventListener('change', function() {
+        document.getElementById('avisoCritico').classList.toggle('hidden', this.value !== 'critico');
+    });
+
+    async function enviarMensagem() {
+        const assunto    = document.getElementById('novoAssunto').value.trim();
+        const conteudo   = document.getElementById('novoConteudo').value.trim();
+        const prioridade = document.getElementById('novaPrioridade').value;
+
+        if (!assunto || !conteudo) {
+            if (typeof showWarning === 'function') showWarning('Preencha o assunto e a mensagem antes de enviar.');
+            return;
+        }
+
+        const btn = document.getElementById('btnEnviarMensagem');
+        btn.disabled = true;
+        btn.style.opacity = '0.7';
+
+        try {
+            const res = await fetch('/api/admin/mensagens', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (getToken() || '') },
+                body: JSON.stringify({ assunto, conteudo, prioridade })
+            });
+
+            if (res.ok) {
+                if (typeof showSuccess === 'function') showSuccess('Mensagem enviada com sucesso!');
+                document.getElementById('novoAssunto').value = '';
+                document.getElementById('novoConteudo').value = '';
+                document.getElementById('novaPrioridade').value = 'normal';
+                document.getElementById('avisoCritico').classList.add('hidden');
+                // Mudar para a caixa de entrada
+                setTimeout(() => switchApoioTab('caixa'), 800);
+            } else {
+                const err = await res.json();
+                if (typeof showError === 'function') showError(err.erro || 'Erro ao enviar mensagem.');
+            }
+        } catch (e) {
+            if (typeof showError === 'function') showError('Erro de ligação. Tente novamente.');
+        } finally {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+        }
+    }
+
+    async function carregarMensagens() {
+        const container = document.getElementById('listaMensagens');
+        container.innerHTML = '<div class="text-center py-10 text-gray-400"><i class="icon-loader text-3xl block mb-2"></i>A carregar...</div>';
+
+        try {
+            const res = await fetch('/api/admin/mensagens/minhas', {
+                headers: { 'Authorization': 'Bearer ' + (getToken() || '') }
+            });
+
+            if (!res.ok) throw new Error('Erro ao carregar');
+            const msgs = await res.json();
+
+            // KPIs
+            document.getElementById('totalEnviadas').textContent = msgs.length;
+            document.getElementById('totalRespondidas').textContent = msgs.filter(m => m.status === 'respondido').length;
+            document.getElementById('totalPendentes').textContent = msgs.filter(m => m.status === 'aberto').length;
+
+            // Badge de respostas não lidas
+            const naoLidas = msgs.filter(m => m.resposta && m.status === 'respondido').length;
+            const badge = document.getElementById('badgeNaoLidas');
+            if (naoLidas > 0) { badge.style.display = 'inline'; badge.textContent = naoLidas; }
+            else { badge.style.display = 'none'; }
+
+            if (!msgs.length) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-gray-400">
+                        <i class="icon-inbox text-4xl block mb-3 opacity-40"></i>
+                        <p class="font-500 text-gray-500">Ainda não enviou nenhuma mensagem</p>
+                        <p class="text-sm mt-1">Use o separador "Nova Mensagem" para entrar em contacto</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = msgs.map(m => {
+                const data = new Date(m.created_at).toLocaleString('pt-PT');
+                const prio = PRIORIDADE_BADGE[m.prioridade] || PRIORIDADE_BADGE.normal;
+                const st   = STATUS_BADGE[m.status] || STATUS_BADGE.aberto;
+                const temResposta = !!m.resposta;
+                return `
+                <div class="msg-item ${temResposta ? 'has-reply' : ''}" onclick="verMensagem(${JSON.stringify(JSON.stringify(m))})">
+                    <div style="width:2.5rem;height:2.5rem;border-radius:50%;background:${temResposta ? 'linear-gradient(135deg,#2e8b57,#16a34a)' : 'linear-gradient(135deg,#6b7280,#4b5563)'};display:flex;align-items:center;justify-content:center;color:white;flex-shrink:0;">
+                        <i class="${temResposta ? 'icon-message-square' : 'icon-mail'}" style="font-size:.875rem;"></i>
+                    </div>
+                    <div style="flex:1;min-width:0;">
+                        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;flex-wrap:wrap;">
+                            <span style="font-weight:600;font-size:.875rem;color:#111827;">${m.assunto}</span>
+                            <span style="font-size:.75rem;color:#9ca3af;flex-shrink:0;">${data}</span>
+                        </div>
+                        <p style="font-size:.8125rem;color:#6b7280;margin:.2rem 0 .5rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${m.conteudo}</p>
+                        <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;">
+                            <span style="font-size:.7rem;font-weight:600;padding:.15rem .5rem;border-radius:999px;background:${prio.bg};color:${prio.color};">${prio.text}</span>
+                            <span style="font-size:.7rem;font-weight:600;padding:.15rem .5rem;border-radius:999px;background:${st.bg};color:${st.color};">${st.text}</span>
+                            ${temResposta ? '<span style="font-size:.7rem;font-weight:600;padding:.15rem .5rem;border-radius:999px;background:#d1fae5;color:#065f46;"><i class="icon-check-circle" style="font-size:.6rem;margin-right:2px;"></i>Com resposta</span>' : ''}
+                        </div>
+                    </div>
+                    <i class="icon-chevron-right" style="color:#d1d5db;flex-shrink:0;margin-top:.25rem;"></i>
+                </div>`;
+            }).join('');
+        } catch (e) {
+            container.innerHTML = '<div class="text-center py-10 text-red-400"><i class="icon-alert-circle text-3xl block mb-2"></i>Erro ao carregar mensagens.</div>';
+        }
+    }
+
+    function verMensagem(mJson) {
+        msgAtual = JSON.parse(mJson);
+        const m = msgAtual;
+        const prio = PRIORIDADE_BADGE[m.prioridade] || PRIORIDADE_BADGE.normal;
+
+        document.getElementById('modalResposta_assunto').textContent = m.assunto;
+        document.getElementById('modalResposta_conteudo').textContent = m.conteudo;
+        document.getElementById('modal_data_envio').textContent = 'Enviado em ' + new Date(m.created_at).toLocaleString('pt-PT');
+
+        const prioBadge = document.getElementById('modal_badge_prio');
+        prioBadge.textContent = prio.text;
+        prioBadge.style.background = prio.bg;
+        prioBadge.style.color = prio.color;
+
+        if (m.resposta) {
+            document.getElementById('blocoResposta').classList.remove('hidden');
+            document.getElementById('blocoSemResposta').classList.add('hidden');
+            document.getElementById('blocoResponderAgric').classList.remove('hidden');
+            document.getElementById('modalResposta_texto').textContent = m.resposta;
+            const info = (m.respondido_por ? 'Respondido por ' + m.respondido_por : '') +
+                         (m.respondido_em ? ' em ' + new Date(m.respondido_em).toLocaleString('pt-PT') : '');
+            document.getElementById('modalResposta_info').textContent = info;
+            document.getElementById('respostaAgricTexto').value = '';
+        } else {
+            document.getElementById('blocoResposta').classList.add('hidden');
+            document.getElementById('blocoSemResposta').classList.remove('hidden');
+            document.getElementById('blocoResponderAgric').classList.add('hidden');
+        }
+
+        document.getElementById('modalResposta').classList.remove('hidden');
+    }
+
+    async function responderMensagem() {
+        const texto = document.getElementById('respostaAgricTexto').value.trim();
+        if (!texto) { if (typeof showWarning === 'function') showWarning('Escreva a sua resposta antes de enviar.'); return; }
+        if (!msgAtual) return;
+
+        // Cria nova mensagem com referência ao original
+        try {
+            const res = await fetch('/api/admin/mensagens', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (getToken() || '') },
+                body: JSON.stringify({
+                    assunto: 'RE: ' + msgAtual.assunto,
+                    conteudo: texto,
+                    prioridade: msgAtual.prioridade
+                })
+            });
+            if (res.ok) {
+                if (typeof showSuccess === 'function') showSuccess('Resposta enviada com sucesso!');
+                fecharModal();
+                carregarMensagens();
+            } else {
+                const err = await res.json();
+                if (typeof showError === 'function') showError(err.erro || 'Erro ao enviar resposta.');
+            }
+        } catch {
+            if (typeof showError === 'function') showError('Erro de ligação.');
+        }
+    }
+
+    function fecharModal() {
+        document.getElementById('modalResposta').classList.add('hidden');
+        msgAtual = null;
+    }
+
+    document.getElementById('modalResposta').addEventListener('click', e => {
+        if (e.target === document.getElementById('modalResposta')) fecharModal();
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        carregarMensagens(); // carrega KPIs mesmo na tab nova
+    });
+</script>
+{% endblock %}

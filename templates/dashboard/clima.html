@@ -1,0 +1,450 @@
+{% extends "base.html" %}
+
+{% block title %}Clima - AgroCaua{% endblock %}
+
+{% block page_title %}Monitoramento Climático{% endblock %}
+{% block page_icon %}<i class="icon-cloud text-blue-600"></i>{% endblock %}
+{% block page_subtitle %}Dados em tempo real coletados pelo sensor BME280 - Estação Norte{% endblock %}
+
+{% block content %}
+
+<!-- Current Weather Data -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <!-- Temperature -->
+    <div class="kpi-card group cursor-pointer hover:border-green-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Temperatura</p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-gray-900" id="tempValue">--°C</p>
+                <p class="text-sm font-600 text-gray-500" id="tempStatus">OK</p>
+            </div>
+            <p class="text-xs text-gray-500 mt-2" id="tempRange">Mín: --°C / Máx: --°C</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-gradient-to-br from-green-100 to-green-50 group-hover:scale-110 transition-transform">
+            <i class="icon-thermometer-sun text-green-600 text-2xl"></i>
+        </div>
+    </div>
+
+    <!-- Humidity -->
+    <div class="kpi-card group cursor-pointer hover:border-blue-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Humidade</p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-gray-900" id="humidityValue">--%</p>
+                <p class="text-sm font-600 text-blue-600" id="humidityTrend">↑ --</p>
+            </div>
+            <p class="text-xs text-gray-500 mt-2" id="humidityRange">Mín: --% / Máx: --%</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-gradient-to-br from-blue-100 to-blue-50 group-hover:scale-110 transition-transform">
+            <i class="icon-droplets text-blue-600 text-2xl"></i>
+        </div>
+    </div>
+
+    <!-- Pressure -->
+    <div class="kpi-card group cursor-pointer hover:border-purple-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Pressão</p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-gray-900" id="pressureValue">-- hPa</p>
+                <p class="text-sm font-600 text-gray-500" id="pressureStatus">OK</p>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">Nível: Estável</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-gradient-to-br from-purple-100 to-purple-50 group-hover:scale-110 transition-transform">
+            <i class="icon-gauge text-purple-600 text-2xl"></i>
+        </div>
+    </div>
+
+    <!-- Status -->
+    <div class="kpi-card group cursor-pointer hover:border-gray-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Status da Estação</p>
+            <div class="flex items-baseline gap-2">
+                <p class="font-bold text-green-600 text-lg" id="stationStatus">ATIVO</p>
+            </div>
+            <p class="text-xs text-gray-500 mt-2" id="lastReadingTime">Última leitura: --</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-gradient-to-br from-green-100 to-green-50 group-hover:scale-110 transition-transform">
+            <i class="icon-check-circle text-green-600 text-2xl"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Temperature Variation -->
+    <div class="card chart-container group hover:shadow-xl hover:border-green-200 transition-all duration-300 slide-in-up" style="animation-delay: 0.1s">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <i class="icon-trending-up text-green-600 text-xl"></i>
+                Variação de Temperatura
+            </h3>
+            <span class="text-xs font-500 text-gray-500">Oscilação térmica nas últimas 24 horas</span>
+        </div>
+        <div class="chart-wrapper">
+            <canvas id="temperatureChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Humidity & Pressure -->
+    <div class="card chart-container group hover:shadow-xl hover:border-blue-200 transition-all duration-300 slide-in-up" style="animation-delay: 0.2s">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <i class="icon-bar-chart-2 text-blue-600 text-xl"></i>
+                Humidade & Pressão
+            </h3>
+            <span class="text-xs font-500 text-gray-500">Correlação entre humidade relativa e pressão atmosférica</span>
+        </div>
+        <div class="chart-wrapper">
+            <canvas id="humidityPressureChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Climate Readings Table -->
+<div class="card group hover:shadow-lg transition-all duration-300">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <i class="icon-history text-green-600 text-xl"></i>
+            Leituras Climáticas Recentes
+        </h3>
+        <p class="text-sm text-gray-500">Histórico detalhado das últimas medições do sensor BME280</p>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b border-gray-200 bg-gray-50">
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Humidade</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Status</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Recomendação</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Temp. Solo</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Hora</th>
+                </tr>
+            </thead>
+            <tbody id="climateReadingsBody">
+                <tr>
+                    <td colspan="5" class="text-center py-8 text-gray-500">
+                        <div class="spinner mx-auto"></div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+    const climaState = {
+        charts: {},
+        refreshInterval: null,
+        allData: [],
+        tempHistory: [],
+        humidityHistory: [],
+        pressureHistory: []
+    };
+
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.color = '#6B7280';
+
+    function initCharts() {
+        console.log('[Clima] Initializing charts...');
+
+        // Temperature Variation Area Chart
+        climaState.charts.temperature = new Chart(document.getElementById('temperatureChart'), {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Temperatura (°C)',
+                    data: [],
+                    borderColor: 'rgb(34, 197, 94)',
+                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    pointBackgroundColor: 'rgb(34, 197, 94)',
+                    pointBorderColor: 'white',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        bodyFont: { size: 12 },
+                        callbacks: {
+                            label: function(context) {
+                                return 'Temperatura: ' + context.parsed.y.toFixed(1) + '°C';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // Humidity & Pressure Combined Chart
+        climaState.charts.humidityPressure = new Chart(document.getElementById('humidityPressureChart'), {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Humidade (%)',
+                        data: [],
+                        backgroundColor: 'rgba(34, 197, 94, 0.7)',
+                        borderColor: 'rgb(34, 197, 94)',
+                        borderWidth: 1.5,
+                        borderRadius: 6,
+                        yAxisID: 'y',
+                        barPercentage: 0.6
+                    },
+                    {
+                        label: 'Pressão (hPa)',
+                        data: [],
+                        type: 'line',
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 2.5,
+                        tension: 0.4,
+                        yAxisID: 'y1',
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: 'rgb(59, 130, 246)',
+                        pointBorderColor: 'white',
+                        pointBorderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { intersect: false, mode: 'index' },
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { padding: 20, font: { size: 12, weight: '500' } }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12
+                    }
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        position: 'left',
+                        min: 0,
+                        max: 100,
+                        title: { display: true, text: 'Humidade (%)' },
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        position: 'right',
+                        title: { display: true, text: 'Pressão (hPa)' },
+                        grid: { display: false }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    }
+
+    // Fetch climate data from API
+    async function fetchClimateData() {
+        try {
+            const response = await API.getAllData();
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (Array.isArray(data) && data.length > 0) {
+                climaState.allData = data;
+                
+                // Update KPI cards
+                updateKPIs(data);
+                
+                // Update charts with last 24 data points
+                updateCharts(data.slice(0, 24).reverse());
+                
+                // Update table
+                updateClimateReadings(data.slice(0, 10));
+                
+                console.log('[Clima] Data updated successfully');
+            } else {
+                showWarning('Nenhum dado disponível no momento');
+            }
+        } catch (error) {
+            console.error('[Clima] Error fetching data:', error);
+            showError('Erro ao carregar dados climáticos');
+        }
+    }
+
+    function updateKPIs(data) {
+        if (!data || data.length === 0) return;
+        
+        const latest = data[0];
+        
+        // Get temperature data
+        if (latest.bme280?.temperatura != null) {
+            const temp = latest.bme280.temperatura;
+            document.getElementById('tempValue').textContent = temp.toFixed(1) + '°C';
+            document.getElementById('tempStatus').textContent = 'OK';
+            
+            // Calculate min/max from available data
+            const temps = data.filter(d => d.bme280?.temperatura != null).map(d => d.bme280.temperatura);
+            if (temps.length > 0) {
+                const minTemp = Math.min(...temps);
+                const maxTemp = Math.max(...temps);
+                document.getElementById('tempRange').textContent = `Mín: ${minTemp.toFixed(1)}°C / Máx: ${maxTemp.toFixed(1)}°C`;
+            }
+        }
+        
+        // Get humidity data
+        if (latest.bme280?.humidade != null) {
+            const humidity = latest.bme280.humidade;
+            document.getElementById('humidityValue').textContent = humidity.toFixed(0) + '%';
+            
+            // Calculate trend
+            if (data.length > 1 && data[1].bme280?.humidade != null) {
+                const prevHumidity = data[1].bme280.humidade;
+                const trend = humidity - prevHumidity;
+                const trendText = trend > 0 ? '↑ +' + trend.toFixed(1) : (trend < 0 ? '↓ ' + trend.toFixed(1) : '→');
+                document.getElementById('humidityTrend').textContent = trendText;
+            }
+            
+            // Calculate min/max
+            const humidities = data.filter(d => d.bme280?.humidade != null).map(d => d.bme280.humidade);
+            if (humidities.length > 0) {
+                const minHum = Math.min(...humidities);
+                const maxHum = Math.max(...humidities);
+                document.getElementById('humidityRange').textContent = `Mín: ${minHum.toFixed(0)}% / Máx: ${maxHum.toFixed(0)}%`;
+            }
+        }
+        
+        // Get pressure data
+        if (latest.bme280?.pressao != null) {
+            const pressure = latest.bme280.pressao;
+            document.getElementById('pressureValue').textContent = pressure.toFixed(0) + ' hPa';
+            document.getElementById('pressureStatus').textContent = 'OK';
+        }
+        
+        // Update station status and last reading time
+        document.getElementById('stationStatus').textContent = 'ATIVO';
+        document.getElementById('lastReadingTime').textContent = 'Última leitura: há ' + timeAgo(latest.timestamp);
+    }
+
+    function updateCharts(recentData) {
+        if (!recentData || recentData.length === 0) return;
+        
+        const labels = recentData.map(d => formatTime(d.timestamp));
+        const temps = recentData.map(d => d.bme280?.temperatura || null);
+        const humidities = recentData.map(d => d.bme280?.humidade || null);
+        const pressures = recentData.map(d => d.bme280?.pressao || null);
+        
+        // Update temperature chart
+        if (climaState.charts.temperature) {
+            climaState.charts.temperature.data.labels = labels;
+            climaState.charts.temperature.data.datasets[0].data = temps;
+            climaState.charts.temperature.update('none');
+        }
+        
+        // Update humidity & pressure chart
+        if (climaState.charts.humidityPressure) {
+            climaState.charts.humidityPressure.data.labels = labels;
+            climaState.charts.humidityPressure.data.datasets[0].data = humidities;
+            climaState.charts.humidityPressure.data.datasets[1].data = pressures;
+            climaState.charts.humidityPressure.update('none');
+        }
+    }
+
+    function updateClimateReadings(data) {
+        const tbody = document.getElementById('climateReadingsBody');
+        
+        if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-gray-500">Sem dados disponíveis</td></tr>';
+            return;
+        }
+        
+        const html = data.map(item => {
+            const humidity = item.bme280?.humidade || '--';
+            const soilTemp = item.solo?.humidade || '--';
+            const timestamp = formatTimestamp(item.timestamp);
+            
+            return `
+                <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <td class="py-3 px-4 font-bold text-gray-900">${typeof humidity === 'number' ? humidity.toFixed(0) : humidity}%</td>
+                    <td class="py-3 px-4"><span class="badge badge-success">Normal</span></td>
+                    <td class="py-3 px-4 text-gray-500">--</td>
+                    <td class="py-3 px-4 text-gray-700">${typeof soilTemp === 'number' ? soilTemp.toFixed(1) : soilTemp}°C</td>
+                    <td class="py-3 px-4 text-gray-500">${timestamp}</td>
+                </tr>
+            `;
+        }).join('');
+        
+        tbody.innerHTML = html;
+    }
+
+    // Setup auto-refresh
+    function setupAutoRefresh() {
+        if (climaState.refreshInterval) {
+            clearInterval(climaState.refreshInterval);
+        }
+        
+        climaState.refreshInterval = setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                console.log('[Clima] Auto-refreshing...');
+                fetchClimateData();
+            }
+        }, 60000); // 60 seconds
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('[Clima] Initializing...');
+        initCharts();
+        fetchClimateData();
+        setupAutoRefresh();
+    });
+
+    window.addEventListener('beforeunload', () => {
+        if (climaState.refreshInterval) {
+            clearInterval(climaState.refreshInterval);
+        }
+        Object.values(climaState.charts).forEach(chart => {
+            if (chart) {
+                try {
+                    chart.destroy();
+                } catch (e) {
+                    console.warn('Error destroying chart:', e);
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

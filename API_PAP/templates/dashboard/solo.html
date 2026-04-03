@@ -1,0 +1,566 @@
+{% extends "base.html" %}
+
+{% block title %}Solo - AgroCaua{% endblock %}
+
+{% block page_title %}Monitoramento de Solo{% endblock %}
+{% block page_icon %}<i class="icon-leaf text-green-600"></i>{% endblock %}
+{% block page_subtitle %}Análise em tempo real das condições subterrâneas e gestão inteligente de recursos{% endblock %}
+
+{% block content %}
+
+<!-- Alert Banner -->
+<div id="soloBanner" class="rounded-xl border-l-4 p-4 mb-6 flex items-start gap-3 hidden">
+    <i id="soloBannerIcon" class="text-2xl flex-shrink-0 mt-0.5"></i>
+    <div>
+        <p class="font-semibold text-sm" id="soloBannerTitle"></p>
+        <p class="text-xs mt-0.5" id="soloBannerMsg"></p>
+    </div>
+</div>
+
+<!-- Soil Metrics Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+    <!-- Current Humidity -->
+    <div class="kpi-card group cursor-pointer hover:border-blue-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Humidade Atual</p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-gray-900" id="currentHumidity">--%</p>
+                <span class="badge badge-info text-xs" id="humidityStatus">--</span>
+            </div>
+            <p class="text-xs text-gray-500 mt-2" id="humidityNote">A carregar dados do sensor...</p>
+        </div>
+        <div
+            class="kpi-icon-wrapper bg-gradient-to-br from-blue-100 to-blue-50 group-hover:scale-110 transition-transform">
+            <i class="icon-droplet text-blue-600 text-2xl"></i>
+        </div>
+    </div>
+
+    <!-- Soil Health -->
+    <div class="kpi-card group cursor-pointer hover:border-green-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Saúde do Solo</p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-gray-900" id="soilHealthScore">--/100</p>
+                <span class="badge badge-success text-xs" id="soilHealthLabel">--</span>
+            </div>
+            <p class="text-xs text-gray-500 mt-2" id="soilHealthNote">A calcular com base nos sensores...</p>
+        </div>
+        <div
+            class="kpi-icon-wrapper bg-gradient-to-br from-green-100 to-green-50 group-hover:scale-110 transition-transform">
+            <i class="icon-zap text-green-600 text-2xl"></i>
+        </div>
+    </div>
+
+    <!-- Stress Risk -->
+    <div class="kpi-card group cursor-pointer hover:border-amber-300">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Risco de Estresse Hídrico</p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-gray-900" id="stressRisk">--</p>
+                <span class="badge badge-success text-xs" id="stressRiskBadge">--</span>
+            </div>
+            <p class="text-xs text-gray-500 mt-2" id="stressRiskNote">A analisar tendência...</p>
+        </div>
+        <div
+            class="kpi-icon-wrapper bg-gradient-to-br from-amber-100 to-amber-50 group-hover:scale-110 transition-transform">
+            <i class="icon-alert-circle text-amber-600 text-2xl"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Humidity Evolution -->
+    <div class="card chart-container group hover:shadow-xl hover:border-blue-200 transition-all duration-300 slide-in-up"
+        style="animation-delay: 0.1s">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <i class="icon-trending-up text-blue-600 text-xl"></i>
+                Evolução da Humidade
+            </h3>
+            <span class="text-xs font-500 text-gray-500">Variação percentual nas últimas 24 horas</span>
+        </div>
+        <div class="chart-wrapper">
+            <canvas id="humidityEvolutionChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Ideal Gamma Reference Panel -->
+    <div class="card p-6 bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-200 group hover:shadow-xl transition-all duration-300 slide-in-up"
+        style="animation-delay: 0.2s">
+        <h3 class="text-lg font-semibold text-green-900 flex items-center gap-2 mb-4">
+            <i class="icon-target text-green-600 text-xl"></i>
+            Gama Ideal
+        </h3>
+        <div class="space-y-3">
+            <div class="flex items-center justify-between py-2 border-b border-green-200">
+                <span class="text-sm font-500 text-green-800">Zona Ótima</span>
+                <span class="text-sm font-bold text-green-900">40 - 60%</span>
+            </div>
+            <div class="flex items-center justify-between py-2 border-b border-green-200">
+                <span class="text-sm font-500 text-green-800">Alerta Baixo</span>
+                <span class="text-sm font-bold text-amber-600">30 - 40%</span>
+            </div>
+            <div class="flex items-center justify-between py-2">
+                <span class="text-sm font-500 text-green-800">Crítico / Seco</span>
+                <span class="text-sm font-bold text-red-600">&lt; 30%</span>
+            </div>
+        </div>
+        <div class="mt-4 p-3 bg-white bg-opacity-70 rounded-lg border border-green-300">
+            <p class="text-xs text-green-700">
+                <strong>Dica do Agrônomo:</strong> Manter a humidade em 50% durante a fase de crescimento maximiza a
+                captação de nutrientes e minimiza o risco de estrés hídrico.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Diagnóstico ML Solo -->
+<div id="mlSoloPanel" class="rec-panel mb-6 hidden">
+    <div class="rec-banner nivel-seguro" id="mlSoloBanner">
+        <div class="rec-banner-left">
+            <div class="rec-banner-icon">🌱</div>
+            <div class="rec-banner-text">
+                <div class="rec-banner-eyebrow">ML AgroCaua — Análise do Solo</div>
+                <div class="rec-banner-title">Diagnóstico de Saúde Estrutural do Solo</div>
+                <div class="rec-banner-subtitle">Análise combinada de humidade, seca e condições do solo</div>
+            </div>
+        </div>
+        <div class="rec-banner-right">
+            <span id="mlSoloBadge" class="rec-nivel-badge seguro">Normal</span>
+        </div>
+    </div>
+    <div id="mlSoloConteudo" class="p-5 space-y-4">
+        <div class="rec-loading">
+            <div class="rec-spinner"></div>
+            <p>A carregar diagnóstico...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Recommended Actions & Quick Stats -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Recommended Actions -->
+
+    <!-- Historical Readings Table -->
+    <div class="card group hover:shadow-lg transition-all duration-300">
+        <div class="flex flex-wrap justify-between items-center gap-2 mb-4">
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <i class="icon-history text-green-600 text-xl"></i>
+                Histórico de Leituras
+            </h3>
+            <p class="text-xs text-gray-500">Últimas medições dos sensores de solo</p>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b border-gray-200 bg-gray-50">
+                        <th class="text-left py-3 px-3 font-600 text-gray-700">Humidade</th>
+                        <th class="text-left py-3 px-3 font-600 text-gray-700">Zona</th>
+                        <th class="text-left py-3 px-3 font-600 text-gray-700">Acção Recomendada</th>
+                        <th class="text-left py-3 px-3 font-600 text-gray-700">Risco Pragas</th>
+                        <th class="text-left py-3 px-3 font-600 text-gray-700">Hora</th>
+                    </tr>
+                </thead>
+                <tbody id="soilReadingsBody">
+                    <tr>
+                        <td colspan="5" class="text-center py-8 text-gray-500">
+                            <div class="spinner mx-auto"></div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% endblock %}
+
+    {% block extra_scripts %}
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <script>
+        const soloState = {
+            charts: {},
+            refreshInterval: null
+        };
+
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#6B7280';
+
+        function initCharts() {
+            console.log('[Solo] Initializing charts...');
+
+            // Humidity Evolution Area Chart
+            soloState.charts.humidityEvolution = new Chart(document.getElementById('humidityEvolutionChart'), {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Humidade Solo',
+                            data: [],
+                            borderColor: 'rgb(34, 197, 94)',
+                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                            borderWidth: 2.5,
+                            tension: 0.4,
+                            fill: true,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            pointBackgroundColor: 'rgb(34, 197, 94)',
+                            pointBorderColor: 'white',
+                            pointBorderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: 'index' },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { padding: 20, font: { size: 12, weight: '500' } }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            callbacks: {
+                                label: function (context) {
+                                    return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + '%';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: 0,
+                            max: 100,
+                            grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Fetch soil data from API
+        async function fetchSoilData() {
+            try {
+                const response = await API.getAllData();
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (Array.isArray(data) && data.length > 0) {
+                    updateKPIs(data);
+                    updateChart(data.slice(0, 24).reverse());
+                    updateSoilReadings(data);
+                    console.log('[Solo] Data updated successfully');
+                } else {
+                    showWarning('Nenhum dado disponível no momento');
+                }
+            } catch (error) {
+                console.error('[Solo] Error fetching data:', error);
+                showError('Erro ao carregar dados do solo');
+            }
+        }
+
+        // ── Interpretation helpers ──────────────────────────────────────────────
+        function interpretSoilHumidity(h) {
+            if (h == null) return {
+                label: '--', badgeClass: 'badge-info',
+                action: 'Sem dados.', pestRisk: '--', pestClass: 'badge-info',
+                stressLabel: '--', stressBadge: 'badge-info', stressNote: 'Aguardando leitura...'
+            };
+            if (h < 20) return {
+                label: 'Seco Crítico', badgeClass: 'badge-danger',
+                action: 'Irrigação urgente! Solo extremamente seco — risco de morte das plantas.',
+                pestRisk: 'Baixo', pestClass: 'badge-success',
+                stressLabel: 'Crítico', stressBadge: 'badge-danger',
+                stressNote: `${h.toFixed(0)}% — Solo muito seco. Raízes sem acesso a água. Irrigação imediata necessária.`
+            };
+            if (h < 30) return {
+                label: 'Seco', badgeClass: 'badge-danger',
+                action: 'Irrigar imediatamente. Défice hídrico afeta absorção de nutrientes.',
+                pestRisk: 'Baixo', pestClass: 'badge-success',
+                stressLabel: 'Alto', stressBadge: 'badge-warning',
+                stressNote: `${h.toFixed(0)}% — Abaixo do limiar crítico. Irrigue 15–20 mm nas próximas horas.`
+            };
+            if (h < 40) return {
+                label: 'Atenção', badgeClass: 'badge-warning',
+                action: 'Planificar irrigação em breve. Solo em zona de alerta.',
+                pestRisk: 'Baixo', pestClass: 'badge-success',
+                stressLabel: 'Médio', stressBadge: 'badge-warning',
+                stressNote: `${h.toFixed(0)}% — Zona de alerta. Programe irrigação preventiva.`
+            };
+            if (h <= 60) return {
+                label: 'Ideal', badgeClass: 'badge-success',
+                action: 'Solo em condições óptimas. Manter monitoramento.',
+                pestRisk: 'Baixo', pestClass: 'badge-success',
+                stressLabel: 'Baixo', stressBadge: 'badge-success',
+                stressNote: `${h.toFixed(0)}% — Zona ótima (40–60%). Disponibilidade máxima de nutrientes para as plantas.`
+            };
+            if (h <= 80) return {
+                label: 'Elevado', badgeClass: 'badge-warning',
+                action: 'Suspender irrigação. Verificar drenagem do solo.',
+                pestRisk: 'Médio', pestClass: 'badge-warning',
+                stressLabel: 'Baixo', stressBadge: 'badge-success',
+                stressNote: `${h.toFixed(0)}% — Humidade acima do ideal. Risco de compactação e fungos radiculares.`
+            };
+            return {
+                label: 'Saturado', badgeClass: 'badge-danger',
+                action: 'Solo saturado! Risco de podridão radicular e lixiviação de nutrientes.',
+                pestRisk: 'Alto', pestClass: 'badge-danger',
+                stressLabel: 'Médio', stressBadge: 'badge-warning',
+                stressNote: `${h.toFixed(0)}% — Excesso de água. Melhore a drenagem. Alto risco de fungos e doenças radiculares.`
+            };
+        }
+
+        function calcSoilHealthScore(humidity) {
+            if (humidity == null) return { score: null, label: '--', badgeClass: 'badge-info', note: 'Aguardando dados do sensor.' };
+            // Score 0–100 based on distance from ideal zone centre (50%)
+            const ideal = 50;
+            const dist = Math.abs(humidity - ideal);
+            const score = Math.max(0, Math.round(100 - dist * 2));
+            let label, badgeClass, note;
+            if (score >= 80) {
+                label = 'Excelente'; badgeClass = 'badge-success';
+                note = 'Solo com boa estrutura e humidade óptima para atividade microbiana.';
+            } else if (score >= 60) {
+                label = 'Bom'; badgeClass = 'badge-success';
+                note = 'Condições favoráveis. Pequenos ajustes podem maximizar a produtividade.';
+            } else if (score >= 40) {
+                label = 'Razoável'; badgeClass = 'badge-warning';
+                note = 'Solo com limitações. Corrija humidade para melhorar absorção de nutrientes.';
+            } else {
+                label = 'Fraco'; badgeClass = 'badge-danger';
+                note = 'Solo em má condição. Intervenção necessária: irrigação ou drenagem.';
+            }
+            return { score, label, badgeClass, note };
+        }
+
+        function updateSoloBanner(humidity) {
+            const banner = document.getElementById('soloBanner');
+            const si = interpretSoilHumidity(humidity);
+            let color = null, icon = null;
+
+            if (si.badgeClass === 'badge-danger') {
+                color = 'bg-red-50 border-red-500 text-red-800';
+                icon = 'icon-alert-triangle text-red-600';
+            } else if (si.badgeClass === 'badge-warning') {
+                color = 'bg-amber-50 border-amber-400 text-amber-800';
+                icon = 'icon-info text-amber-600';
+            }
+
+            if (color) {
+                banner.className = `rounded-xl border-l-4 p-4 mb-6 flex items-start gap-3 ${color}`;
+                document.getElementById('soloBannerIcon').className = `text-2xl flex-shrink-0 mt-0.5 ${icon}`;
+                document.getElementById('soloBannerTitle').textContent = `Solo: ${si.label}`;
+                document.getElementById('soloBannerMsg').textContent = si.action;
+                banner.classList.remove('hidden');
+            } else {
+                banner.classList.add('hidden');
+            }
+        }
+        // ────────────────────────────────────────────────────────────────────────
+
+        function updateKPIs(data) {
+            if (!data || data.length === 0) return;
+
+            // Procurar registo mais recente com humidade do solo válida (não null, não 0)
+            const soilRec = data.find(d => d.solo?.humidade != null && d.solo.humidade !== 0);
+            const humidity = soilRec ? soilRec.solo.humidade : null;
+
+            const si = interpretSoilHumidity(humidity);
+            const health = calcSoilHealthScore(humidity);
+
+            // Humidity card
+            document.getElementById('currentHumidity').textContent = humidity != null ? humidity.toFixed(0) + '%' : '--%';
+            document.getElementById('humidityStatus').textContent = si.label;
+            document.getElementById('humidityStatus').className = `badge ${si.badgeClass} text-xs`;
+            document.getElementById('humidityNote').textContent = humidity != null
+                ? `Última medição: há ${timeAgo(soilRec.timestamp)}`
+                : 'Sem leitura disponível';
+
+            // Health card
+            document.getElementById('soilHealthScore').textContent = health.score != null ? `${health.score}/100` : '--/100';
+            document.getElementById('soilHealthLabel').textContent = health.label;
+            document.getElementById('soilHealthLabel').className = `badge ${health.badgeClass} text-xs`;
+            document.getElementById('soilHealthNote').textContent = health.note;
+
+            // Stress risk card
+            document.getElementById('stressRisk').textContent = si.stressLabel;
+            document.getElementById('stressRiskBadge').textContent = si.stressLabel;
+            document.getElementById('stressRiskBadge').className = `badge ${si.stressBadge} text-xs`;
+            document.getElementById('stressRiskNote').textContent = si.stressNote;
+
+            updateSoloBanner(humidity);
+        }
+
+        function updateChart(data) {
+            if (!data || data.length === 0 || !soloState.charts.humidityEvolution) return;
+
+            const labels = data.map(d => formatTime(d.timestamp));
+            const humidity = data.map(d => d.solo?.humidade || null);
+
+            soloState.charts.humidityEvolution.data.labels = labels;
+            soloState.charts.humidityEvolution.data.datasets[0].data = humidity;
+            soloState.charts.humidityEvolution.update('none');
+        }
+
+        function updateSoilReadings(data) {
+            const tbody = document.getElementById('soilReadingsBody');
+
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-gray-500">Sem dados disponíveis</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.slice(0, 15).map(item => {
+                const humidity = item.solo?.humidade ?? null;
+                const timestamp = formatTimestamp(item.timestamp);
+                const si = interpretSoilHumidity(humidity);
+
+                return `
+                <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <td class="py-3 px-3 font-bold text-gray-900">${humidity != null ? humidity.toFixed(1) + '%' : '--'}</td>
+                    <td class="py-3 px-3"><span class="badge ${si.badgeClass}">${si.label}</span></td>
+                    <td class="py-3 px-3 text-gray-700 text-xs">${si.action}</td>
+                    <td class="py-3 px-3"><span class="badge ${si.pestClass}">${si.pestRisk}</span></td>
+                    <td class="py-3 px-3 text-gray-500 whitespace-nowrap">${timestamp}</td>
+                </tr>
+            `;
+            }).join('');
+        }
+
+        // ── ML: Saúde do solo ──────────────────────────────────────────────────
+        async function carregarMLSolo() {
+            try {
+                const resp = await API.ml.alertas();
+                if (!resp.ok) return;
+                const dados = await resp.json();
+                renderizarMLSolo(dados);
+            } catch (e) { console.warn('[Solo] ML indisponível:', e); }
+        }
+
+        function renderizarMLSolo(dados) {
+            const previsoes = dados.previsoes || {};
+            const recom = dados.recomendacoes || {};
+            const alertas = previsoes.alertas || {};
+            const ss = alertas.saude_solo || {};
+            const eh = alertas.estresse_hidrico || {};
+            const recs = recom.recomendacoes || [];
+
+            if (!ss.nivel && !eh.nivel) return;
+
+            document.getElementById('mlSoloPanel').classList.remove('hidden');
+
+            // Update banner with nivel_geral
+            const nivelGeral = dados.nivel_geral || 'seguro';
+            const resumoSolo = (dados.recomendacoes || {}).resumo || 'Análise do solo concluída.';
+            RecUI.renderBanner(nivelGeral, resumoSolo, 0, 'mlSoloBanner', 'mlSoloBadge');
+
+            // Badge de nível
+            const nivelMap = {
+                normal: { badge: 'badge-success', label: 'Normal' },
+                atencao_estrutural: { badge: 'badge-warning', label: 'Atenção Estrutural' },
+                degradacao_provavel: { badge: 'badge-danger', label: 'Degradação Provável' },
+            };
+            const nivelSS = nivelMap[ss.nivel] || nivelMap.normal;
+            const badge = document.getElementById('mlSoloBadge');
+            const badgeClsMap = { 'badge-success': 'seguro', 'badge-warning': 'atencao', 'badge-danger': 'critico' };
+            badge.className = `rec-nivel-badge ${badgeClsMap[nivelSS.badge] || 'seguro'}`;
+            badge.textContent = nivelSS.label;
+            // Update banner color
+            const banner = document.getElementById('mlSoloBanner');
+            if (banner) {
+                banner.classList.remove('nivel-seguro', 'nivel-atencao', 'nivel-alerta', 'nivel-critico');
+                banner.classList.add(nivelSS.badge === 'badge-danger' ? 'nivel-critico' : nivelSS.badge === 'badge-warning' ? 'nivel-atencao' : 'nivel-seguro');
+            }
+
+            // Conteúdo
+            const conteudo = document.getElementById('mlSoloConteudo');
+            let html = '<div class="grid grid-cols-1 md:grid-cols-2 gap-3">';
+
+            // Card saúde do solo
+            const ssScore = ss.score != null ? Math.round(ss.score * 100) : null;
+            const ehScore = eh.score != null ? Math.round(eh.score * 100) : null;
+            html += `<div class="bg-white rounded-xl p-4 border border-green-100">
+            <p class="text-xs font-600 text-gray-500 uppercase mb-2">Saúde Estrutural</p>
+            <div class="flex items-center gap-3 mb-2">
+                <div class="text-2xl font-bold ${ss.nivel === 'degradacao_provavel' ? 'text-red-700' : ss.nivel === 'atencao_estrutural' ? 'text-amber-600' : 'text-green-700'}">${nivelSS.label}</div>
+            </div>
+            ${ssScore != null ? `<div class="w-full bg-gray-100 rounded-full h-2 mb-1"><div class="h-2 rounded-full ${ssScore >= 70 ? 'bg-red-500' : ssScore >= 40 ? 'bg-amber-400' : 'bg-green-500'}" style="width:${ssScore}%"></div></div><p class="text-xs text-gray-500">Score: ${ssScore}%</p>` : ''}
+        </div>`;
+
+            // Card estresse hídrico
+            html += `<div class="bg-white rounded-xl p-4 border border-green-100">
+            <p class="text-xs font-600 text-gray-500 uppercase mb-2">Estresse Hídrico</p>
+            <div class="text-2xl font-bold ${eh.nivel === 'critico' ? 'text-red-700' : eh.nivel === 'alto' ? 'text-orange-600' : eh.nivel === 'moderado' ? 'text-amber-600' : 'text-green-700'} mb-2">${(eh.nivel || 'seguro').charAt(0).toUpperCase() + (eh.nivel || 'seguro').slice(1)}</div>
+            ${ehScore != null ? `<div class="w-full bg-gray-100 rounded-full h-2 mb-1"><div class="h-2 rounded-full ${ehScore >= 75 ? 'bg-red-500' : ehScore >= 50 ? 'bg-orange-400' : ehScore >= 30 ? 'bg-amber-400' : 'bg-green-500'}" style="width:${ehScore}%"></div></div><p class="text-xs text-gray-500">Score: ${ehScore}%</p>` : ''}
+        </div>`;
+            html += '</div>';
+
+            // Recomendações de solo do ML
+            const recsSolo = recs.filter(r => r.categoria && (r.categoria.includes('Solo') || r.categoria.includes('Água') || r.categoria.includes('Agua')));
+
+            conteudo.innerHTML = html;
+
+            // Render rec cards below the soil diagnostics
+            if (recsSolo.length) {
+                const recContainer = document.createElement('div');
+                recContainer.className = 'rec-lista';
+                recContainer.id = 'mlSoloRecLista';
+                conteudo.appendChild(recContainer);
+                RecUI.renderLista(recsSolo, 'mlSoloRecLista');
+            }
+        }
+        // ─────────────────────────────────────────────────────────────────────────
+
+        // Setup auto-refresh
+        function setupAutoRefresh() {
+            if (soloState.refreshInterval) {
+                clearInterval(soloState.refreshInterval);
+            }
+
+            soloState.refreshInterval = setInterval(() => {
+                if (document.visibilityState === 'visible') {
+                    console.log('[Solo] Auto-refreshing...');
+                    fetchSoilData();
+                }
+            }, 60000); // 60 seconds
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('[Solo] Initializing...');
+            LiveCards.staggerEntrance('.kpi-card');
+            initCharts();
+            fetchSoilData();
+            carregarMLSolo();
+            setupAutoRefresh();
+        });
+
+        window.addEventListener('beforeunload', () => {
+            if (soloState.refreshInterval) {
+                clearInterval(soloState.refreshInterval);
+            }
+            Object.values(soloState.charts).forEach(chart => {
+                if (chart) {
+                    try {
+                        chart.destroy();
+                    } catch (e) {
+                        console.warn('Error destroying chart:', e);
+                    }
+                }
+            });
+        });
+    </script>
+    {% endblock %}

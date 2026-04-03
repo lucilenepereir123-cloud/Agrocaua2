@@ -1,0 +1,104 @@
+<aside 
+    class="sidebar bg-white border-r border-gray-200" 
+    :class="{ 'open': mobileOpen }"
+>
+    <div class="h-screen flex flex-col overflow-hidden">
+
+        <!-- Logo Section -->
+        <div class="p-4 border-b border-gray-200 bg-white flex-shrink-0">
+            <a href="/dashboard" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 bg-gradient-to-br from-green-600 to-green-700 rounded-full flex items-center justify-center text-white font-bold text-lg group-hover:shadow-md transition-all duration-300 flex-shrink-0">
+                    🌾
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h1 class="text-base font-bold text-gray-900 truncate">AgroCaua</h1>
+                    <p class="text-xs text-gray-500">Monitoramento</p>
+                </div>
+            </a>
+        </div>
+        
+        <!-- Navigation - Main -->
+        <nav class="flex-1 overflow-y-auto min-h-0 px-2 py-3">
+            <!-- Primary Section -->
+            <div class="space-y-1">
+                <a href="/dashboard" class="sidebar-link {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
+                    <i class="icon-layout-dashboard flex-shrink-0"></i>
+                    <span>Dashboard</span>
+                </a>
+                
+                <a href="/dashboard/culturas" class="sidebar-link {% if request.endpoint == 'dashboard.culturas' %}active{% endif %}">
+                    <i class="icon-leaf flex-shrink-0"></i>
+                    <span>Culturas</span>
+                </a>
+                
+                <a href="/dashboard/sensores" class="sidebar-link {% if request.endpoint == 'dashboard.sensores' %}active{% endif %}">
+                    <i class="icon-cpu flex-shrink-0"></i>
+                    <span>Sensores</span>
+                </a>
+            </div>
+            
+            <!-- Divider with Label -->
+            <div class="py-2 px-2 mt-3 mb-1">
+                <span class="text-xs font-600 uppercase tracking-wider text-gray-400">Dados</span>
+            </div>
+            
+            <!-- Data Section -->
+            <div class="space-y-1">
+                <a href="/dashboard/gps" class="sidebar-link {% if request.endpoint == 'dashboard.gps' %}active{% endif %}">
+                    <i class="icon-map-pin flex-shrink-0"></i>
+                    <span>GPS</span>
+                </a>
+                
+                <a href="/dashboard/clima" class="sidebar-link {% if request.endpoint == 'dashboard.clima' %}active{% endif %}">
+                    <i class="icon-thermometer-sun flex-shrink-0"></i>
+                    <span>Clima</span>
+                </a>
+                
+                <a href="/dashboard/solo" class="sidebar-link {% if request.endpoint == 'dashboard.solo' %}active{% endif %}">
+                    <i class="icon-droplet flex-shrink-0"></i>
+                    <span>Solo</span>
+                </a>
+                
+                <a href="/dashboard/visao" class="sidebar-link {% if request.endpoint == 'dashboard.visao' %}active{% endif %}">
+                    <i class="icon-camera flex-shrink-0"></i>
+                    <span>Visão</span>
+                </a>
+            </div>
+            
+            <!-- Divider with Label -->
+            <div class="py-2 px-2 mt-3 mb-1">
+                <span class="text-xs font-600 uppercase tracking-wider text-gray-400">Sistema</span>
+            </div>
+            
+            <!-- System Section -->
+            <div class="space-y-1">
+                <a href="/dashboard/alertas" class="sidebar-link group {% if request.endpoint == 'dashboard.alertas' %}active{% endif %}">
+                    <i class="icon-alert-circle flex-shrink-0"></i>
+                    <span>Alertas</span>
+                    <span class="inline-flex items-center justify-center w-5 h-5 text-xs font-bold rounded-full bg-red-500 text-white ml-auto flex-shrink-0 group-hover:scale-110 transition-transform">0</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Bottom Section - Settings & Logout -->
+        <div class="border-t border-gray-200 py-2 px-2 flex-shrink-0">
+            <div class="space-y-1 mb-2">
+                <a href="/dashboard/config" class="sidebar-link {% if request.endpoint == 'dashboard.config' %}active{% endif %}">
+                    <i class="icon-settings flex-shrink-0"></i>
+                    <span>Configurações</span>
+                </a>
+                
+                <button onclick="handleLogout()" class="sidebar-link w-full text-left hover:bg-red-50 hover:text-red-600">
+                    <i class="icon-log-out flex-shrink-0"></i>
+                    <span>Sair</span>
+                </button>
+            </div>
+            
+            <!-- Version Info -->
+            <div class="px-1 py-1 text-center border-t border-gray-100">
+                <p class="text-xs text-gray-400 font-500">AgroCaua v1.0.0</p>
+            </div>
+        </div>
+        
+    </div>
+</aside>

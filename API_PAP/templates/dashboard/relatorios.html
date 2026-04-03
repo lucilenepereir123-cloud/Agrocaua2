@@ -1,0 +1,565 @@
+{% extends "base.html" %}
+
+{% block title %}Relatórios - AgroCaua{% endblock %}
+
+{% block page_title %}Os Meus Relatórios{% endblock %}
+{% block page_icon %}<i class="icon-bar-chart-2 text-green-600"></i>{% endblock %}
+{% block page_subtitle %}Histórico das actividades e dados da sua fazenda{% endblock %}
+
+{% block extra_head %}
+<style>
+    .periodo-btn {
+        padding: .5rem 1.25rem;
+        border: 1.5px solid #e5e7eb;
+        background: white;
+        border-radius: .5rem;
+        font-size: .825rem;
+        font-weight: 600;
+        color: #6b7280;
+        cursor: pointer;
+        transition: all .15s;
+        font-family: inherit;
+    }
+
+    .periodo-btn:hover {
+        border-color: #2E8B57;
+        color: #2E8B57;
+    }
+
+    .periodo-btn.active {
+        background: #ecfdf5;
+        border-color: #2E8B57;
+        color: #2E8B57;
+    }
+
+    .export-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: .375rem;
+        padding: .5rem 1.1rem;
+        border-radius: .5rem;
+        font-size: .8rem;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+        transition: all .15s;
+    }
+
+    .export-btn:disabled {
+        opacity: .5;
+        cursor: not-allowed;
+    }
+
+    .export-btn-xlsx {
+        border: 1.5px solid #22c55e;
+        color: #16a34a;
+        background: #f0fdf4;
+    }
+
+    .export-btn-xlsx:hover:not(:disabled) {
+        background: #dcfce7;
+    }
+
+    .export-btn-pdf {
+        border: 1.5px solid #f87171;
+        color: #dc2626;
+        background: #fff5f5;
+    }
+
+    .export-btn-pdf:hover:not(:disabled) {
+        background: #fee2e2;
+    }
+
+    .section-title {
+        font-size: .9rem;
+        font-weight: 700;
+        color: #111827;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        margin-bottom: 1rem;
+        padding-bottom: .5rem;
+        border-bottom: 1.5px solid #f3f4f6;
+    }
+
+    .op-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: .25rem;
+        font-size: .7rem;
+        font-weight: 600;
+        padding: .15rem .5rem;
+        border-radius: 999px;
+        text-transform: uppercase;
+    }
+
+    .op-irrigacao {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .op-fertilizacao {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+    .op-pulverizacao {
+        background: #f3e8ff;
+        color: #7c3aed;
+    }
+
+    #exportLoading {
+        display: none;
+        align-items: center;
+        gap: .5rem;
+        font-size: .8rem;
+        color: #6b7280;
+    }
+
+    #exportLoading.visible {
+        display: inline-flex;
+    }
+
+    .fazenda-filter-wrap {
+        display: none;
+    }
+
+    .fazenda-filter-wrap.visible {
+        display: flex;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Info do Agricultor + Filtros + Exportar -->
+<div class="card mb-6" style="padding:1.25rem;">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+
+        <!-- Avatar + nome -->
+        <div class="flex items-center gap-3">
+            <div style="width:2.75rem;height:2.75rem;background:linear-gradient(135deg,#2E8B57,#1a6b3c);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:1.1rem;"
+                id="avatarIniciais">?</div>
+            <div>
+                <p class="font-700 text-gray-900 text-sm" id="nomeAgric">Agricultor</p>
+                <p class="text-xs text-gray-500">Gerado em <span id="dataGeracao"></span></p>
+            </div>
+        </div>
+
+        <!-- Filtro de período -->
+        <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-sm font-600 text-gray-600">Período:</span>
+            <button class="periodo-btn active" id="btnSemanal" onclick="setPeriodo('semanal')">Semanal</button>
+            <button class="periodo-btn" id="btnMensal" onclick="setPeriodo('mensal')">Mensal</button>
+            <button class="periodo-btn" id="btnAnual" onclick="setPeriodo('anual')">Anual</button>
+        </div>
+
+        <!-- Filtro por fazenda (admin only) -->
+        <div class="fazenda-filter-wrap items-center gap-2" id="fazendaFilterWrap">
+            <i class="icon-building-2 text-gray-400 text-sm"></i>
+            <span class="text-sm font-600 text-gray-600">Fazenda:</span>
+            <select id="fazendaSelect" class="form-input text-sm" style="min-width:160px;" onchange="carregarDados()">
+                <option value="">Todas as fazendas</option>
+            </select>
+        </div>
+
+        <!-- Exportar -->
+        <div class="flex items-center gap-2 flex-wrap">
+            <span id="exportLoading">
+                <svg class="animate-spin" style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                A gerar ficheiro...
+            </span>
+            <button id="btnExcelExport" class="export-btn export-btn-xlsx" onclick="exportarFicheiro('xlsx')">
+                <i class="icon-file-spreadsheet"></i> Excel (.xlsx)
+            </button>
+            <button id="btnPdfExport" class="export-btn export-btn-pdf" onclick="exportarFicheiro('pdf')">
+                <i class="icon-file-text"></i> PDF
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+    <div class="kpi-card">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-1">Leituras</p>
+            <p class="text-2xl font-bold text-gray-900" id="kpiLeituras">--</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-green-100"><i class="icon-activity text-green-600 text-xl"></i></div>
+    </div>
+    <div class="kpi-card">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-1">Temp. Média</p>
+            <p class="text-2xl font-bold text-gray-900" id="kpiTempMedia">--</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-amber-100"><i class="icon-thermometer text-amber-600 text-xl"></i></div>
+    </div>
+    <div class="kpi-card">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-1">Temp. Máx</p>
+            <p class="text-2xl font-bold text-gray-900" id="kpiTempMax">--</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-red-100"><i class="icon-thermometer text-red-500 text-xl"></i></div>
+    </div>
+    <div class="kpi-card">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-1">Temp. Mín</p>
+            <p class="text-2xl font-bold text-gray-900" id="kpiTempMin">--</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-blue-100"><i class="icon-thermometer text-blue-500 text-xl"></i></div>
+    </div>
+    <div class="kpi-card">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-1">Hum. Solo</p>
+            <p class="text-2xl font-bold text-gray-900" id="kpiHumSolo">--</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-cyan-100"><i class="icon-droplets text-cyan-600 text-xl"></i></div>
+    </div>
+    <div class="kpi-card">
+        <div class="flex-1">
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-1">Pragas</p>
+            <p class="text-2xl font-bold text-gray-900" id="kpiPragas">--</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-red-100"><i class="icon-bug text-red-500 text-xl"></i></div>
+    </div>
+</div>
+
+<!-- Gráficos -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="card">
+        <h3 class="section-title">
+            <i class="icon-line-chart text-green-600"></i> Temperatura e Humidade do Solo
+        </h3>
+        <div style="position:relative;height:240px;">
+            <canvas id="chartTempHum"></canvas>
+        </div>
+    </div>
+    <div class="card">
+        <h3 class="section-title">
+            <i class="icon-bar-chart-2 text-red-500"></i> Detecção de Pragas por Dia
+        </h3>
+        <div style="position:relative;height:240px;">
+            <canvas id="chartPragas"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Atividades Registadas -->
+<div class="card mb-6">
+    <h3 class="section-title">
+        <i class="icon-clipboard-list text-purple-600"></i> Atividades Registadas no Período
+    </h3>
+    <div id="atividadesContainer">
+        <p class="text-sm text-gray-400 text-center py-4">Sem atividades registadas para este período</p>
+    </div>
+</div>
+
+<!-- Tabela de dados diários -->
+<div class="card">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="section-title" style="margin-bottom:0;border-bottom:none;">
+            <i class="icon-table text-green-600"></i> Dados Detalhados por Dia
+        </h3>
+        <span class="text-xs text-gray-400" id="labelPeriodoTabela">Últimos 7 dias</span>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b border-gray-200 bg-gray-50">
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Data</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Temp (°C)</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Hum Solo (%)</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Hum Ar (%)</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Pressão (hPa)</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Pragas</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Estado</th>
+                </tr>
+            </thead>
+            <tbody id="tabelaDados">
+                <tr>
+                    <td colspan="7" class="text-center py-8 text-gray-400">A carregar dados...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.color = '#6B7280';
+
+    let periodoAtual = 'semanal';
+    let dadosAtual = null;
+    let userRole = 'agricultor';
+    let nomeAgric = 'Agricultor';
+    let exportando = false;
+    const rptCharts = {};
+
+    document.getElementById('dataGeracao').textContent = new Date().toLocaleDateString('pt-PT');
+
+    // ── Inicialização: carregar perfil depois filtros ─────────────
+    (async function initPerfil() {
+        try {
+            const token = localStorage.getItem('agrocaua_token') || '';
+            const res = await fetch('/api/profile', { headers: { 'Authorization': 'Bearer ' + token } });
+            if (res.ok) {
+                const u = await res.json();
+                nomeAgric = u.nome || 'Agricultor';
+                userRole = u.role || 'agricultor';
+                document.getElementById('nomeAgric').textContent = nomeAgric;
+                const iniciais = nomeAgric.split(' ').map(p => p[0]).join('').substring(0, 2).toUpperCase();
+                document.getElementById('avatarIniciais').textContent = iniciais;
+
+                if (userRole === 'admin' || userRole === 'superadmin') {
+                    document.getElementById('fazendaFilterWrap').classList.add('visible');
+                    await carregarFazendasSelect();
+                }
+            }
+        } catch (e) { console.warn('[Relatórios] perfil:', e); }
+        carregarDados();
+    })();
+
+    // ── Preencher select de fazendas (admin) ─────────────────────
+    async function carregarFazendasSelect() {
+        try {
+            const token = localStorage.getItem('agrocaua_token') || '';
+            const res = await fetch('/api/admin/fazendas', { headers: { 'Authorization': 'Bearer ' + token } });
+            if (!res.ok) return;
+            const data = await res.json();
+            const fazendas = Array.isArray(data) ? data : (data.fazendas || []);
+            const sel = document.getElementById('fazendaSelect');
+            fazendas.forEach(f => {
+                const opt = document.createElement('option');
+                opt.value = f.id;
+                opt.textContent = f.nome;
+                sel.appendChild(opt);
+            });
+        } catch (e) { console.warn('[Relatórios] fazendas:', e); }
+    }
+
+    // ── Alterar período ──────────────────────────────────────────
+    function setPeriodo(p) {
+        periodoAtual = p;
+        ['Semanal', 'Mensal', 'Anual'].forEach(n => document.getElementById('btn' + n).classList.remove('active'));
+        document.getElementById('btn' + p.charAt(0).toUpperCase() + p.slice(1)).classList.add('active');
+        const labels = { semanal: 'Últimos 7 dias', mensal: 'Últimos 30 dias', anual: 'Últimos 365 dias' };
+        document.getElementById('labelPeriodoTabela').textContent = labels[p] || '';
+        carregarDados();
+    }
+
+    // ── Carregar dados do servidor ───────────────────────────────
+    async function carregarDados() {
+        try {
+            const token = localStorage.getItem('agrocaua_token') || '';
+            let url;
+            if (userRole === 'admin' || userRole === 'superadmin') {
+                const fazendaId = document.getElementById('fazendaSelect')?.value || '';
+                const diasMap = { semanal: 7, mensal: 30, anual: 365 };
+                const dias = diasMap[periodoAtual] || 30;
+                url = `/api/admin/relatorios/dados?periodo=${dias}${fazendaId ? '&fazenda_id=' + fazendaId : ''}`;
+            } else {
+                url = `/api/admin/relatorios/agricultor?periodo=${periodoAtual}`;
+            }
+            const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
+            if (!res.ok) throw new Error(res.status);
+            dadosAtual = await res.json();
+            renderizar();
+            renderAtividades();
+        } catch (e) {
+            console.error('[Relatórios] Erro:', e);
+            document.getElementById('tabelaDados').innerHTML =
+                '<tr><td colspan="7" class="text-center py-8 text-red-400">Erro ao carregar dados. Verifique a ligação.</td></tr>';
+        }
+    }
+
+    // ── Renderizar KPIs + gráficos + tabela ──────────────────────
+    function renderizar() {
+        if (!dadosAtual) return;
+        const r = dadosAtual.resumo || {};
+        const dias = dadosAtual.grafico_diario || [];
+
+        document.getElementById('kpiLeituras').textContent = r.total_leituras ?? '--';
+        document.getElementById('kpiTempMedia').textContent = r.temp_media != null ? r.temp_media + '°C' : '--';
+        document.getElementById('kpiTempMax').textContent = r.temp_max != null ? r.temp_max + '°C' : '--';
+        document.getElementById('kpiTempMin').textContent = r.temp_min != null ? r.temp_min + '°C' : '--';
+        document.getElementById('kpiHumSolo').textContent = r.hum_solo_media != null ? r.hum_solo_media + '%' : '--';
+        document.getElementById('kpiPragas').textContent = r.pragas_detectadas ?? '--';
+
+        const labels = dias.map(d => d.data ? d.data.slice(5) : '');
+        const temps = dias.map(d => d.temp);
+        const humSolo = dias.map(d => d.hum_solo);
+        const pragas = dias.map(d => d.pragas || 0);
+
+        if (rptCharts.tempHum) rptCharts.tempHum.destroy();
+        rptCharts.tempHum = new Chart(document.getElementById('chartTempHum'), {
+            type: 'line',
+            data: {
+                labels, datasets: [
+                    { label: 'Temperatura (°C)', data: temps, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,.12)', tension: 0.35, pointRadius: 3, fill: true, borderWidth: 2 },
+                    { label: 'Hum. Solo (%)', data: humSolo, borderColor: '#0ea5e9', backgroundColor: 'rgba(14,165,233,.08)', tension: 0.35, pointRadius: 3, fill: true, borderWidth: 2 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                scales: { y: { beginAtZero: false, grid: { color: 'rgba(0,0,0,.04)' } }, x: { grid: { display: false } } },
+                plugins: { legend: { position: 'bottom', labels: { padding: 14, font: { size: 11 } } } }
+            }
+        });
+
+        if (rptCharts.pragas) rptCharts.pragas.destroy();
+        rptCharts.pragas = new Chart(document.getElementById('chartPragas'), {
+            type: 'bar',
+            data: { labels, datasets: [{ label: 'Pragas detectadas', data: pragas, backgroundColor: 'rgba(239,68,68,.7)', borderRadius: 5, borderSkipped: false }] },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,.04)' } }, x: { grid: { display: false } } },
+                plugins: { legend: { position: 'bottom', labels: { padding: 14, font: { size: 11 } } } }
+            }
+        });
+
+        const tbody = document.getElementById('tabelaDados');
+        if (!dias.length) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-gray-400">Sem dados para este período</td></tr>';
+            return;
+        }
+        tbody.innerHTML = dias.map(d => {
+            const tempColor = d.temp != null ? (d.temp > 35 ? '#dc2626' : d.temp < 15 ? '#2563eb' : '#111827') : '#9ca3af';
+            const humColor = d.hum_solo != null ? (d.hum_solo < 20 ? '#dc2626' : d.hum_solo > 80 ? '#2563eb' : '#111827') : '#9ca3af';
+            const pragas_n = d.pragas || 0;
+            let estadoHtml;
+            if (pragas_n > 0)
+                estadoHtml = '<span style="font-size:.7rem;font-weight:600;padding:.15rem .5rem;border-radius:999px;background:#fee2e2;color:#dc2626;">⚠ Alerta</span>';
+            else if (d.temp > 35 || d.hum_solo < 20)
+                estadoHtml = '<span style="font-size:.7rem;font-weight:600;padding:.15rem .5rem;border-radius:999px;background:#fef9c3;color:#854d0e;">△ Atenção</span>';
+            else
+                estadoHtml = '<span style="font-size:.7rem;font-weight:600;padding:.15rem .5rem;border-radius:999px;background:#dcfce7;color:#15803d;">✓ Normal</span>';
+            return `
+            <tr class="border-b border-gray-100 hover:bg-gray-50">
+                <td class="py-3 px-4 font-600 text-gray-900">${d.data || '--'}</td>
+                <td class="py-3 px-4" style="color:${tempColor};font-weight:500;">${d.temp ?? '--'}</td>
+                <td class="py-3 px-4" style="color:${humColor};font-weight:500;">${d.hum_solo ?? '--'}</td>
+                <td class="py-3 px-4 text-gray-600">${d.hum_ar ?? '--'}</td>
+                <td class="py-3 px-4 text-gray-600">${d.pressao ?? '--'}</td>
+                <td class="py-3 px-4 text-gray-600">${pragas_n > 0 ? '<span style="font-weight:600;color:#dc2626;">' + pragas_n + '</span>' : '0'}</td>
+                <td class="py-3 px-4">${estadoHtml}</td>
+            </tr>`;
+        }).join('');
+    }
+
+    // ── Atividades locais ────────────────────────────────────────
+    function renderAtividades() {
+        const OPS_KEY = 'agrocaua_operations';
+        let ops = [];
+        try { ops = JSON.parse(localStorage.getItem(OPS_KEY)) || []; } catch { }
+        const agora = new Date();
+        const diasN = { semanal: 7, mensal: 30, anual: 365 }[periodoAtual] || 30;
+        const limite = new Date(agora - diasN * 86400000);
+        const filtradas = ops.filter(op => {
+            try { return new Date(op.timestamp || op.data) >= limite; } catch { return false; }
+        }).sort((a, b) => new Date(b.timestamp || b.data) - new Date(a.timestamp || a.data));
+
+        const cont = document.getElementById('atividadesContainer');
+        if (!filtradas.length) {
+            cont.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">Sem atividades registadas para este período.<br>Registe operações no módulo <a href="/dashboard/culturas" class="text-green-600 underline">Culturas</a>.</p>';
+            return;
+        }
+        const tipoMap = {
+            irrigacao: { icon: 'icon-droplets', color: '#2563eb', cls: 'op-irrigacao', label: 'Irrigação' },
+            fertilizacao: { icon: 'icon-flask-conical', color: '#16a34a', cls: 'op-fertilizacao', label: 'Fertilização' },
+            pulverizacao: { icon: 'icon-spray-can', color: '#7c3aed', cls: 'op-pulverizacao', label: 'Pulverização' }
+        };
+        cont.innerHTML = '<div class="space-y-2">' + filtradas.slice(0, 20).map(op => {
+            const t = tipoMap[op.tipo] || { icon: 'icon-clipboard', color: '#6b7280', cls: 'op-fertilizacao', label: op.tipo || 'Operação' };
+            const dataFmt = op.data ? new Date(op.data).toLocaleDateString('pt-PT') : '--';
+            const detalhes = [op.duracao ? op.duracao + ' min' : '', op.volume ? op.volume + ' L' : '', op.produto || '', op.dose ? op.dose + ' kg/ha' : ''].filter(Boolean).join(' · ');
+            return `<div style="display:flex;align-items:flex-start;gap:.75rem;padding:.75rem;background:#f9fafb;border:1px solid #e5e7eb;border-radius:.5rem;">
+                <div style="width:2rem;height:2rem;border-radius:50%;background:white;border:1.5px solid #e5e7eb;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i class="${t.icon}" style="font-size:.875rem;color:${t.color};"></i>
+                </div>
+                <div style="flex:1;">
+                    <div style="display:flex;align-items:center;gap:.5rem;">
+                        <span class="op-badge ${t.cls}">${t.label}</span>
+                        <span style="font-size:.75rem;color:#9ca3af;">${dataFmt}</span>
+                    </div>
+                    ${detalhes ? '<p style="font-size:.8rem;color:#374151;margin-top:.25rem;">' + detalhes + '</p>' : ''}
+                    ${op.notas ? '<p style="font-size:.75rem;color:#9ca3af;margin-top:.1rem;font-style:italic;">' + op.notas + '</p>' : ''}
+                </div>
+            </div>`;
+        }).join('') + '</div>';
+    }
+
+    // ── EXPORTAR via backend (XLSX real ou PDF) ──────────────────
+    async function exportarFicheiro(formato) {
+        if (exportando) return;
+        if (!dadosAtual) {
+            if (typeof showWarning === 'function') showWarning('Aguarde os dados carregarem antes de exportar.');
+            return;
+        }
+        exportando = true;
+        const loadEl = document.getElementById('exportLoading');
+        const btnXlsx = document.getElementById('btnExcelExport');
+        const btnPdf = document.getElementById('btnPdfExport');
+        loadEl.classList.add('visible');
+        btnXlsx.disabled = true;
+        btnPdf.disabled = true;
+
+        try {
+            const token = localStorage.getItem('agrocaua_token') || '';
+            const fazendaId = document.getElementById('fazendaSelect')?.value || undefined;
+            const payload = { formato, periodo: periodoAtual };
+            if (fazendaId) payload.fazenda_id = fazendaId;
+
+            const res = await fetch('/api/relatorios/exportar', {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.erro || 'Erro HTTP ' + res.status);
+            }
+
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const cd = res.headers.get('Content-Disposition') || '';
+            const match = cd.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+            const now = new Date().toLocaleDateString('pt-PT').replace(/\//g, '-');
+            a.download = match ? match[1].replace(/['"]/g, '') : ('agrocaua_relatorio_' + periodoAtual + '_' + now + '.' + formato);
+            a.href = url;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            if (typeof showSuccess === 'function')
+                showSuccess('Relatório ' + formato.toUpperCase() + ' exportado com sucesso!');
+        } catch (e) {
+            console.error('[Relatórios] Exportar:', e);
+            if (typeof showError === 'function') showError('Erro ao gerar ficheiro: ' + e.message);
+        } finally {
+            exportando = false;
+            loadEl.classList.remove('visible');
+            btnXlsx.disabled = false;
+            btnPdf.disabled = false;
+        }
+    }
+
+    function exportarExcel() { exportarFicheiro('xlsx'); }
+    function exportarPDF() { exportarFicheiro('pdf'); }
+
+    window.addEventListener('beforeunload', () => {
+        Object.values(rptCharts).forEach(c => { try { c.destroy(); } catch { } });
+    });
+</script>
+{% endblock %}

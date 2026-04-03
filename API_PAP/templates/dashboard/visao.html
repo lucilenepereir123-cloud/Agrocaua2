@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+
+{% block title %}Visão - AgroCaua{% endblock %}
+
+{% block page_title %}Visão Computacional{% endblock %}
+{% block page_subtitle %}Detecção de pragas por análise de imagem{% endblock %}
+
+{% block content %}
+<!-- Detection Status Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="kpi-card">
+        <div>
+            <p class="text-sm text-gray-500 mb-1">Status de Detecção</p>
+            <p class="text-2xl font-bold text-gray-900" id="detectionStatus">--</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-purple-100">
+            <i class="icon-eye text-purple-600 text-2xl"></i>
+        </div>
+    </div>
+    
+    <div class="kpi-card">
+        <div>
+            <p class="text-sm text-gray-500 mb-1">Tipo de Praga</p>
+            <p class="text-lg font-bold text-gray-900" id="pestType">--</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-red-100">
+            <i class="icon-bug text-red-600 text-2xl"></i>
+        </div>
+    </div>
+    
+    <div class="kpi-card">
+        <div>
+            <p class="text-sm text-gray-500 mb-1">Confiança</p>
+            <p class="text-3xl font-bold text-gray-900" id="confidence">--</p>
+        </div>
+        <div class="kpi-icon-wrapper bg-green-100">
+            <i class="icon-check-circle text-green-600 text-2xl"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Alert Card -->
+<div id="alertCard" class="hidden mb-8">
+    <!-- Will be populated by JS -->
+</div>
+
+<!-- Recomendações ML de Pragas -->
+<div class="rec-panel mb-6">
+    <div class="rec-banner nivel-seguro" id="mlVisaoBanner">
+        <div class="rec-banner-left">
+            <div class="rec-banner-icon">🐛</div>
+            <div class="rec-banner-text">
+                <div class="rec-banner-eyebrow">ML AgroCaua — Visão por Câmara</div>
+                <div class="rec-banner-title" data-rec-title>Diagnóstico ML — Pragas e Protecção de Culturas</div>
+                <div class="rec-banner-subtitle" data-rec-subtitle>Análise climática e por modelo de machine learning</div>
+            </div>
+        </div>
+        <div class="rec-banner-right">
+            <span id="mlVisaoBadge" class="rec-nivel-badge hidden"></span>
+        </div>
+    </div>
+    <div class="rec-lista" id="mlVisaoRecomPanel">
+        <div class="rec-loading"><div class="rec-spinner"></div><p>A carregar diagnóstico...</p></div>
+    </div>
+</div>
+
+<!-- Detection History Table -->
+<div class="card">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <i class="icon-activity text-green-600"></i>
+            Histórico de Detecções
+        </h3>
+        <span class="text-sm text-gray-500" id="lastUpdate">--</span>
+    </div>
+    
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="border-b border-gray-200">
+                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600">Timestamp</th>
+                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600">Detecção</th>
+                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600">Tipo</th>
+                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600">Confiança</th>
+                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600">Status</th>
+                </tr>
+            </thead>
+            <tbody id="visaoTableBody">
+                <tr>
+                    <td colspan="5" class="text-center py-8 text-gray-500">
+                        <div class="spinner mx-auto"></div>
+                        <p class="mt-2">A carregar dados...</p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    async function fetchVisaoData() {
+        try {
+            const [latestResponse, mlResponse] = await Promise.all([
+                API.getVisao(),
+                API.ml.alertas()
+            ]);
+            if (latestResponse.ok) {
+                const p = await latestResponse.json();
+                document.getElementById('detectionStatus').textContent = p.praga_detectada ? 'Praga Detectada' : 'Nenhuma Praga';
+                document.getElementById('pestType').textContent = p.tipo_praga || 'Nenhuma';
+                document.getElementById('confidence').textContent = formatConfidence(p.confianca);
+                document.getElementById('lastUpdate').textContent = `Última atualização: ${timeAgo(p.timestamp)}`;
+                if (p.praga_detectada) showAlert({ tipo_praga: p.tipo_praga, confianca: p.confianca }); else hideAlert();
+            }
+            // ── Corrigido: extrair alertas e recomendações correctamente ──
+            if (mlResponse.ok) {
+                const mlDados = await mlResponse.json();
+                const alertas = mlDados.alertas || [];
+                const recom   = mlDados.recomendacoes || {};
+                updateTable(alertas);
+                renderizarRecomVisao(mlDados);
+            }
+        } catch (error) {
+            console.error('Error fetching visao data:', error);
+            showError('Erro ao carregar dados de visão');
+        }
+    }
+
+    // ── Painel de recomendações ML de pragas ──
+    function renderizarRecomVisao(mlDados) {
+        const nivel = mlDados.nivel_geral || 'seguro';
+        const recom = mlDados.recomendacoes || {};
+        const resumo = recom.resumo || 'Análise de pragas concluída.';
+        const recs  = (recom.recomendacoes || []).filter(r =>
+            r.categoria && (r.categoria.toLowerCase().includes('praga') || r.categoria.toLowerCase().includes('protec'))
+        );
+        const pragas = mlDados.previsoes && mlDados.previsoes.alertas && mlDados.previsoes.alertas.pragas_locais;
+        const numAlertas = recs.length;
+
+        RecUI.renderBanner(nivel, resumo, numAlertas, 'mlVisaoBanner', 'mlVisaoBadge');
+
+        if (!recs.length && !(pragas && pragas.nivel !== 'baixo')) {
+            const painel = document.getElementById('mlVisaoRecomPanel');
+            if (painel) painel.innerHTML = `<div class="rec-empty">
+                <div class="rec-empty-icon">✅</div>
+                <p class="rec-empty-title">Sem pragas detectadas pelo ML</p>
+                <p class="rec-empty-sub">As condições actuais não indicam risco de infestação.</p>
+            </div>`;
+            return;
+        }
+
+        RecUI.renderLista(recs, 'mlVisaoRecomPanel');
+    }
+    
+    function renderizarRecomVisao(mlDados) {
+        const recom = mlDados.recomendacoes || {};
+        const recs  = (recom.recomendacoes || []).filter(r =>
+            r.categoria && (r.categoria.toLowerCase().includes('praga') || r.categoria.toLowerCase().includes('protec'))
+        );
+        const pragas = mlDados.previsoes && mlDados.previsoes.alertas && mlDados.previsoes.alertas.pragas_locais;
+        const painel = document.getElementById('mlVisaoRecomPanel');
+        if (!painel) return;
+
+        const ugBadge = { URGENTE:'badge-danger', ALTA:'badge-warning', MEDIA:'badge-info', BAIXA:'badge-success' };
+        const ugStyle = { URGENTE:'border-red-400 bg-red-50', ALTA:'border-orange-400 bg-orange-50', MEDIA:'border-amber-300 bg-amber-50', BAIXA:'border-gray-200 bg-gray-50' };
+
+        if (!recs.length && !(pragas && pragas.nivel !== 'baixo')) {
+            painel.innerHTML = `<div class="flex items-center gap-3 p-4 bg-green-50 rounded-xl border border-green-200">
+                <span class="text-2xl">✅</span>
+                <div><p class="font-semibold text-green-800">Sem pragas detectadas pelo ML</p>
+                <p class="text-xs text-green-600 mt-0.5">As condições actuais não indicam risco de infestação.</p></div></div>`;
+            return;
+        }
+
+        painel.innerHTML = recs.map(r =>
+            `<div class="rounded-xl border-l-4 p-4 ${ugStyle[r.urgencia]||ugStyle.BAIXA}">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-lg">🐛</span>
+                    <span class="font-semibold text-gray-800 text-sm">${r.categoria}</span>
+                    <span class="badge ${ugBadge[r.urgencia]||'badge-success'} text-xs ml-auto">${r.urgencia}</span>
+                </div>
+                <p class="text-xs text-gray-700 leading-relaxed">${r.accao}</p>
+            </div>`
+        ).join('') || '<div class="text-xs text-gray-400 py-2 text-center">Sem recomendações de pragas neste momento.</div>';
+    }
+    
+    function showAlert(visao) {
+        const alertCard = document.getElementById('alertCard');
+        alertCard.className = 'card border-2 border-danger bg-red-50';
+        alertCard.innerHTML = `
+            <div class="flex items-start gap-4">
+                <div class="w-12 h-12 bg-danger rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="icon-alert-triangle text-white text-2xl"></i>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-bold text-danger mb-2">Alerta de Praga Detectada!</h3>
+                    <p class="text-sm text-gray-700 mb-3">
+                        Foi detectada uma infestação de <strong>${visao.tipo_praga}</strong> 
+                        com ${formatConfidence(visao.confianca)} de confiança.
+                    </p>
+                    <div class="flex gap-3">
+                        <button class="btn btn-danger btn-sm">
+                            <i class="icon-bell"></i>
+                            Notificar Equipe
+                        </button>
+                        <button class="btn btn-secondary btn-sm">
+                            Ver Recomendações
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        alertCard.classList.remove('hidden');
+    }
+    
+    function hideAlert() {
+        document.getElementById('alertCard').classList.add('hidden');
+    }
+    
+    function updateTable(data) {
+        const tbody = document.getElementById('visaoTableBody');
+
+        // data pode ser array de alertas ML ou array vazio
+        const alertas = Array.isArray(data) ? data : [];
+
+        if (!alertas.length) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-500">Nenhum alerta ML activo de momento</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = alertas.slice(0, 20).map(item => {
+            const ts  = item.timestamp || '';
+            const msg = item.mensagem  || item.message || '';
+            const sev = item.severidade || item.nivel || 'aviso';
+            const tipo = item.tipo || item.categoria || 'Alerta';
+            const score = item.score != null ? `${item.score}%` : '--';
+            return `
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                    <td class="py-3 px-4 text-sm text-gray-900">${formatTimestamp(ts)}</td>
+                    <td class="py-3 px-4 text-sm font-semibold text-gray-900">${tipo}</td>
+                    <td class="py-3 px-4 text-sm text-gray-700">${msg}</td>
+                    <td class="py-3 px-4 text-sm text-gray-700">${score}</td>
+                    <td class="py-3 px-4">
+                        <span class="badge ${sev.toLowerCase().includes('crít') || sev.toLowerCase()==='critico' ? 'badge-danger' : 'badge-warning'}">
+                            ${sev}
+                        </span>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+    
+    let refreshInterval = null;
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchVisaoData();
+        refreshInterval = setInterval(fetchVisaoData, 60000);
+    });
+    
+    // Cleanup and visibility handling
+    window.addEventListener('beforeunload', () => {
+        if (refreshInterval) {
+            clearInterval(refreshInterval);
+            refreshInterval = null;
+        }
+    });
+    
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
+            }
+        } else {
+            if (!refreshInterval) {
+                fetchVisaoData();
+                refreshInterval = setInterval(fetchVisaoData, 60000);
+            }
+        }
+    });
+</script>
+<script>
+    (function visaoSSE() {
+        try {
+            const token = getToken();
+            if (!token) return;
+            const es = new EventSource('/api/alertas/stream');
+            es.onmessage = (e) => {
+                try {
+                    const a = JSON.parse(e.data);
+                    if (a.tipo !== 'Praga') return;
+                    document.getElementById('detectionStatus').textContent = 'Praga Detectada';
+                    document.getElementById('pestType').textContent = (a.mensagem || '').replace(/^Praga detectada \(|\).*$/g,'') || 'Praga';
+                    document.getElementById('confidence').textContent = '';
+                    document.getElementById('lastUpdate').textContent = `Última atualização: ${timeAgo(a.published_at)}`;
+                    showAlert({ tipo_praga: document.getElementById('pestType').textContent, confianca: null });
+                    fetchVisaoData();
+                } catch {}
+            };
+            es.onerror = () => { try { es.close(); } catch {} };
+            window._visao_sse = es;
+        } catch {}
+    })();
+</script>
+{% endblock %}

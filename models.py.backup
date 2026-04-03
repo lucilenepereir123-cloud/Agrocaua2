@@ -1,0 +1,200 @@
+<<<<<<< HEAD
+from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime, timezone
+
+db = SQLAlchemy()
+
+# =====================================================
+# USER (AUTENTICAÇÃO)
+# =====================================================
+class User(db.Model):
+    __tablename__ = "users"
+
+    id = db.Column(db.Integer, primary_key=True)
+    
+    nome = db.Column(db.String(120), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
+
+    password_hash = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    # ---------- PASSWORD ----------
+    def set_password(self, password: str):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password: str) -> bool:
+        return check_password_hash(self.password_hash, password)
+
+    def __repr__(self):
+        return f"<User {self.email}>"
+
+# =====================================================
+# DADOS IOT
+# =====================================================
+class DadosIoT(db.Model):
+    __tablename__ = "dados_iot"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    # Identificação
+    device_id = db.Column(db.String(50), nullable=False, index=True)
+    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+    # GPS
+    latitude = db.Column(db.Float, nullable=False)
+    longitude = db.Column(db.Float, nullable=False)
+    
+    localizacao = db.Column(db.String(100))
+    
+    # BME280
+    temperatura_ar = db.Column(db.Float)
+    humidade_ar = db.Column(db.Float)
+    pressao_ar = db.Column(db.Float)
+
+    # Solo
+    humidade_solo = db.Column(db.Float)
+
+    # Vibração
+    vibracao = db.Column(db.Boolean)
+
+    # Visão computacional
+    detecao_praga = db.Column(db.Boolean)
+    tipo_praga = db.Column(db.String(50))
+    confianca = db.Column(db.Float)
+
+    def __repr__(self):
+        return f"<DadosIoT {self.device_id} {self.timestamp}>"
+
+
+# =====================================================
+# PREVISÕES ML
+# =====================================================
+class Previsao(db.Model):
+    __tablename__ = "previsoes"
+
+    id = db.Column(db.Integer, primary_key=True)
+    
+    # Link ao dado original
+    dados_iot_id = db.Column(db.Integer, db.ForeignKey('dados_iot.id'), nullable=False)
+    
+    # Previsão de Pragas
+    praga_detectada = db.Column(db.Boolean, default=False)
+    tipo_praga = db.Column(db.String(100))
+    confianca_praga = db.Column(db.Float)  # 0 a 1
+    
+    # Previsão de Condições Futuras (24h)
+    temperatura_prevista = db.Column(db.Float)
+    humidade_prevista = db.Column(db.Float)
+    
+    # Metadata
+    data_criacao = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+    def __repr__(self):
+        return f"<Previsao {self.id} - Praga: {self.praga_detectada}>"
+=======
+from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
+
+db = SQLAlchemy()
+
+# =====================================================
+# USER
+# =====================================================
+class User(db.Model):
+    __tablename__ = "users"
+    id            = db.Column(db.Integer, primary_key=True)
+    nome          = db.Column(db.String(120), nullable=False)
+    email         = db.Column(db.String(120), unique=True, nullable=False, index=True)
+    role          = db.Column(db.String(30), default="agricultor")   # superadmin | admin | agricultor
+    password_hash = db.Column(db.String(255), nullable=False)
+    created_at    = db.Column(db.DateTime, default=datetime.utcnow)
+    is_active     = db.Column(db.Boolean, default=True)
+
+    def set_password(self, pw):   self.password_hash = generate_password_hash(pw)
+    def check_password(self, pw): return check_password_hash(self.password_hash, pw)
+    def to_dict(self):
+        return {"id": self.id, "nome": self.nome, "email": self.email,
+                "role": self.role, "is_active": self.is_active,
+                "created_at": self.created_at.isoformat()}
+    def __repr__(self): return f"<User {self.email}>"
+
+# =====================================================
+# FAZENDA
+# =====================================================
+class Fazenda(db.Model):
+    __tablename__ = "fazendas"
+    id          = db.Column(db.Integer, primary_key=True)
+    nome        = db.Column(db.String(120), nullable=False)
+    proprietario= db.Column(db.String(120))
+    localizacao = db.Column(db.String(120))
+    hectares    = db.Column(db.Float)
+    cultura     = db.Column(db.String(80))
+    status      = db.Column(db.String(20), default="active")
+    created_at  = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {"id": self.id, "nome": self.nome, "proprietario": self.proprietario,
+                "localizacao": self.localizacao, "hectares": self.hectares,
+                "cultura": self.cultura, "status": self.status,
+                "created_at": self.created_at.isoformat()}
+
+# =====================================================
+# SENSOR
+# =====================================================
+class Sensor(db.Model):
+    __tablename__ = "sensores"
+    id          = db.Column(db.Integer, primary_key=True)
+    nome        = db.Column(db.String(80), nullable=False)
+    tipo        = db.Column(db.String(50))          # Clima | Solo | GPS | Câmara
+    fazenda_id  = db.Column(db.Integer, db.ForeignKey("fazendas.id"))
+    fazenda     = db.relationship("Fazenda", backref="sensores")
+    status      = db.Column(db.String(20), default="online")  # online | offline | warn
+    bateria     = db.Column(db.Integer, default=100)
+    created_at  = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {"id": self.id, "nome": self.nome, "tipo": self.tipo,
+                "fazenda": self.fazenda.nome if self.fazenda else None,
+                "fazenda_id": self.fazenda_id,
+                "status": self.status, "bateria": self.bateria,
+                "created_at": self.created_at.isoformat()}
+
+# =====================================================
+# LOG DE SISTEMA
+# =====================================================
+class Log(db.Model):
+    __tablename__ = "logs"
+    id         = db.Column(db.Integer, primary_key=True)
+    acao       = db.Column(db.String(120))
+    detalhe    = db.Column(db.String(255))
+    utilizador = db.Column(db.String(120))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {"id": self.id, "acao": self.acao, "detalhe": self.detalhe,
+                "utilizador": self.utilizador, "created_at": self.created_at.isoformat()}
+
+# =====================================================
+# DADOS IOT
+# =====================================================
+class DadosIoT(db.Model):
+    __tablename__ = "dados_iot"
+    id            = db.Column(db.Integer, primary_key=True)
+    device_id     = db.Column(db.String(50), nullable=False, index=True)
+    timestamp     = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    latitude      = db.Column(db.Float, nullable=False)
+    longitude     = db.Column(db.Float, nullable=False)
+    localizacao   = db.Column(db.String(100))
+    temperatura_ar= db.Column(db.Float)
+    humidade_ar   = db.Column(db.Float)
+    pressao_ar    = db.Column(db.Float)
+    humidade_solo = db.Column(db.Float)
+    vibracao      = db.Column(db.Boolean)
+    detecao_praga = db.Column(db.Boolean)
+    tipo_praga    = db.Column(db.String(50))
+    confianca     = db.Column(db.Float)
+
+    def __repr__(self): return f"<DadosIoT {self.device_id} {self.timestamp}>"
+>>>>>>> 955b517415ac3a61e71d7f17f5e1d348940e4c1e

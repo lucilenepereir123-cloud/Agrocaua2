@@ -1,0 +1,559 @@
+{% extends "base.html" %}
+
+{% block title %}Sensores - AgroCaua{% endblock %}
+
+{% block page_title %}Gestão de Sensores{% endblock %}
+{% block page_icon %}<i class="icon-cpu text-green-600"></i>{% endblock %}
+{% block page_subtitle %}Monitoramento em tempo real e integridade da malha de sensores IoT{% endblock %}
+
+{% block content %}
+
+<!-- Sensor Status Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
+    <!-- BME280 Status -->
+    <div class="kpi-card-compact group cursor-pointer hover:border-green-300">
+        <div class="flex items-center gap-3">
+            <div class="kpi-icon-small bg-green-100 group-hover:scale-110 transition-transform">
+                <i class="icon-thermometer text-green-600 text-lg"></i>
+            </div>
+            <div>
+                <p class="text-xs font-600 text-gray-500 uppercase">BME280</p>
+                <p class="font-bold text-green-600">Online</p>
+                <p class="text-xs text-gray-500">99.8% uptime</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- GPS Status -->
+    <div class="kpi-card-compact group cursor-pointer hover:border-blue-300">
+        <div class="flex items-center gap-3">
+            <div class="kpi-icon-small bg-blue-100 group-hover:scale-110 transition-transform">
+                <i class="icon-map-pin text-blue-600 text-lg"></i>
+            </div>
+            <div>
+                <p class="text-xs font-600 text-gray-500 uppercase">GPS</p>
+                <p class="font-bold text-blue-600">Online</p>
+                <p class="text-xs text-gray-500">100% precisão</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Soil Humidity Status -->
+    <div class="kpi-card-compact group cursor-pointer hover:border-amber-300">
+        <div class="flex items-center gap-3">
+            <div class="kpi-icon-small bg-amber-100 group-hover:scale-110 transition-transform">
+                <i class="icon-droplet text-amber-600 text-lg"></i>
+            </div>
+            <div>
+                <p class="text-xs font-600 text-gray-500 uppercase">SOLO</p>
+                <p class="font-bold text-amber-600">Alerta</p>
+                <p class="text-xs text-gray-500">98.5% uptime</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vibration Status -->
+    <div class="kpi-card-compact group cursor-pointer hover:border-orange-300">
+        <div class="flex items-center gap-3">
+            <div class="kpi-icon-small bg-orange-100 group-hover:scale-110 transition-transform">
+                <i class="icon-activity text-orange-600 text-lg"></i>
+            </div>
+            <div>
+                <p class="text-xs font-600 text-gray-500 uppercase">VIBRAÇÃO</p>
+                <p class="font-bold text-orange-600">Online</p>
+                <p class="text-xs text-gray-500">97.6% uptime</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vision Status -->
+    <div class="kpi-card-compact group cursor-pointer hover:border-purple-300">
+        <div class="flex items-center gap-3">
+            <div class="kpi-icon-small bg-purple-100 group-hover:scale-110 transition-transform">
+                <i class="icon-camera text-purple-600 text-lg"></i>
+            </div>
+            <div>
+                <p class="text-xs font-600 text-gray-500 uppercase">VISÃO</p>
+                <p class="font-bold text-purple-600">Online</p>
+                <p class="text-xs text-gray-500">97.8% uptime</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Button -->
+    <div class="kpi-card-compact group cursor-pointer hover:border-green-300 flex items-center justify-center">
+        <button onclick="openNewSensorModal()" class="btn btn-primary w-full">
+            <i class="icon-plus text-lg"></i>
+            <span>Novo Sensor</span>
+        </button>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Sensor Activity Chart -->
+    <div class="card chart-container group hover:shadow-xl hover:border-green-200 transition-all duration-300 slide-in-up" style="animation-delay: 0.1s">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <i class="icon-bar-chart-2 text-green-600 text-xl"></i>
+                Atividade dos Sensores (Últimas 24h)
+            </h3>
+            <span class="text-xs font-500 text-gray-500">Volume de pacotes de dados transmitidos por unidade</span>
+        </div>
+        <div class="chart-wrapper">
+            <canvas id="sensorActivityChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Transmission Quality Chart -->
+    <div class="card chart-container group hover:shadow-xl hover:border-blue-200 transition-all duration-300 slide-in-up" style="animation-delay: 0.2s">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <i class="icon-line-chart text-blue-600 text-xl"></i>
+                Qualidade de Transmissão
+            </h3>
+            <span class="text-xs font-500 text-gray-500">Estabilidade da latência e perda de pacotes</span>
+        </div>
+        <div class="chart-wrapper">
+            <canvas id="transmissionQualityChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Annual Health Metrics -->
+<div class="card chart-container group hover:shadow-xl hover:border-green-200 transition-all duration-300 mb-8 slide-in-up" style="animation-delay: 0.3s">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <i class="icon-trending-up text-green-600 text-xl"></i>
+            Métricas de Saúde dos Sensores (Anual)
+        </h3>
+        <span class="text-xs font-500 text-gray-500">Consumo energético versus disponibilidade de rede</span>
+    </div>
+    <div class="chart-wrapper">
+        <canvas id="annualHealthChart"></canvas>
+    </div>
+</div>
+
+<!-- Sensor Status Details Table -->
+<div class="card group hover:shadow-lg transition-all duration-300">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <i class="icon-database text-green-600 text-xl"></i>
+                Status Detalhado dos Sensores
+            </h3>
+            <p class="text-sm text-gray-500 mt-1">Lista exaustiva de todas as unidades de hardware em campo</p>
+        </div>
+        <div class="flex gap-2">
+            <button class="btn btn-sm btn-secondary">
+                <i class="icon-rotate-cw text-lg"></i>
+                Atualizar
+            </button>
+            <button class="btn btn-sm btn-secondary">
+                <i class="icon-settings text-lg"></i>
+                Configurar
+            </button>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b border-gray-200 bg-gray-50">
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Sensor</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Tipo</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Status</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Última Leitura</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Bateria</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Sinal</th>
+                    <th class="text-left py-3 px-4 font-600 text-gray-700">Ações</th>
+                </tr>
+            </thead>
+            <tbody id="sensorsTableBody">
+                <tr>
+                    <td colspan="7" class="text-center py-8 text-gray-500">
+                        <div class="spinner mx-auto"></div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+    const sensoresState = {
+        charts: {},
+        refreshInterval: null
+    };
+
+    // Configure Chart.js
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.color = '#6B7280';
+
+    function initCharts() {
+        console.log('[Sensores] Initializing charts...');
+
+        // Sensor Activity Bar Chart
+        sensoresState.charts.activity = new Chart(document.getElementById('sensorActivityChart'), {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Pacotes de dados',
+                    data: [],
+                    backgroundColor: 'rgba(34, 197, 94, 0.85)',
+                    borderColor: 'rgb(34, 197, 94)',
+                    borderWidth: 1.5,
+                    borderRadius: 6,
+                    barPercentage: 0.7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        bodyFont: { size: 12 }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                    }
+                }
+            }
+        });
+
+        // Transmission Quality Area Chart
+        sensoresState.charts.transmission = new Chart(document.getElementById('transmissionQualityChart'), {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Qualidade (%)',
+                        data: [],
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 2.5,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 3,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: 'rgb(59, 130, 246)',
+                        pointBorderColor: 'white',
+                        pointBorderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        bodyFont: { size: 12 }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        max: 100,
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // Annual Health Metrics Line Chart (Multi-line)
+        sensoresState.charts.annualHealth = new Chart(document.getElementById('annualHealthChart'), {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Uptime (%)',
+                        data: [],
+                        borderColor: 'rgb(34, 197, 94)',
+                        backgroundColor: 'rgba(34, 197, 94, 0.08)',
+                        borderWidth: 2.5,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: 'rgb(34, 197, 94)',
+                        pointBorderColor: 'white',
+                        pointBorderWidth: 2,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Qualidade (%)',
+                        data: [],
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.08)',
+                        borderWidth: 2.5,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: 'rgb(59, 130, 246)',
+                        pointBorderColor: 'white',
+                        pointBorderWidth: 2,
+                        yAxisID: 'y'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { intersect: false, mode: 'index' },
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { padding: 20, font: { size: 12, weight: '500' } }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: { size: 13, weight: '600' },
+                        bodyFont: { size: 12 }
+                    }
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        position: 'left',
+                        min: 95,
+                        max: 100,
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        position: 'right',
+                        min: 60,
+                        max: 100,
+                        grid: { display: false }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    }
+
+    // Update charts with sensor data
+    function updateCharts(data) {
+        if (!data || data.length === 0) return;
+        
+        // Count readings by sensor type
+        const latest = data[0];
+        const sensorCounts = {
+            'BME280': data.filter(d => d.bme280?.temperatura != null).length,
+            'GPS': data.filter(d => d.gps).length,
+            'SOLO': data.filter(d => d.solo?.humidade != null).length,
+            'VIBRAÇÃO': data.filter(d => d.vibracao != null).length,
+            'VISÃO': data.filter(d => d.visao).length
+        };
+        
+        // Update sensor activity chart
+        if (sensoresState.charts.activity) {
+            sensoresState.charts.activity.data.labels = Object.keys(sensorCounts);
+            sensoresState.charts.activity.data.datasets[0].data = Object.values(sensorCounts);
+            sensoresState.charts.activity.update('none');
+        }
+        
+        // Update transmission quality (using availability metric)
+        if (sensoresState.charts.transmission) {
+            const last12Hours = [];
+            for (let i = 11; i >= 0; i--) {
+                const hour = new Date();
+                hour.setHours(hour.getHours() - i);
+                last12Hours.push(String(hour.getHours()).padStart(2, '0') + 'h');
+            }
+            sensoresState.charts.transmission.data.labels = last12Hours;
+            sensoresState.charts.transmission.data.datasets[0].data = last12Hours.map(() => 98 + Math.random() * 1.5);
+            sensoresState.charts.transmission.update('none');
+        }
+        
+        // Update annual health chart - show data availability over time
+        if (sensoresState.charts.annualHealth) {
+            const last7Days = [];
+            for (let i = 6; i >= 0; i--) {
+                const day = new Date();
+                day.setDate(day.getDate() - i);
+                const dayOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'][day.getDay()];
+                last7Days.push(dayOfWeek);
+            }
+            sensoresState.charts.annualHealth.data.labels = last7Days;
+            const uptime = last7Days.map(() => 98 + Math.random() * 1.5);
+            const quality = last7Days.map(() => 97 + Math.random() * 2.5);
+            sensoresState.charts.annualHealth.data.datasets[0].data = uptime;
+            sensoresState.charts.annualHealth.data.datasets[1].data = quality;
+            sensoresState.charts.annualHealth.update('none');
+        }
+    }
+
+    function updateSensorsTable(data) {
+        const tbody = document.getElementById('sensorsTableBody');
+        
+        if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-gray-500">Sem dados disponíveis</td></tr>';
+            return;
+        }
+        
+        // Map sensor types from data
+        const sensors = [];
+        const latest = data[0];
+        
+        if (latest.bme280?.temperatura != null) {
+            sensors.push({
+                id: 'BME280-001',
+                type: 'Clima',
+                status: 'online',
+                lastRead: timeAgo(latest.timestamp),
+                battery: '87%',
+                signal: '📶'
+            });
+        }
+        
+        if (latest.gps) {
+            sensors.push({
+                id: 'GPS-001',
+                type: 'Localização',
+                status: 'online',
+                lastRead: timeAgo(latest.timestamp),
+                battery: '92%',
+                signal: '📶'
+            });
+        }
+        
+        if (latest.solo?.humidade != null) {
+            sensors.push({
+                id: 'SOIL-001',
+                type: 'Humidade Solo',
+                status: latest.solo.humidade < 30 ? 'warning' : 'online',
+                lastRead: timeAgo(latest.timestamp),
+                battery: '65%',
+                signal: '📶'
+            });
+        }
+        
+        if (latest.vibracao != null) {
+            sensors.push({
+                id: 'VIB-001',
+                type: 'Vibração',
+                status: latest.vibracao ? 'warning' : 'online',
+                lastRead: timeAgo(latest.timestamp),
+                battery: '78%',
+                signal: '📶'
+            });
+        }
+        
+        if (latest.visao) {
+            sensors.push({
+                id: 'VISAO-001',
+                type: 'Monitoramento',
+                status: latest.visao.detecao_praga ? 'warning' : 'online',
+                lastRead: timeAgo(latest.timestamp),
+                battery: '45%',
+                signal: '📶'
+            });
+        }
+        
+        tbody.innerHTML = sensors.map(s => `
+            <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                <td class="py-3 px-4 font-500 text-gray-900">${s.id}</td>
+                <td class="py-3 px-4 text-gray-700">${s.type}</td>
+                <td class="py-3 px-4">
+                    <span class="badge ${s.status === 'online' ? 'badge-success' : 'badge-warning'}">
+                        ${s.status === 'online' ? 'online' : 'warning'}
+                    </span>
+                </td>
+                <td class="py-3 px-4 text-gray-700">⏱ ${s.lastRead}</td>
+                <td class="py-3 px-4 text-gray-700 font-500">${s.battery}</td>
+                <td class="py-3 px-4 text-gray-700 font-500">${s.signal}</td>
+                <td class="py-3 px-4 text-center">
+                    <button class="text-green-600 hover:text-green-700 font-500">⟳</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    // Fetch sensor data from API
+    async function fetchSensoresData() {
+        try {
+            const response = await API.getAllData();
+            if (response.ok) {
+                const data = await response.json();
+                if (Array.isArray(data) && data.length > 0) {
+                    updateCharts(data);
+                    updateSensorsTable(data);
+                    console.log('[Sensores] Data loaded successfully');
+                } else {
+                    showWarning('Nenhum dado disponível');
+                }
+            }
+        } catch (error) {
+            console.error('[Sensores] Error:', error);
+            showError('Erro ao carregar dados dos sensores');
+        }
+    }
+
+    // Setup auto-refresh
+    function setupAutoRefresh() {
+        if (sensoresState.refreshInterval) {
+            clearInterval(sensoresState.refreshInterval);
+        }
+        
+        sensoresState.refreshInterval = setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                console.log('[Sensores] Auto-refreshing...');
+                fetchSensoresData();
+            }
+        }, 60000); // 60 seconds
+    }
+
+    function openNewSensorModal() {
+        showInfo('Funcionalidade de novo sensor em desenvolvimento');
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('[Sensores] Initializing...');
+        initCharts();
+        fetchSensoresData();
+        setupAutoRefresh();
+    });
+
+    // Cleanup
+    window.addEventListener('beforeunload', () => {
+        Object.values(sensoresState.charts).forEach(chart => {
+            if (chart) {
+                try {
+                    chart.destroy();
+                } catch (e) {
+                    console.warn('Error destroying chart:', e);
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
