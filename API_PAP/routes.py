@@ -7,11 +7,10 @@ import os
 from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
 
 # Caminhos para o módulo ML
-# API_PAP/routes.py -> subir um nível -> API_PAP_PROJECTO/ onde está a pasta ML
-_THIS_DIR   = os.path.dirname(os.path.abspath(__file__))   # .../API_PAP
-_PARENT_DIR = os.path.dirname(_THIS_DIR)                   # .../API_PAP_PROJECTO
-sys.path.insert(0, _THIS_DIR)
-sys.path.insert(0, _PARENT_DIR)   # permite "from ML.predictor import ..."
+# Em Railway (e produção), ML/ está na mesma pasta que routes.py
+_THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+if _THIS_DIR not in sys.path:
+    sys.path.insert(0, _THIS_DIR)
 
 # Importar ML
 try:
