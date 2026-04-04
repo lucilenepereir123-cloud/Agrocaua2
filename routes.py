@@ -540,8 +540,10 @@ def ml_alertas():
         }), 200
 
     except Exception as e:
-        print(f"Erro em /api/ml/alertas: {e}")
-        return jsonify({"erro": f"Erro interno: {str(e)}"}), 500
+    import traceback
+    print(f"Erro em /api/ml/alertas: {e}")
+    print(traceback.format_exc())   # ← adiciona esta linha
+    return jsonify({"erro": f"Erro interno: {str(e)}", "detalhe": traceback.format_exc()}), 500
 
 
 # ─────────────────────────────────────────────────────────────
