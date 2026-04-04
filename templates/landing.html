@@ -467,25 +467,59 @@
         </div>
         <div>
             <form id="contactForm">
+                <!-- Linha 1: Nome + Email -->
                 <div class="cf-grid">
                     <div>
-                        <label class="cf-label" for="cfNome">Nome Completo</label>
+                        <label class="cf-label" for="cfNome">Nome Completo <span style="color:#ef4444">*</span></label>
                         <input class="cf-input" id="cfNome" type="text" placeholder="João Silva" required>
                     </div>
                     <div>
-                        <label class="cf-label" for="cfEmail">E-mail Profissional</label>
+                        <label class="cf-label" for="cfEmail">E-mail Profissional <span style="color:#ef4444">*</span></label>
                         <input class="cf-input" id="cfEmail" type="email" placeholder="joao@empresa.pt" required>
                     </div>
                 </div>
-                <div style="margin-bottom:1rem;">
-                    <label class="cf-label" for="cfAssunto">Assunto</label>
-                    <input class="cf-input" id="cfAssunto" type="text" placeholder="Ex: Informações sobre a plataforma, suporte técnico..." required>
+                <!-- Linha 2: Telefone + Assunto (select) -->
+                <div class="cf-grid" style="margin-bottom:1rem;">
+                    <div>
+                        <label class="cf-label" for="cfTelefone">Número de Telefone</label>
+                        <div style="position:relative;">
+                            <i class="icon-phone" style="position:absolute;left:.75rem;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:.875rem;pointer-events:none;"></i>
+                            <input class="cf-input" id="cfTelefone" type="tel" placeholder="+351 910 000 000" style="padding-left:2.25rem;">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="cf-label" for="cfAssunto">Assunto do Contacto <span style="color:#ef4444">*</span></label>
+                        <select class="cf-input" id="cfAssunto" required style="appearance:none;cursor:pointer;">
+                            <option value="" disabled selected>Selecione o assunto...</option>
+                            <optgroup label="Serviços e Adesão">
+                                <option value="Aderir aos Nossos Serviços">🌱 Aderir aos Nossos Serviços</option>
+                                <option value="Pedido de Demonstração">📱 Pedido de Demonstração</option>
+                                <option value="Planos e Preços">💰 Planos e Preços</option>
+                                <option value="Parceria Comercial">🤝 Parceria Comercial</option>
+                            </optgroup>
+                            <optgroup label="Suporte Técnico">
+                                <option value="Suporte Técnico — Sensores">🔧 Suporte Técnico — Sensores</option>
+                                <option value="Suporte Técnico — Plataforma">💻 Suporte Técnico — Plataforma</option>
+                                <option value="Problema com a Conta">🔑 Problema com a Conta</option>
+                                <option value="Reportar Erro / Bug">🐛 Reportar Erro / Bug</option>
+                            </optgroup>
+                            <optgroup label="Informações">
+                                <option value="Informações Gerais">ℹ️ Informações Gerais</option>
+                                <option value="Formação e Workshops">🎓 Formação e Workshops</option>
+                                <option value="Consultoria Agrícola">🌾 Consultoria Agrícola</option>
+                                <option value="Imprensa e Media">📰 Imprensa e Media</option>
+                            </optgroup>
+                            <option value="Outro Assunto">📩 Outro Assunto</option>
+                        </select>
+                    </div>
                 </div>
+                <!-- Mensagem -->
                 <div style="margin-bottom:1rem;">
-                    <label class="cf-label" for="cfMensagem">Mensagem</label>
-                    <textarea class="cf-input cf-textarea" id="cfMensagem" placeholder="Descreva brevemente a sua exploração agrícola e as suas necessidades..." required></textarea>
+                    <label class="cf-label" for="cfMensagem">Mensagem <span style="color:#ef4444">*</span></label>
+                    <textarea class="cf-input cf-textarea" id="cfMensagem" placeholder="Descreva brevemente a sua exploração agrícola, as suas necessidades ou dúvidas. Respondemos em até 24 horas." required></textarea>
                 </div>
                 <p class="cf-note">
+                    <i class="icon-shield-check" style="font-size:.8rem;color:#2E8B57;margin-right:.3rem;"></i>
                     A sua informação é segura e não será partilhada com terceiros.
                 </p>
                 <div style="display:flex;justify-content:flex-end;">
@@ -552,40 +586,54 @@
 </footer>
 
 <script>
-    // ── Contact form: save messages to localStorage ──
+    // ── Contact form: send to API ──
     const contactForm = document.getElementById('contactForm');
     if (contactForm) {
-        contactForm.addEventListener('submit', (e) => {
+        contactForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const msg = {
-                id: Date.now(),
-                nome: document.getElementById('cfNome').value.trim(),
-                email: document.getElementById('cfEmail').value.trim(),
-                assunto: document.getElementById('cfAssunto').value,
-                mensagem: document.getElementById('cfMensagem').value.trim(),
-                data: new Date().toLocaleString('pt-PT', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }),
-                lida: false
-            };
-            const stored = JSON.parse(localStorage.getItem('agrocaua_mensagens') || '[]');
-            stored.unshift(msg);
-            localStorage.setItem('agrocaua_mensagens', JSON.stringify(stored));
-
-            // Reset form and show success
-            contactForm.reset();
             const btn = document.getElementById('btnSend');
             const txt = document.getElementById('btnSendText');
             const ico = document.getElementById('btnSendIcon');
-            btn.style.background = 'linear-gradient(135deg,#10b981,#059669)';
-            txt.textContent = 'Mensagem Enviada!';
-            ico.className = 'icon-check';
             btn.disabled = true;
-            setTimeout(() => {
-                btn.style.background = '';
-                txt.textContent = 'Enviar Mensagem';
-                ico.className = 'icon-send';
-                ico.style.fontSize = '0.9rem';
+            txt.textContent = 'A enviar...';
+
+            const payload = {
+                nome:     document.getElementById('cfNome').value.trim(),
+                email:    document.getElementById('cfEmail').value.trim(),
+                telefone: (document.getElementById('cfTelefone') || {}).value || '',
+                assunto:  document.getElementById('cfAssunto').value,
+                mensagem: document.getElementById('cfMensagem').value.trim()
+            };
+
+            try {
+                const res = await fetch('/api/contacto', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    contactForm.reset();
+                    btn.style.background = 'linear-gradient(135deg,#10b981,#059669)';
+                    txt.textContent = 'Mensagem Enviada!';
+                    ico.className = 'icon-check';
+                    setTimeout(() => {
+                        btn.style.background = '';
+                        txt.textContent = 'Enviar Mensagem';
+                        ico.className = 'icon-send';
+                        ico.style.fontSize = '0.9rem';
+                        btn.disabled = false;
+                    }, 3500);
+                } else {
+                    txt.textContent = data.erro || 'Erro ao enviar';
+                    btn.disabled = false;
+                    setTimeout(() => { txt.textContent = 'Enviar Mensagem'; }, 3000);
+                }
+            } catch {
+                txt.textContent = 'Erro de ligação';
                 btn.disabled = false;
-            }, 3500);
+                setTimeout(() => { txt.textContent = 'Enviar Mensagem'; }, 3000);
+            }
         });
     }
 
@@ -609,4 +657,3 @@
     });
 </script>
 </body>
-</html>

@@ -2312,12 +2312,21 @@
                     </div>
                 </div>
                 <label class="fl">Fazenda associada</label>
-                <select class="fi fi-sel" x-model="userForm.farm">
+                <select class="fi fi-sel" x-model="userForm.fazenda_id">
                     <option value="">Selecionar fazenda</option>
                     <template x-for="f in farms" :key="f.id">
-                        <option :value="f.nome" x-text="f.nome"></option>
+                        <option :value="f.id" x-text="f.nome + ' (' + (f.localizacao || '—') + ')'"></option>
                     </template>
                 </select>
+                <div class="fi-grid" style="margin-top:.5rem">
+                    <div>
+                        <label class="fl">Palavra-passe <span x-show="!editingUser" style="color:#ef4444">*</span></label>
+                        <input class="fi" type="password" placeholder="Mínimo 6 caracteres" x-model="userForm.password">
+                    </div>
+                    <div x-show="editingUser" style="display:flex;align-items:flex-end">
+                        <span style="font-size:.75rem;color:#9ca3af;padding-bottom:.75rem">Deixe vazio para não alterar a senha</span>
+                    </div>
+                </div>
             </div>
             <div class="mo-foot">
                 <button class="btn-cancel" @click="showUserModal=false">Cancelar</button>
@@ -2351,23 +2360,32 @@
                 </div>
                 <div class="fi-grid">
                     <div>
-                        <label class="fl">Tamanho da área</label>
-                        <input class="fi" type="text" placeholder="Ex: 45" type="number" min="0" step="0.1"
+                        <label class="fl">Tamanho da área (ha)</label>
+                        <input class="fi" type="number" placeholder="Ex: 45" min="0" step="0.1"
                             x-model="farmForm.hectares">
                     </div>
                     <div>
-                        <label class="fl">Tipo de cultura</label>
-                        <select class="fi fi-sel" x-model="farmForm.cultura">
-                            <option value="">Selecionar</option>
-                            <option>Milho</option>
-                            <option>Soja</option>
-                            <option>Feijão</option>
-                            <option>Arroz</option>
-                            <option>Mandioca</option>
-                            <option>Hortícolas</option>
-                            <option>Outro</option>
+                        <label class="fl">Estado</label>
+                        <select class="fi fi-sel" x-model="farmForm.status">
+                            <option value="active">Activa</option>
+                            <option value="inactive">Inactiva</option>
                         </select>
                     </div>
+                </div>
+                <label class="fl">Culturas (seleccione uma ou mais)</label>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem .75rem;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:.75rem;margin-bottom:.75rem">
+                    <template x-for="c in culturasDisponiveis" :key="c.id">
+                        <label style="display:flex;align-items:center;gap:.4rem;font-size:.8rem;cursor:pointer;color:#374151">
+                            <input type="checkbox" :value="c.id"
+                                :checked="farmForm.culturas.includes(c.id)"
+                                @change="toggleCultura(c.id)"
+                                style="accent-color:#2E8B57">
+                            <span x-text="c.nome_display"></span>
+                        </label>
+                    </template>
+                </div>
+                <div x-show="farmForm.culturas.length > 0" style="font-size:.75rem;color:#6b7280;margin-top:-.5rem;margin-bottom:.5rem">
+                    Seleccionadas: <span style="color:#2E8B57;font-weight:600" x-text="farmForm.culturas.join(', ')"></span>
                 </div>
 
             </div>
@@ -2554,8 +2572,9 @@
                 showUserModal: false, showFarmModal: false, showSensorModal: false, showRecommModal: false,
                 editingUser: null, editingFarm: null, editingSensor: null, editingRecomm: null,
 
-                userForm: { nome: '', email: '', password: '', role: 'agricultor' },
-                farmForm: { nome: '', proprietario: '', localizacao: '', hectares: '', cultura: '', status: 'active' },
+                userForm: { nome: '', email: '', password: '', role: 'agricultor', fazenda_id: '' },
+                farmForm: { nome: '', proprietario: '', localizacao: '', hectares: '', culturas: [], status: 'active' },
+                culturasDisponiveis: [],
                 sensorForm: { nome: '', tipo: 'Solo', fazenda_id: '', status: 'online', bateria: 100 },
                 recommForm: { title: '', problem: '', suggestion: '', area: '', priority: 'Média' },
                 reportForm: { farm: '', period: '30d', type: 'solo' },
@@ -2642,6 +2661,7 @@
                         this.loadSensors(),
                         this.loadAlerts(),
                         this.loadSoilData(),
+                        this.loadCulturas(),
                     ]);
 
                     // Recomendações geradas automaticamente a partir dos dados do solo
@@ -2727,7 +2747,7 @@
                 // ── UTILIZADORES ──
                 openUserModal(u) {
                     this.editingUser = u;
-                    this.userForm = u ? { nome: u.nome, email: u.email, password: '', role: u.role } : { nome: '', email: '', password: '', role: 'agricultor' };
+                    this.userForm = u ? { nome: u.nome, email: u.email, password: '', role: u.role, fazenda_id: u.fazenda_id || '' } : { nome: '', email: '', password: '', role: 'agricultor', fazenda_id: '' };
                     this.showUserModal = true;
                 },
                 async saveUser() {
@@ -2735,12 +2755,13 @@
                     try {
                         let r;
                         if (this.editingUser) {
-                            const payload = { nome: this.userForm.nome, role: this.userForm.role };
+                            const payload = { nome: this.userForm.nome, role: this.userForm.role, fazenda_id: this.userForm.fazenda_id || null };
                             if (this.userForm.password) payload.password = this.userForm.password;
                             r = await API.admin.updateUser(this.editingUser.id, payload);
                         } else {
                             if (!this.userForm.password) { this.notify('Palavra-passe obrigatória para novo utilizador.', 'error'); return; }
-                            r = await API.admin.createUser(this.userForm);
+                            const payload = { nome: this.userForm.nome, email: this.userForm.email, password: this.userForm.password, role: this.userForm.role, fazenda_id: this.userForm.fazenda_id || null };
+                            r = await API.admin.createUser(payload);
                         }
                         if (r.ok) {
                             await this.loadUsers();
@@ -2767,16 +2788,17 @@
                 // ── FAZENDAS ──
                 openFarmModal(f) {
                     this.editingFarm = f;
-                    this.farmForm = f ? { nome: f.nome, proprietario: f.proprietario, localizacao: f.localizacao, hectares: f.hectares, cultura: f.cultura, status: f.status }
-                        : { nome: '', proprietario: '', localizacao: '', hectares: '', cultura: '', status: 'active' };
+                    this.farmForm = f ? { nome: f.nome, proprietario: f.proprietario, localizacao: f.localizacao, hectares: f.hectares, culturas: Array.isArray(f.culturas) ? [...f.culturas] : (f.cultura ? [f.cultura.toLowerCase()] : []), status: f.status || 'active' }
+                        : { nome: '', proprietario: '', localizacao: '', hectares: '', culturas: [], status: 'active' };
                     this.showFarmModal = true;
                 },
                 async saveFarm() {
                     if (!this.farmForm.nome) { this.notify('Digite o nome da fazenda.', 'error'); return; }
                     try {
+                        const payload = { nome: this.farmForm.nome, proprietario: this.farmForm.proprietario, localizacao: this.farmForm.localizacao, hectares: this.farmForm.hectares ? parseFloat(this.farmForm.hectares) : null, culturas: this.farmForm.culturas, status: this.farmForm.status };
                         const r = this.editingFarm
-                            ? await API.admin.updateFazenda(this.editingFarm.id, this.farmForm)
-                            : await API.admin.createFazenda(this.farmForm);
+                            ? await API.admin.updateFazenda(this.editingFarm.id, payload)
+                            : await API.admin.createFazenda(payload);
                         if (r.ok) {
                             await this.loadFarms();
                             this.notify(this.editingFarm ? 'Fazenda actualizada!' : 'Fazenda criada!');
@@ -2792,6 +2814,17 @@
                     const r = await API.admin.deleteFazenda(id);
                     if (r.ok) { await this.loadFarms(); this.notify('Fazenda removida.'); }
                     else this.notify('Erro ao remover fazenda.', 'error');
+                },
+                toggleCultura(id) {
+                    const i = this.farmForm.culturas.indexOf(id);
+                    if (i === -1) this.farmForm.culturas.push(id);
+                    else this.farmForm.culturas.splice(i, 1);
+                },
+                async loadCulturas() {
+                    try {
+                        const r = await fetch('/api/culturas');
+                        if (r.ok) { const d = await r.json(); this.culturasDisponiveis = d.culturas || []; }
+                    } catch(e) { console.warn('loadCulturas', e); }
                 },
 
                 // ── SENSORES ──

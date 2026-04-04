@@ -1,896 +1,583 @@
-
 {% extends "base.html" %}
 
-{% block title %}Configurações - AgroCaua{% endblock %}
-
-{% block page_title %}Configurações{% endblock %}
+{% block title %}Perfil & Configurações — AgroCaua{% endblock %}
+{% block page_title %}Perfil & Configurações{% endblock %}
 {% block page_icon %}<i class="icon-settings text-gray-600"></i>{% endblock %}
-{% block page_subtitle %}Gerir preferências e configurações do sistema{% endblock %}
+{% block page_subtitle %}Gerir o seu perfil, fazenda e preferências{% endblock %}
 
 {% block content %}
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- Settings Navigation -->
-    <div class="lg:col-span-1">
-        <div class="card">
-            <nav class="space-y-2">
-                <button onclick="showSection('profile')" class="settings-nav-item active" data-section="profile">
-                    <i class="icon-user"></i>
-                    <span>Perfil</span>
-                </button>
-                <button onclick="showSection('notifications')" class="settings-nav-item" data-section="notifications">
-                    <i class="icon-bell"></i>
-                    <span>Notificações</span>
-                </button>
-                <button onclick="showSection('sensors')" class="settings-nav-item" data-section="sensors">
-                    <i class="icon-circuit-board"></i>
-                    <span>Sensores</span>
-                </button>
-                <button onclick="showSection('thresholds')" class="settings-nav-item" data-section="thresholds">
-                    <i class="icon-sliders"></i>
-                    <span>Limites de Alerta</span>
-                </button>
-                <button onclick="showSection('system')" class="settings-nav-item" data-section="system">
-                    <i class="icon-settings"></i>
-                    <span>Sistema</span>
-                </button>
-                <div class="border-t border-gray-200 dark:border-gray-700 my-2"></div>
-                <button onclick="showSection('security')" class="settings-nav-item" data-section="security">
-                    <i class="icon-shield"></i>
-                    <span>Segurança</span>
-                </button>
-            </nav>
-        </div>
-    </div>
-    
-    <!-- Settings Content -->
-    <div class="lg:col-span-2 space-y-6">
-        <!-- Profile Section -->
-        <div id="section-profile" class="settings-section">
-            <div class="card">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Informações do Perfil</h3>
-                
-                <form class="space-y-4">
-                    <div>
-                        <label class="form-label">Nome Completo</label>
-                        <input type="text" class="form-input" id="profileNome" placeholder="João Silva" readonly>
-                    </div>
-                    
-                    <div>
-                        <label class="form-label">Email</label>
-                        <input type="email" class="form-input" id="profileEmail" placeholder="email@exemplo.com" readonly>
-                    </div>
-                    
-                    <div>
-                        <label class="form-label">Telefone</label>
-                        <input type="tel" class="form-input" placeholder="+351 912 345 678">
-                    </div>
-                    
-                    <div>
-                        <label class="form-label">Localização da Fazenda</label>
-                        <input type="text" class="form-input" placeholder="Localização">
-                    </div>
-                    
-                    <div class="flex gap-3 pt-4">
-                        <button type="submit" class="btn-primary">
-                            <i class="icon-save"></i>
-                            Guardar Alterações
-                        </button>
-                        <button type="button" class="btn-secondary">Cancelar</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-        
-        <!-- Notifications Section -->
-        <div id="section-notifications" class="settings-section hidden">
-            <div class="card">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Preferências de Notificações</h3>
-                
-                <div class="space-y-4">
-                    <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
-                        <div>
-                            <p class="font-semibold text-gray-900 dark:text-white">Alertas de Pragas</p>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Notificar quando uma praga for detectada</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    
-                    <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
-                        <div>
-                            <p class="font-semibold text-gray-900 dark:text-white">Limites de Temperatura</p>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Avisar quando ultrapassar os limites configurados</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    
-                    <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
-                        <div>
-                            <p class="font-semibold text-gray-900 dark:text-white">Humidade do Solo</p>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Alertar sobre níveis críticos de humidade</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    
-                    <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
-                        <div>
-                            <p class="font-semibold text-gray-900 dark:text-white">Vibrações</p>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Notificar detecções de vibração</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox">
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    
-                    <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
-                        <div>
-                            <p class="font-semibold text-gray-900 dark:text-white">Resumo Diário</p>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Receber relatório diário por email</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    
-                    <div class="flex items-center justify-between py-3">
-                        <div>
-                            <p class="font-semibold text-gray-900 dark:text-white">Sensores Offline</p>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Avisar quando um sensor ficar offline</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                </div>
-                
-                <div class="flex gap-3 pt-6">
-                    <button class="btn-primary">
-                        <i class="icon-save"></i>
-                        Guardar Preferências
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Sensors Section -->
-        <div id="section-sensors" class="settings-section hidden">
-            <div class="card">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Configuração dos Sensores</h3>
-                
-                <div class="space-y-4">
-                    <div>
-                        <label class="form-label">Intervalo de Leitura (segundos)</label>
-                        <input type="number" class="form-input" value="30" min="10" max="300">
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Tempo entre leituras dos sensores (10-300s)</p>
-                    </div>
-                    
-                    <div>
-                        <label class="form-label">Device ID</label>
-                        <input type="text" class="form-input" value="AGRO-IOT-001" readonly>
-                    </div>
-                    
-                    <div class="pt-4">
-                        <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Calibração dos Sensores</h4>
-                        
-                        <div class="space-y-3">
-                            <button class="w-full btn-secondary text-left">
-                                <i class="icon-thermometer"></i>
-                                <span>Calibrar BME280</span>
-                            </button>
-                            <button class="w-full btn-secondary text-left">
-                                <i class="icon-droplet"></i>
-                                <span>Calibrar Sensor de Solo</span>
-                            </button>
-                            <button class="w-full btn-secondary text-left">
-                                <i class="icon-map-pin"></i>
-                                <span>Calibrar GPS</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="flex gap-3 pt-6">
-                    <button class="btn-primary">
-                        <i class="icon-save"></i>
-                        Guardar Configurações
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Thresholds Section -->
-        <div id="section-thresholds" class="settings-section hidden">
-            <div class="card">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Limites de Alerta</h3>
-                
-                <div class="space-y-6">
-                    <div>
-                        <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Temperatura</h4>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="form-label">Mínimo (°C)</label>
-                                <input type="number" class="form-input" value="15" step="0.1">
-                            </div>
-                            <div>
-                                <label class="form-label">Máximo (°C)</label>
-                                <input type="number" class="form-input" value="35" step="0.1">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Humidade do Ar</h4>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="form-label">Mínimo (%)</label>
-                                <input type="number" class="form-input" value="30" step="1">
-                            </div>
-                            <div>
-                                <label class="form-label">Máximo (%)</label>
-                                <input type="number" class="form-input" value="80" step="1">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Humidade do Solo</h4>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="form-label">Mínimo (%)</label>
-                                <input type="number" class="form-input" value="20" step="1">
-                            </div>
-                            <div>
-                                <label class="form-label">Máximo (%)</label>
-                                <input type="number" class="form-input" value="70" step="1">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="flex gap-3 pt-6">
-                    <button class="btn-primary">
-                        <i class="icon-save"></i>
-                        Guardar Limites
-                    </button>
-                    <button class="btn-secondary">Restaurar Padrões</button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- System Section -->
-        <div id="section-system" class="settings-section hidden">
-            <div class="card">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Configurações do Sistema</h3>
-                
-                <div class="space-y-4">
-                    <div>
-                        <label class="form-label">Idioma</label>
-                        <select class="form-input">
-                            <option value="pt" selected>Português</option>
-                            <option value="en">English</option>
-                            <option value="es">Español</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="form-label">Fuso Horário</label>
-                        <select class="form-input">
-                            <option value="Europe/Lisbon" selected>Europa/Lisboa (WET)</option>
-                            <option value="Europe/Madrid">Europa/Madrid (CET)</option>
-                            <option value="America/Sao_Paulo">América/São Paulo (BRT)</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="form-label">Formato de Data</label>
-                        <select class="form-input">
-                            <option value="dd/mm/yyyy" selected>DD/MM/AAAA</option>
-                            <option value="mm/dd/yyyy">MM/DD/YYYY</option>
-                            <option value="yyyy-mm-dd">AAAA-MM-DD</option>
-                        </select>
-                    </div>
-                    
-                    <div class="pt-4">
-                        <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Armazenamento de Dados</h4>
-                        <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                            <div class="flex justify-between mb-2">
-                                <span class="text-sm text-gray-600 dark:text-gray-400">Utilização</span>
-                                <span class="text-sm font-semibold text-gray-900 dark:text-white">2.4 GB / 10 GB</span>
-                            </div>
-                            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                <div class="bg-green-600 h-2 rounded-full" style="width: 24%"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="flex gap-3 pt-6">
-                    <button class="btn-primary">
-                        <i class="icon-save"></i>
-                        Guardar Configurações
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Security Section -->
-        <div id="section-security" class="settings-section hidden">
-            <div class="card">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Segurança</h3>
-                
-                <div class="space-y-6">
-                    <div>
-                        <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Alterar Palavra-passe</h4>
-                        <form class="space-y-4">
-                            <div>
-                                <label class="form-label">Palavra-passe Atual</label>
-                                <input type="password" class="form-input" placeholder="••••••••">
-                            </div>
-                            <div>
-                                <label class="form-label">Nova Palavra-passe</label>
-                                <input type="password" class="form-input" placeholder="••••••••">
-                            </div>
-                            <div>
-                                <label class="form-label">Confirmar Nova Palavra-passe</label>
-                                <input type="password" class="form-input" placeholder="••••••••">
-                            </div>
-                            <button type="submit" class="btn-primary">
-                                <i class="icon-key"></i>
-                                Alterar Palavra-passe
-                            </button>
-                        </form>
-                    </div>
-                    
-                    <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
-                        <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Sessões Ativas</h4>
-                        <div class="space-y-3">
-                            <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                                <div class="flex items-center gap-3">
-                                    <i class="icon-monitor text-green-600 dark:text-green-400"></i>
-                                    <div>
-                                        <p class="text-sm font-semibold text-gray-900 dark:text-white">Windows - Chrome</p>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400">Lisboa, Portugal • Agora</p>
-                                    </div>
-                                </div>
-                                <span class="badge badge-success">Atual</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
-                        <h4 class="font-semibold text-danger mb-3">Zona de Perigo</h4>
-                        <button onclick="handleAccountDelete()" class="btn-danger">
-                            <i class="icon-trash-2"></i>
-                            Eliminar Conta
-                        </button>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Esta ação é irreversível e todos os dados serão permanentemente removidos.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+<style>
+  .cfg-tabs{display:flex;gap:.375rem;margin-bottom:1.5rem;border-bottom:2px solid #e5e7eb;padding-bottom:0}
+  .cfg-tab{padding:.625rem 1.125rem;font-size:.85rem;font-weight:600;color:#6b7280;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;border-radius:6px 6px 0 0}
+  .cfg-tab:hover{color:#374151;background:#f9fafb}
+  .cfg-tab.active{color:#2E8B57;border-bottom-color:#2E8B57}
+  .cfg-section{display:none}
+  .cfg-section.active{display:block}
+  .faz-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:1.25rem}
+  @media(max-width:700px){.faz-grid{grid-template-columns:1fr 1fr}}
+  .faz-kpi{background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:.9rem}
+  .faz-kpi-label{font-size:.68rem;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.3rem}
+  .faz-kpi-val{font-size:1.05rem;font-weight:800;color:#111827}
+  .faz-kpi-sub{font-size:.72rem;color:#6b7280;margin-top:.15rem}
+  .iot-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.625rem}
+  @media(max-width:600px){.iot-grid{grid-template-columns:repeat(2,1fr)}}
+  .iot-card{border-radius:10px;padding:.875rem;text-align:center;border:1px solid transparent}
+  .iot-val{font-size:1.35rem;font-weight:800;line-height:1}
+  .iot-lbl{font-size:.7rem;color:#6b7280;margin-top:.3rem;font-weight:500}
+  .cult-badge{display:inline-flex;align-items:center;gap:.3rem;background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;border-radius:999px;font-size:.78rem;font-weight:600;padding:.275rem .75rem}
+  .cult-selectable{cursor:pointer;transition:all .15s;background:#f9fafb;color:#374151;border:1px solid #e5e7eb;border-radius:8px;padding:.45rem .75rem;font-size:.8rem;font-weight:500;display:inline-flex;align-items:center;gap:.35rem}
+  .cult-selectable:hover{border-color:#a7f3d0;background:#f0fdf4;color:#065f46}
+  .cult-selectable.on{background:#065f46;color:#fff;border-color:#065f46}
+  .sensor-item{display:flex;align-items:center;gap:.75rem;padding:.625rem .875rem;background:#f9fafb;border:1px solid #e5e7eb;border-radius:9px;margin-bottom:.4rem}
+  .sensor-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+  @media(max-width:600px){.field-row{grid-template-columns:1fr}}
+  .field-single{margin-bottom:1rem}
+  .edit-btn{display:inline-flex;align-items:center;gap:.375rem;font-size:.8rem;font-weight:600;color:#2E8B57;border:1px solid #a7f3d0;background:#ecfdf5;border-radius:7px;padding:.35rem .8rem;cursor:pointer;transition:all .15s}
+  .edit-btn:hover{background:#d1fae5}
+  .save-btn{display:inline-flex;align-items:center;gap:.375rem;font-size:.82rem;font-weight:600;color:#fff;background:#2E8B57;border:none;border-radius:7px;padding:.45rem 1rem;cursor:pointer;transition:background .15s}
+  .save-btn:hover{background:#247a48}
+  .cancel-btn{display:inline-flex;align-items:center;gap:.375rem;font-size:.82rem;font-weight:600;color:#6b7280;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:7px;padding:.45rem .875rem;cursor:pointer}
+  .cancel-btn:hover{background:#e5e7eb}
+  .ml-badge{display:inline-block;font-size:.72rem;font-weight:700;padding:.2rem .65rem;border-radius:999px}
+  .sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+  .sec-title{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6b7280}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .spinner{width:22px;height:22px;border:3px solid #e5e7eb;border-top-color:#2E8B57;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto}
+  .toggle-switch{position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0}
+  .toggle-switch input{opacity:0;width:0;height:0}
+  .toggle-slider{position:absolute;cursor:pointer;inset:0;background:#d1d5db;border-radius:999px;transition:.3s}
+  .toggle-slider:before{content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s}
+  input:checked + .toggle-slider{background:#2E8B57}
+  input:checked + .toggle-slider:before{transform:translateX(20px)}
+  #cfg-toast{position:fixed;bottom:1.5rem;right:1.5rem;padding:.75rem 1.25rem;border-radius:10px;font-size:.875rem;font-weight:600;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.15);transition:opacity .3s;display:none}
+</style>
+
+<div id="cfg-toast"></div>
+
+<div class="cfg-tabs">
+  <button class="cfg-tab active" onclick="cfgTab('perfil')"    data-tab="perfil">👤 Perfil</button>
+  <button class="cfg-tab"        onclick="cfgTab('fazenda')"   data-tab="fazenda">🌾 Fazenda</button>
+  <button class="cfg-tab"        onclick="cfgTab('notif')"     data-tab="notif">🔔 Notificações</button>
+  <button class="cfg-tab"        onclick="cfgTab('seguranca')" data-tab="seguranca">🔒 Segurança</button>
 </div>
+
+<!-- ══ PERFIL ══ -->
+<div id="tab-perfil" class="cfg-section active">
+  <div class="card">
+    <div class="sec-head">
+      <div>
+        <div style="font-size:1.05rem;font-weight:700;color:#111827;margin-bottom:.15rem">Informações da Conta</div>
+        <div style="font-size:.8rem;color:#9ca3af">Dados do seu utilizador na plataforma</div>
+      </div>
+      <button class="edit-btn" id="btnEditPerfil" onclick="toggleEditPerfil()">✏️ Editar</button>
+    </div>
+    <!-- view -->
+    <div id="perfilView">
+      <div class="field-row">
+        <div><div class="form-label">Nome completo</div><div id="viewNome" style="font-size:.95rem;font-weight:600;color:#111827;padding:.55rem 0">—</div></div>
+        <div><div class="form-label">Email</div><div id="viewEmail" style="font-size:.95rem;font-weight:600;color:#111827;padding:.55rem 0">—</div></div>
+      </div>
+      <div class="field-row">
+        <div><div class="form-label">Perfil</div><div id="viewRole" style="font-size:.95rem;font-weight:600;color:#111827;padding:.55rem 0">—</div></div>
+        <div><div class="form-label">Estado</div><div id="viewStatus" style="padding:.55rem 0">—</div></div>
+      </div>
+    </div>
+    <!-- edit -->
+    <div id="perfilEdit" style="display:none">
+      <div class="field-row">
+        <div>
+          <label class="form-label">Nome completo <span style="color:#ef4444">*</span></label>
+          <input class="form-input" id="editNome" type="text" placeholder="O seu nome" minlength="2">
+          <p style="font-size:.75rem;color:#ef4444;margin-top:.2rem;display:none" id="errEditNome">Nome deve ter pelo menos 2 caracteres</p>
+        </div>
+        <div>
+          <label class="form-label">Email</label>
+          <input class="form-input" id="editEmail" type="email" readonly style="background:#f9fafb;color:#9ca3af;cursor:not-allowed">
+        </div>
+      </div>
+      <div style="display:flex;gap:.625rem">
+        <button class="save-btn" onclick="savePerfil()">💾 Guardar</button>
+        <button class="cancel-btn" onclick="toggleEditPerfil()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ FAZENDA ══ -->
+<div id="tab-fazenda" class="cfg-section">
+  <div id="fazLoading" class="card" style="text-align:center;padding:3rem">
+    <div class="spinner"></div>
+    <div style="font-size:.85rem;color:#9ca3af;margin-top:.875rem">A carregar dados da fazenda…</div>
+  </div>
+  <div id="fazSemDados" class="card" style="display:none;text-align:center;padding:3rem">
+    <div style="font-size:3rem;margin-bottom:.75rem">🏚️</div>
+    <div style="font-size:1rem;font-weight:700;color:#374151;margin-bottom:.4rem">Sem fazenda associada</div>
+    <div style="font-size:.85rem;color:#9ca3af">Contacte o administrador para associar a sua conta a uma fazenda.</div>
+  </div>
+  <div id="fazContent" style="display:none">
+
+    <!-- Info geral -->
+    <div class="card" style="margin-bottom:1rem">
+      <div class="sec-head">
+        <div>
+          <div style="font-size:1.1rem;font-weight:700;color:#111827" id="fazNomeTitle">—</div>
+          <div style="font-size:.8rem;color:#9ca3af;margin-top:.15rem" id="fazSubtitle">—</div>
+        </div>
+        <span id="fazStatusBadge" style="font-size:.72rem;font-weight:700;padding:.25rem .75rem;border-radius:999px">—</span>
+      </div>
+      <div class="faz-grid">
+        <div class="faz-kpi">
+          <div class="faz-kpi-label">📍 Localização</div>
+          <div class="faz-kpi-val" id="fazLoc">—</div>
+        </div>
+        <div class="faz-kpi">
+          <div class="faz-kpi-label">📐 Área</div>
+          <div class="faz-kpi-val" id="fazHa">—</div>
+          <div class="faz-kpi-sub">hectares</div>
+        </div>
+        <div class="faz-kpi">
+          <div class="faz-kpi-label">🌱 Culturas</div>
+          <div class="faz-kpi-val" id="fazNumCulturas">—</div>
+          <div class="faz-kpi-sub">registadas</div>
+        </div>
+      </div>
+
+      <!-- Culturas -->
+      <div id="fazCulturasView">
+        <div class="sec-title" style="margin-bottom:.5rem">Culturas desta fazenda</div>
+        <div id="fazCulturasBadges" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.875rem">
+          <span style="color:#9ca3af;font-size:.85rem">—</span>
+        </div>
+        <button class="edit-btn" id="btnEditCulturas" onclick="abrirCulturas()">✏️ Editar culturas</button>
+      </div>
+
+      <div id="fazCulturasEdit" style="display:none">
+        <div class="sec-head" style="margin-bottom:.625rem">
+          <div class="sec-title">Seleccione as culturas desta fazenda</div>
+          <span id="cultSelCount" style="font-size:.75rem;color:#6b7280;font-weight:600">0 seleccionadas</span>
+        </div>
+        <div id="cultGrid" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.875rem">
+          <span style="color:#9ca3af;font-size:.85rem">A carregar culturas…</span>
+        </div>
+        <div style="display:flex;gap:.625rem">
+          <button class="save-btn" onclick="saveCulturas()">💾 Guardar culturas</button>
+          <button class="cancel-btn" onclick="fecharCulturas()">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- IoT -->
+    <div class="card" style="margin-bottom:1rem">
+      <div class="sec-head">
+        <div class="sec-title">📡 Última leitura dos sensores</div>
+        <span id="iotTimestamp" style="font-size:.72rem;color:#9ca3af">—</span>
+      </div>
+      <div id="iotNoData" style="display:none;font-size:.85rem;color:#9ca3af;padding:.25rem 0 .75rem">Sem leituras registadas para esta fazenda.</div>
+      <div class="iot-grid" id="iotGrid">
+        <div class="iot-card" style="background:#eff6ff;border-color:#bfdbfe">
+          <div class="iot-val" style="color:#1d4ed8" id="iotTemp">—</div>
+          <div class="iot-lbl">🌡️ Temperatura ar</div>
+        </div>
+        <div class="iot-card" style="background:#f0fdf4;border-color:#bbf7d0">
+          <div class="iot-val" style="color:#15803d" id="iotHumSolo">—</div>
+          <div class="iot-lbl">💧 Humidade solo</div>
+        </div>
+        <div class="iot-card" style="background:#faf5ff;border-color:#e9d5ff">
+          <div class="iot-val" style="color:#7e22ce" id="iotHumAr">—</div>
+          <div class="iot-lbl">🌫️ Humidade ar</div>
+        </div>
+        <div class="iot-card" style="background:#fff7ed;border-color:#fed7aa">
+          <div class="iot-val" style="color:#c2410c" id="iotPressao">—</div>
+          <div class="iot-lbl">🔵 Pressão</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ML -->
+    <div class="card" id="mlCard" style="display:none;margin-bottom:1rem">
+      <div class="sec-head" style="margin-bottom:.625rem">
+        <div class="sec-title">🤖 Análise ML</div>
+        <span class="ml-badge" id="mlNivel">—</span>
+      </div>
+      <div id="mlResumo" style="font-size:.855rem;color:#4b5563;line-height:1.55"></div>
+      <div id="mlAlertasNum" style="font-size:.78rem;color:#6b7280;margin-top:.35rem"></div>
+    </div>
+
+    <!-- Sensores -->
+    <div class="card">
+      <div class="sec-title" style="margin-bottom:.75rem">🔌 Sensores registados</div>
+      <div id="fazSensores"><div style="font-size:.85rem;color:#9ca3af">Sem sensores registados nesta fazenda.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ NOTIFICAÇÕES ══ -->
+<div id="tab-notif" class="cfg-section">
+  <div class="card">
+    <div style="font-size:1.05rem;font-weight:700;color:#111827;margin-bottom:1.25rem">Preferências de Notificações</div>
+    <div id="notifList"></div>
+    <div style="margin-top:1.25rem">
+      <button class="save-btn" onclick="cfgToast('Preferências guardadas!')">💾 Guardar preferências</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SEGURANÇA ══ -->
+<div id="tab-seguranca" class="cfg-section">
+  <div class="card" style="margin-bottom:1rem">
+    <div style="font-size:1.05rem;font-weight:700;color:#111827;margin-bottom:1.25rem">🔑 Alterar palavra-passe</div>
+    <div class="field-single">
+      <label class="form-label">Nova palavra-passe <span style="color:#ef4444">*</span></label>
+      <input class="form-input" type="password" id="newPw" placeholder="Mínimo 6 caracteres">
+      <p style="font-size:.75rem;color:#ef4444;margin-top:.2rem;display:none" id="errNewPw">Mínimo 6 caracteres</p>
+    </div>
+    <div class="field-single">
+      <label class="form-label">Confirmar nova palavra-passe <span style="color:#ef4444">*</span></label>
+      <input class="form-input" type="password" id="confirmPw" placeholder="Repetir palavra-passe">
+      <p style="font-size:.75rem;color:#ef4444;margin-top:.2rem;display:none" id="errConfirmPw">As palavras-passe não coincidem</p>
+    </div>
+    <button class="save-btn" onclick="changePw()">🔑 Alterar palavra-passe</button>
+  </div>
+  <div class="card">
+    <div style="font-size:1.05rem;font-weight:700;color:#dc2626;margin-bottom:.5rem">⚠️ Zona de perigo</div>
+    <div style="font-size:.85rem;color:#9ca3af;margin-bottom:1rem">A eliminação da conta é irreversível. Todos os dados serão removidos permanentemente.</div>
+    <button onclick="deleteAccount()" style="display:inline-flex;align-items:center;gap:.375rem;font-size:.82rem;font-weight:600;color:#fff;background:#dc2626;border:none;border-radius:7px;padding:.45rem 1rem;cursor:pointer">
+      🗑️ Eliminar conta
+    </button>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-    function showSection(sectionName) {
-        // Hide all sections
-        document.querySelectorAll('.settings-section').forEach(section => {
-            section.classList.add('hidden');
-        });
-        
-        // Remove active class from all nav items
-        document.querySelectorAll('.settings-nav-item').forEach(item => {
-            item.classList.remove('active');
-        });
-        
-        // Show selected section
-        document.getElementById('section-' + sectionName).classList.remove('hidden');
-        
-        // Add active class to clicked nav item
-        document.querySelector(`[data-section="${sectionName}"]`).classList.add('active');
-    }
+/* ── state ── */
+let _culturasAll = [];
+let _cultSel     = [];
+let _cultOrig    = [];
 
-    // Load user profile on page load
-    async function loadUserProfile() {
-        try {
-            const response = await API.getProfile();
-            if (response.ok) {
-                const userData = await response.json();
-                document.getElementById('profileNome').value = userData.nome || 'Utilizador';
-                document.getElementById('profileEmail').value = userData.email || 'user@example.com';
-                console.log('[Config] User profile loaded');
-            }
-        } catch (error) {
-            console.error('[Config] Error loading user profile:', error);
-        }
-    }
+/* ── tabs ── */
+function cfgTab(name){
+  document.querySelectorAll('.cfg-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.cfg-section').forEach(s=>s.classList.remove('active'));
+  document.querySelector('[data-tab="'+name+'"]').classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+}
 
-    // Initialize
-    document.addEventListener('DOMContentLoaded', () => {
-        loadUserProfile();
-    });
+/* ── toast ── */
+function cfgToast(msg,type='success'){
+  const el=document.getElementById('cfg-toast');
+  el.textContent=(type==='success'?'✓ ':'✕ ')+msg;
+  el.style.background=type==='success'?'#22c55e':'#ef4444';
+  el.style.color='white'; el.style.display='block'; el.style.opacity='1';
+  clearTimeout(el._t);
+  el._t=setTimeout(()=>{el.style.opacity='0';setTimeout(()=>el.style.display='none',300);},3500);
+}
+
+/* ── utils ── */
+function setText(id,val){const e=document.getElementById(id);if(e)e.textContent=val;}
+function show(id){const e=document.getElementById(id);if(e)e.style.display='';}
+function hide(id){const e=document.getElementById(id);if(e)e.style.display='none';}
+
+/* ── init ── */
+document.addEventListener('DOMContentLoaded',async()=>{
+  buildNotifList();
+  await Promise.all([loadPerfil(), loadCulturasAll(), loadFazendaPerfil()]);
+});
+
+/* ═══ PERFIL ═══════════════════════════════ */
+async function loadPerfil(){
+  const stored=localStorage.getItem('agrocaua_user');
+  if(stored) renderPerfilView(JSON.parse(stored));
+  try{
+    const r=await API.getProfile();
+    if(!r.ok) return;
+    const u=await r.json();
+    localStorage.setItem('agrocaua_user',JSON.stringify(u));
+    renderPerfilView(u);
+  }catch(e){console.warn('loadPerfil',e);}
+}
+
+function renderPerfilView(u){
+  const roles={superadmin:'Super Admin',admin:'Administrador',agricultor:'Agricultor'};
+  setText('viewNome', u.nome||'—');
+  setText('viewEmail',u.email||'—');
+  setText('viewRole', roles[u.role]||u.role||'—');
+  const s=document.getElementById('viewStatus');
+  if(s) s.innerHTML=u.is_active
+    ?'<span style="background:#dcfce7;color:#166534;font-size:.78rem;font-weight:700;padding:.2rem .65rem;border-radius:999px">✓ Activa</span>'
+    :'<span style="background:#fef9c3;color:#854d0e;font-size:.78rem;font-weight:700;padding:.2rem .65rem;border-radius:999px">⚠ Inactiva</span>';
+  const en=document.getElementById('editNome');
+  const ee=document.getElementById('editEmail');
+  if(en) en.value=u.nome||'';
+  if(ee) ee.value=u.email||'';
+}
+
+function toggleEditPerfil(){
+  const view=document.getElementById('perfilView');
+  const edit=document.getElementById('perfilEdit');
+  const btn=document.getElementById('btnEditPerfil');
+  const editing=edit.style.display!=='none';
+  view.style.display=editing?'':'none';
+  edit.style.display=editing?'none':'';
+  btn.textContent=editing?'✏️ Editar':'✕ Cancelar';
+}
+
+async function savePerfil(){
+  const nome=(document.getElementById('editNome')?.value||'').trim();
+  const errEl=document.getElementById('errEditNome');
+  const inpEl=document.getElementById('editNome');
+  if(!nome || nome.length < 2){
+    if(errEl) errEl.style.display='block';
+    if(inpEl) inpEl.style.borderColor='#f87171';
+    return;
+  }
+  if(errEl) errEl.style.display='none';
+  if(inpEl) inpEl.style.borderColor='';
+  try{
+    const r=await API.updateProfile({nome});
+    if(r.ok){
+      const u=await r.json();
+      localStorage.setItem('agrocaua_user',JSON.stringify(u));
+      renderPerfilView(u);
+      toggleEditPerfil();
+      cfgToast('Perfil actualizado!');
+    }else{const d=await r.json();cfgToast(d.erro||'Erro','error');}
+  }catch{cfgToast('Erro de ligação','error');}
+}
+
+/* ═══ FAZENDA ══════════════════════════════ */
+async function loadFazendaPerfil(){
+  show('fazLoading'); hide('fazSemDados'); hide('fazContent');
+  try{
+    const token=localStorage.getItem('agrocaua_token');
+    if(!token){showSemFazenda();return;}
+    const r=await fetch('/api/fazenda/perfil',{headers:{'Authorization':'Bearer '+token}});
+    hide('fazLoading');
+    if(!r.ok){showSemFazenda();return;}
+    const d=await r.json();
+    if(!d.fazenda){showSemFazenda();return;}
+    renderFazenda(d);
+    show('fazContent');
+  }catch(e){console.warn('loadFazendaPerfil',e);hide('fazLoading');showSemFazenda();}
+}
+
+function showSemFazenda(){hide('fazLoading');hide('fazContent');show('fazSemDados');}
+
+function renderFazenda(d){
+  const faz=d.fazenda;
+  setText('fazNomeTitle',faz.nome||'—');
+  setText('fazSubtitle', faz.proprietario?'Prop.: '+faz.proprietario:(faz.localizacao||''));
+  const badge=document.getElementById('fazStatusBadge');
+  if(badge){
+    const act=faz.status==='active';
+    badge.textContent=act?'✓ Activa':'⚠ Inactiva';
+    badge.style.background=act?'#dcfce7':'#fef9c3';
+    badge.style.color=act?'#166534':'#854d0e';
+  }
+  setText('fazLoc', faz.localizacao||'—');
+  setText('fazHa',  faz.hectares!=null?faz.hectares.toLocaleString('pt-PT'):'—');
+  const culturas=faz.culturas||(faz.cultura?[faz.cultura]:[]);
+  _cultOrig=[...culturas];
+  setText('fazNumCulturas',culturas.length.toString());
+  renderCultBadges(culturas);
+
+  // IoT
+  const iot=d.ultimo_dado;
+  if(iot){
+    setText('iotTemp',    iot.temperatura_ar!=null?iot.temperatura_ar.toFixed(1)+'°C':'—');
+    setText('iotHumSolo', iot.humidade_solo !=null?iot.humidade_solo.toFixed(1) +'%' :'—');
+    setText('iotHumAr',   iot.humidade_ar   !=null?iot.humidade_ar.toFixed(1)  +'%' :'—');
+    setText('iotPressao', iot.pressao_ar    !=null?iot.pressao_ar.toFixed(0)   +' hPa':'—');
+    if(iot.timestamp) setText('iotTimestamp',new Date(iot.timestamp).toLocaleString('pt-PT'));
+    hide('iotNoData');
+  }else{
+    show('iotNoData');
+    const g=document.getElementById('iotGrid');
+    if(g) g.style.opacity='.3';
+  }
+
+  // ML
+  const ml=d.resumo_ml;
+  if(ml&&!ml.erro){
+    show('mlCard');
+    const nivel=ml.nivel_geral||'seguro';
+    const cfg={seguro:['#dcfce7','#166534'],baixo:['#dcfce7','#166534'],moderado:['#fef9c3','#854d0e'],aviso:['#fef9c3','#854d0e'],alto:['#fee2e2','#991b1b'],'crítico':['#fee2e2','#991b1b']};
+    const [bg,fg]=cfg[nivel]||['#f3f4f6','#374151'];
+    const nb=document.getElementById('mlNivel');
+    nb.textContent=nivel.charAt(0).toUpperCase()+nivel.slice(1);
+    nb.style.background=bg; nb.style.color=fg;
+    const mlCard=document.getElementById('mlCard');
+    if(mlCard){mlCard.style.borderColor=bg;mlCard.style.background=bg+'40';}
+    setText('mlResumo', ml.resumo||'');
+    if(ml.num_alertas>0) setText('mlAlertasNum',ml.num_alertas+' alerta(s) activo(s)');
+  }
+
+  // Sensores
+  const sensores=d.sensores||[];
+  const sEl=document.getElementById('fazSensores');
+  const sIco={Solo:'💧',Clima:'🌡️',GPS:'📍','Câmara':'📷'};
+  const sCor={online:'#16a34a',offline:'#dc2626',warn:'#d97706'};
+  if(sensores.length>0&&sEl){
+    sEl.innerHTML=sensores.map(s=>`
+      <div class="sensor-item">
+        <span style="font-size:1.1rem">${sIco[s.tipo]||'🔧'}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.85rem;font-weight:700;color:#111827">${s.nome}</div>
+          <div style="font-size:.72rem;color:#9ca3af">${s.tipo||''}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="display:flex;align-items:center;gap:.35rem">
+            <span class="sensor-dot" style="background:${sCor[s.status]||'#9ca3af'}"></span>
+            <span style="font-size:.75rem;font-weight:600;color:${sCor[s.status]||'#9ca3af'}">${s.status||'—'}</span>
+          </div>
+          ${s.bateria!=null?`<div style="font-size:.7rem;color:#9ca3af;margin-top:.1rem">🔋 ${s.bateria}%</div>`:''}
+        </div>
+      </div>`).join('');
+  }
+}
+
+function renderCultBadges(culturas){
+  const el=document.getElementById('fazCulturasBadges');
+  if(!el) return;
+  if(culturas.length===0){el.innerHTML='<span style="color:#9ca3af;font-size:.85rem">Nenhuma cultura registada</span>';return;}
+  el.innerHTML=culturas.map(c=>`<span class="cult-badge">${c.charAt(0).toUpperCase()+c.slice(1)}</span>`).join('');
+}
+
+/* ═══ CULTURAS ═════════════════════════════ */
+async function loadCulturasAll(){
+  try{
+    const r=await fetch('/api/culturas');
+    if(r.ok){const d=await r.json();_culturasAll=d.culturas||[];}
+  }catch(e){console.warn('loadCulturas',e);}
+}
+
+function abrirCulturas(){
+  _cultSel=[..._cultOrig];
+  renderCultGrid();
+  hide('fazCulturasView');
+  show('fazCulturasEdit');
+}
+
+function fecharCulturas(){
+  hide('fazCulturasEdit');
+  show('fazCulturasView');
+}
+
+function renderCultGrid(){
+  const grid=document.getElementById('cultGrid');
+  if(!grid) return;
+  if(_culturasAll.length===0){
+    grid.innerHTML='<span style="color:#9ca3af;font-size:.85rem">A carregar…</span>';
+    // retry
+    setTimeout(async()=>{await loadCulturasAll();renderCultGrid();},800);
+    return;
+  }
+  grid.innerHTML=_culturasAll.map(c=>{
+    const on=_cultSel.includes(c.id);
+    return `<span class="cult-selectable${on?' on':''}" onclick="toggleCult('${c.id}',this)">${on?'✓ ':''}<span class="nome">${c.nome_display||c.id}</span></span>`;
+  }).join('');
+  updateCultCount();
+}
+
+function toggleCult(id,el){
+  const i=_cultSel.indexOf(id);
+  if(i===-1){
+    _cultSel.push(id);
+    el.classList.add('on');
+    el.innerHTML='✓ <span class="nome">'+el.querySelector('.nome').textContent+'</span>';
+  }else{
+    _cultSel.splice(i,1);
+    el.classList.remove('on');
+    el.innerHTML='<span class="nome">'+el.querySelector('.nome').textContent+'</span>';
+  }
+  updateCultCount();
+}
+
+function updateCultCount(){
+  const el=document.getElementById('cultSelCount');
+  if(el) el.textContent=_cultSel.length+' seleccionada'+(_cultSel.length!==1?'s':'');
+}
+
+async function saveCulturas(){
+  try{
+    const r=await API.updateProfile({culturas:_cultSel});
+    if(r.ok){
+      _cultOrig=[..._cultSel];
+      renderCultBadges(_cultSel);
+      setText('fazNumCulturas',_cultSel.length.toString());
+      fecharCulturas();
+      cfgToast('Culturas actualizadas!');
+    }else{const d=await r.json();cfgToast(d.erro||'Erro ao guardar','error');}
+  }catch{cfgToast('Erro de ligação','error');}
+}
+
+/* ═══ NOTIFICAÇÕES ═════════════════════════ */
+function buildNotifList(){
+  const items=[
+    ['Alertas de pragas','Notificar quando uma praga for detectada',true],
+    ['Limites de temperatura','Avisar quando ultrapassar os limites configurados',true],
+    ['Humidade do solo crítica','Alertar sobre níveis críticos de humidade',true],
+    ['Vibrações detectadas','Notificar detecções de vibração nos sensores',false],
+    ['Resumo diário por email','Receber relatório diário no seu email',true],
+    ['Sensores offline','Avisar quando um sensor ficar sem comunicação',true],
+  ];
+  const el=document.getElementById('notifList');
+  if(!el) return;
+  el.innerHTML=items.map(([label,desc,chk],i)=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:.875rem 0;${i<items.length-1?'border-bottom:1px solid #f3f4f6':''}">
+      <div>
+        <div style="font-size:.875rem;font-weight:600;color:#111827">${label}</div>
+        <div style="font-size:.78rem;color:#9ca3af;margin-top:.15rem">${desc}</div>
+      </div>
+      <label class="toggle-switch"><input type="checkbox"${chk?' checked':''}><span class="toggle-slider"></span></label>
+    </div>`).join('');
+}
+
+/* ═══ SEGURANÇA ════════════════════════════ */
+async function changePw(){
+  const pw=document.getElementById('newPw')?.value||'';
+  const pw2=document.getElementById('confirmPw')?.value||'';
+  const errPw=document.getElementById('errNewPw');
+  const errPw2=document.getElementById('errConfirmPw');
+  const inpPw=document.getElementById('newPw');
+  const inpPw2=document.getElementById('confirmPw');
+  let valid=true;
+  if(!pw || pw.length<6){
+    if(errPw){errPw.textContent='Mínimo 6 caracteres';errPw.style.display='block';}
+    if(inpPw) inpPw.style.borderColor='#f87171';
+    valid=false;
+  } else {
+    if(errPw) errPw.style.display='none';
+    if(inpPw) inpPw.style.borderColor='';
+  }
+  if(pw!==pw2){
+    if(errPw2){errPw2.textContent='As palavras-passe não coincidem';errPw2.style.display='block';}
+    if(inpPw2) inpPw2.style.borderColor='#f87171';
+    valid=false;
+  } else {
+    if(errPw2) errPw2.style.display='none';
+    if(inpPw2) inpPw2.style.borderColor='';
+  }
+  if(!valid) return;
+  try{
+    const r=await API.updateProfile({password:pw});
+    if(r.ok){
+      document.getElementById('newPw').value='';
+      document.getElementById('confirmPw').value='';
+      cfgToast('Palavra-passe alterada!');
+    }else{const d=await r.json();cfgToast(d.erro||'Erro','error');}
+  }catch{cfgToast('Erro de ligação','error');}
+}
+
+async function deleteAccount(){
+  if(!confirm('Tem a certeza? Esta acção é irreversível e todos os dados serão eliminados.')) return;
+  try{
+    const r=await API.deleteAccount();
+    if(r.ok){localStorage.clear();window.location.href='/';}
+    else{const d=await r.json();cfgToast(d.erro||'Erro','error');}
+  }catch{cfgToast('Erro de ligação','error');}
+}
 </script>
 {% endblock %}
-=======
-{% extends "base.html" %}
-
-{% block title %}Configurações - AgroCaua{% endblock %}
-
-{% block page_title %}Configurações{% endblock %}
-{% block page_icon %}<i class="icon-settings text-gray-600"></i>{% endblock %}
-{% block page_subtitle %}Gerir preferências e configurações do sistema{% endblock %}
-
-{% block content %}
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- Settings Navigation -->
-    <div class="lg:col-span-1">
-        <div class="card">
-            <nav class="space-y-2">
-                <button onclick="showSection('profile')" class="settings-nav-item active" data-section="profile">
-                    <i class="icon-user"></i>
-                    <span>Perfil</span>
-                </button>
-                <button onclick="showSection('notifications')" class="settings-nav-item" data-section="notifications">
-                    <i class="icon-bell"></i>
-                    <span>Notificações</span>
-                </button>
-                <button onclick="showSection('sensors')" class="settings-nav-item" data-section="sensors">
-                    <i class="icon-circuit-board"></i>
-                    <span>Sensores</span>
-                </button>
-                <button onclick="showSection('thresholds')" class="settings-nav-item" data-section="thresholds">
-                    <i class="icon-sliders"></i>
-                    <span>Limites de Alerta</span>
-                </button>
-                <button onclick="showSection('system')" class="settings-nav-item" data-section="system">
-                    <i class="icon-settings"></i>
-                    <span>Sistema</span>
-                </button>
-                <div class="border-t border-gray-200 dark:border-gray-700 my-2"></div>
-                <button onclick="showSection('security')" class="settings-nav-item" data-section="security">
-                    <i class="icon-shield"></i>
-                    <span>Segurança</span>
-                </button>
-            </nav>
-        </div>
-    </div>
-    
-    <!-- Settings Content -->
-    <div class="lg:col-span-2 space-y-6">
-        <!-- Profile Section -->
-        <div id="section-profile" class="settings-section">
-            <div class="card">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Informações do Perfil</h3>
-                
-                <form class="space-y-4">
-                    <div>
-                        <label class="form-label">Nome Completo</label>
-                        <input type="text" class="form-input" id="profileNome" placeholder="João Silva" readonly>
-                    </div>
-                    
-                    <div>
-                        <label class="form-label">Email</label>
-                        <input type="email" class="form-input" id="profileEmail" placeholder="email@exemplo.com" readonly>
-                    </div>
-                    
-                    <div>
-                        <label class="form-label">Telefone</label>
-                        <input type="tel" class="form-input" placeholder="+351 912 345 678">
-                    </div>
-                    
-                    <div>
-                        <label class="form-label">Localização da Fazenda</label>
-                        <input type="text" class="form-input" placeholder="Localização">
-                    </div>
-                    
-                    <div class="flex gap-3 pt-4">
-                        <button type="submit" class="btn-primary">
-                            <i class="icon-save"></i>
-                            Guardar Alterações
-                        </button>
-                        <button type="button" class="btn-secondary">Cancelar</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-        
-        <!-- Notifications Section -->
-        <div id="section-notifications" class="settings-section hidden">
-            <div class="card">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Preferências de Notificações</h3>
-                
-                <div class="space-y-4">
-                    <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
-                        <div>
-                            <p class="font-semibold text-gray-900 dark:text-white">Alertas de Pragas</p>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Notificar quando uma praga for detectada</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    
-                    <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
-                        <div>
-                            <p class="font-semibold text-gray-900 dark:text-white">Limites de Temperatura</p>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Avisar quando ultrapassar os limites configurados</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    
-                    <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
-                        <div>
-                            <p class="font-semibold text-gray-900 dark:text-white">Humidade do Solo</p>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Alertar sobre níveis críticos de humidade</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    
-                    <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
-                        <div>
-                            <p class="font-semibold text-gray-900 dark:text-white">Vibrações</p>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Notificar detecções de vibração</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox">
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    
-                    <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
-                        <div>
-                            <p class="font-semibold text-gray-900 dark:text-white">Resumo Diário</p>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Receber relatório diário por email</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    
-                    <div class="flex items-center justify-between py-3">
-                        <div>
-                            <p class="font-semibold text-gray-900 dark:text-white">Sensores Offline</p>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Avisar quando um sensor ficar offline</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                </div>
-                
-                <div class="flex gap-3 pt-6">
-                    <button class="btn-primary">
-                        <i class="icon-save"></i>
-                        Guardar Preferências
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Sensors Section -->
-        <div id="section-sensors" class="settings-section hidden">
-            <div class="card">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Configuração dos Sensores</h3>
-                
-                <div class="space-y-4">
-                    <div>
-                        <label class="form-label">Intervalo de Leitura (segundos)</label>
-                        <input type="number" class="form-input" value="30" min="10" max="300">
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Tempo entre leituras dos sensores (10-300s)</p>
-                    </div>
-                    
-                    <div>
-                        <label class="form-label">Device ID</label>
-                        <input type="text" class="form-input" value="AGRO-IOT-001" readonly>
-                    </div>
-                    
-                    <div class="pt-4">
-                        <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Calibração dos Sensores</h4>
-                        
-                        <div class="space-y-3">
-                            <button class="w-full btn-secondary text-left">
-                                <i class="icon-thermometer"></i>
-                                <span>Calibrar BME280</span>
-                            </button>
-                            <button class="w-full btn-secondary text-left">
-                                <i class="icon-droplet"></i>
-                                <span>Calibrar Sensor de Solo</span>
-                            </button>
-                            <button class="w-full btn-secondary text-left">
-                                <i class="icon-map-pin"></i>
-                                <span>Calibrar GPS</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="flex gap-3 pt-6">
-                    <button class="btn-primary">
-                        <i class="icon-save"></i>
-                        Guardar Configurações
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Thresholds Section -->
-        <div id="section-thresholds" class="settings-section hidden">
-            <div class="card">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Limites de Alerta</h3>
-                
-                <div class="space-y-6">
-                    <div>
-                        <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Temperatura</h4>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="form-label">Mínimo (°C)</label>
-                                <input type="number" class="form-input" value="15" step="0.1">
-                            </div>
-                            <div>
-                                <label class="form-label">Máximo (°C)</label>
-                                <input type="number" class="form-input" value="35" step="0.1">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Humidade do Ar</h4>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="form-label">Mínimo (%)</label>
-                                <input type="number" class="form-input" value="30" step="1">
-                            </div>
-                            <div>
-                                <label class="form-label">Máximo (%)</label>
-                                <input type="number" class="form-input" value="80" step="1">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Humidade do Solo</h4>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="form-label">Mínimo (%)</label>
-                                <input type="number" class="form-input" value="20" step="1">
-                            </div>
-                            <div>
-                                <label class="form-label">Máximo (%)</label>
-                                <input type="number" class="form-input" value="70" step="1">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="flex gap-3 pt-6">
-                    <button class="btn-primary">
-                        <i class="icon-save"></i>
-                        Guardar Limites
-                    </button>
-                    <button class="btn-secondary">Restaurar Padrões</button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- System Section -->
-        <div id="section-system" class="settings-section hidden">
-            <div class="card">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Configurações do Sistema</h3>
-                
-                <div class="space-y-4">
-                    <div>
-                        <label class="form-label">Idioma</label>
-                        <select class="form-input">
-                            <option value="pt" selected>Português</option>
-                            <option value="en">English</option>
-                            <option value="es">Español</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="form-label">Fuso Horário</label>
-                        <select class="form-input">
-                            <option value="Europe/Lisbon" selected>Europa/Lisboa (WET)</option>
-                            <option value="Europe/Madrid">Europa/Madrid (CET)</option>
-                            <option value="America/Sao_Paulo">América/São Paulo (BRT)</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="form-label">Formato de Data</label>
-                        <select class="form-input">
-                            <option value="dd/mm/yyyy" selected>DD/MM/AAAA</option>
-                            <option value="mm/dd/yyyy">MM/DD/YYYY</option>
-                            <option value="yyyy-mm-dd">AAAA-MM-DD</option>
-                        </select>
-                    </div>
-                    
-                    <div class="pt-4">
-                        <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Armazenamento de Dados</h4>
-                        <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                            <div class="flex justify-between mb-2">
-                                <span class="text-sm text-gray-600 dark:text-gray-400">Utilização</span>
-                                <span class="text-sm font-semibold text-gray-900 dark:text-white">2.4 GB / 10 GB</span>
-                            </div>
-                            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                <div class="bg-green-600 h-2 rounded-full" style="width: 24%"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="flex gap-3 pt-6">
-                    <button class="btn-primary">
-                        <i class="icon-save"></i>
-                        Guardar Configurações
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Security Section -->
-        <div id="section-security" class="settings-section hidden">
-            <div class="card">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Segurança</h3>
-                
-                <div class="space-y-6">
-                    <div>
-                        <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Alterar Palavra-passe</h4>
-                        <form class="space-y-4">
-                            <div>
-                                <label class="form-label">Palavra-passe Atual</label>
-                                <input type="password" class="form-input" id="currentPassword" placeholder="••••••••">
-                            </div>
-                            <div>
-                                <label class="form-label">Nova Palavra-passe</label>
-                                <input type="password" class="form-input" id="newPassword" placeholder="••••••••">
-                            </div>
-                            <div>
-                                <label class="form-label">Confirmar Nova Palavra-passe</label>
-                                <input type="password" class="form-input" id="confirmPassword" placeholder="••••••••">
-                            </div>
-                            <button type="submit" class="btn-primary">
-                                <i class="icon-key"></i>
-                                Alterar Palavra-passe
-                            </button>
-                        </form>
-                    </div>
-                    
-                    <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
-                        <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Sessões Ativas</h4>
-                        <div class="space-y-3">
-                            <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                                <div class="flex items-center gap-3">
-                                    <i class="icon-monitor text-green-600 dark:text-green-400"></i>
-                                    <div>
-                                        <p class="text-sm font-semibold text-gray-900 dark:text-white">Windows - Chrome</p>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400">Lisboa, Portugal • Agora</p>
-                                    </div>
-                                </div>
-                                <span class="badge badge-success">Atual</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
-                        <h4 class="font-semibold text-danger mb-3">Zona de Perigo</h4>
-                        <button onclick="handleAccountDelete()" class="btn-danger">
-                            <i class="icon-trash-2"></i>
-                            Eliminar Conta
-                        </button>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Esta ação é irreversível e todos os dados serão permanentemente removidos.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block extra_scripts %}
-<script>
-    function showSection(sectionName) {
-        // Hide all sections
-        document.querySelectorAll('.settings-section').forEach(section => {
-            section.classList.add('hidden');
-        });
-        
-        // Remove active class from all nav items
-        document.querySelectorAll('.settings-nav-item').forEach(item => {
-            item.classList.remove('active');
-        });
-        
-        // Show selected section
-        document.getElementById('section-' + sectionName).classList.remove('hidden');
-        
-        // Add active class to clicked nav item
-        document.querySelector(`[data-section="${sectionName}"]`).classList.add('active');
-    }
-
-    // Load user profile on page load
-    async function loadUserProfile() {
-        try {
-            const response = await API.getProfile();
-            if (response.ok) {
-                const userData = await response.json();
-                document.getElementById('profileNome').value = userData.nome || 'Utilizador';
-                document.getElementById('profileEmail').value = userData.email || 'user@example.com';
-                document.getElementById('profileNome').removeAttribute('readonly');
-                console.log('[Config] User profile loaded');
-            }
-        } catch (error) {
-            console.error('[Config] Error loading user profile:', error);
-        }
-    }
-
-    // Save profile
-    async function saveProfile(e) {
-        e.preventDefault();
-        const nome = document.getElementById('profileNome').value.trim();
-        try {
-            const res = await API.updateProfile({ nome });
-            if (res.ok) {
-                showSuccess('Perfil guardado com sucesso!');
-            } else {
-                const d = await res.json();
-                showError(d.erro || 'Erro ao guardar perfil');
-            }
-        } catch { showError('Erro de ligação ao servidor'); }
-    }
-
-    // Change password
-    async function changePassword(e) {
-        e.preventDefault();
-        const pw  = document.getElementById('newPassword')?.value || '';
-        const pw2 = document.getElementById('confirmPassword')?.value || '';
-        if (!pw) { showError('Insira a nova palavra-passe'); return; }
-        if (pw !== pw2) { showError('As palavras-passe não coincidem'); return; }
-        if (pw.length < 6) { showError('A palavra-passe deve ter pelo menos 6 caracteres'); return; }
-        try {
-            const res = await API.updateProfile({ password: pw });
-            if (res.ok) {
-                showSuccess('Palavra-passe alterada com sucesso!');
-                if (document.getElementById('newPassword')) document.getElementById('newPassword').value = '';
-                if (document.getElementById('confirmPassword')) document.getElementById('confirmPassword').value = '';
-            } else {
-                const d = await res.json();
-                showError(d.erro || 'Erro ao alterar palavra-passe');
-            }
-        } catch { showError('Erro de ligação ao servidor'); }
-    }
-
-    // Initialize
-    document.addEventListener('DOMContentLoaded', () => {
-        loadUserProfile();
-        // Ligar botão guardar perfil
-        const profileForm = document.querySelector('#section-perfil form, #section-profile form');
-        if (profileForm) profileForm.addEventListener('submit', saveProfile);
-        // Ligar botão alterar password
-        const pwForm = document.querySelector('#section-seguranca form, #section-security form');
-        if (pwForm) pwForm.addEventListener('submit', changePassword);
-    });
-</script>
-{% endblock %}
-

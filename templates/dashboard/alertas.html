@@ -10,54 +10,55 @@
 
 <!-- Alert Summary Cards -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-    <!-- Critical Alerts -->
-    <div class="kpi-card group cursor-pointer hover:border-red-300 border-red-200 bg-red-50">
+    <div class="kpi-card group cursor-pointer hover:border-red-300 red" id="cardCritico">
         <div class="flex-1">
-            <p class="text-xs font-600 text-red-600 uppercase tracking-widest mb-2">Alertas Críticos</p>
+            <p class="text-xs font-600 text-red-600 uppercase tracking-widest mb-2 flex items-center gap-2">
+                <span class="live-dot red" id="dotCritico" style="display:none"></span>Alertas Críticos
+            </p>
             <div class="flex items-baseline gap-2">
-                <p class="text-2xl font-bold text-red-900">3</p>
-                <p class="text-sm font-600 text-red-600">Ação imediata necessária</p>
+                <p class="text-2xl font-bold text-red-900" id="kpiCritico">--</p>
+                <p class="text-sm font-600 text-red-600">Ação imediata</p>
             </div>
         </div>
         <div class="kpi-icon-wrapper bg-red-100 group-hover:scale-110 transition-transform">
             <i class="icon-alert-triangle text-red-600 text-2xl"></i>
         </div>
     </div>
-
-    <!-- Warnings -->
-    <div class="kpi-card group cursor-pointer hover:border-yellow-300">
+    <div class="kpi-card group cursor-pointer hover:border-yellow-300 amber" id="cardAviso">
         <div class="flex-1">
-            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Avisos</p>
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                <span class="live-dot amber" id="dotAviso" style="display:none"></span>Avisos
+            </p>
             <div class="flex items-baseline gap-2">
-                <p class="text-2xl font-bold text-gray-900">12</p>
-                <p class="text-sm font-600 text-yellow-600">Últimas 24h</p>
+                <p class="text-2xl font-bold text-gray-900" id="kpiAviso">--</p>
+                <p class="text-sm font-600 text-yellow-600">Atenção</p>
             </div>
         </div>
         <div class="kpi-icon-wrapper bg-yellow-100 group-hover:scale-110 transition-transform">
             <i class="icon-alert-circle text-yellow-600 text-2xl"></i>
         </div>
     </div>
-
-    <!-- Information -->
-    <div class="kpi-card group cursor-pointer hover:border-blue-300">
+    <div class="kpi-card group cursor-pointer hover:border-blue-300 blue" id="cardInfo">
         <div class="flex-1">
-            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Informações</p>
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                <span class="live-dot blue" id="dotInfo" style="display:none"></span>Informações
+            </p>
             <div class="flex items-baseline gap-2">
-                <p class="text-2xl font-bold text-gray-900">28</p>
-                <p class="text-sm font-600 text-blue-600">Últimas 24h</p>
+                <p class="text-2xl font-bold text-gray-900" id="kpiInfo">--</p>
+                <p class="text-sm font-600 text-blue-600">Informativo</p>
             </div>
         </div>
         <div class="kpi-icon-wrapper bg-blue-100 group-hover:scale-110 transition-transform">
             <i class="icon-info text-blue-600 text-2xl"></i>
         </div>
     </div>
-
-    <!-- Total (7 days) -->
-    <div class="kpi-card group cursor-pointer hover:border-gray-300">
+    <div class="kpi-card group cursor-pointer hover:border-gray-300" id="cardTotal">
         <div class="flex-1">
-            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2">Total (7 dias)</p>
+            <p class="text-xs font-600 text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                <span class="live-dot" id="dotTotal" style="display:none"></span>Total (7 dias)
+            </p>
             <div class="flex items-baseline gap-2">
-                <p class="text-2xl font-bold text-gray-900">156 <span class="text-sm font-600 text-red-600">↑13%</span></p>
+                <p class="text-2xl font-bold text-gray-900" id="kpiTotal">--</p>
             </div>
         </div>
         <div class="kpi-icon-wrapper bg-gray-100 group-hover:scale-110 transition-transform">
@@ -68,41 +69,58 @@
 
 <!-- Charts Section -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-    <!-- Alert Types Distribution -->
-    <div class="card chart-container group hover:shadow-xl hover:border-green-200 transition-all duration-300 slide-in-up" style="animation-delay: 0.1s">
+    <div class="card chart-container group hover:shadow-xl hover:border-green-200 transition-all duration-300">
         <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
                 <i class="icon-pie-chart text-green-600 text-xl"></i>
                 Alertas por Tipo
             </h3>
-            <span class="text-xs font-500 text-gray-500">Distribuição atual por categoria</span>
         </div>
-        <div class="chart-wrapper">
+        <div style="height:220px;position:relative;">
             <canvas id="alertsTypeChart"></canvas>
         </div>
     </div>
-
-    <!-- Daily Alert Volume -->
-    <div class="card chart-container group hover:shadow-xl hover:border-blue-200 transition-all duration-300 slide-in-up" style="animation-delay: 0.2s">
+    <div class="card chart-container group hover:shadow-xl hover:border-blue-200 transition-all duration-300">
         <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
                 <i class="icon-bar-chart-2 text-blue-600 text-xl"></i>
-                Volume de Alertas por Dia
+                Volume por Dia (Últimos 7 dias)
             </h3>
-            <div class="flex items-center gap-2">
-                <span class="text-xs font-500 text-gray-500">Monitoramento da última semana</span>
-                <select class="form-input text-xs w-20" id="periodFilter">
-                    <option value="semana">Semana</option>
-                    <option value="mes">Mês</option>
-                </select>
-            </div>
         </div>
-        <div class="chart-wrapper">
+        <div style="height:220px;position:relative;">
             <canvas id="alertsVolumeChart"></canvas>
         </div>
     </div>
 </div>
 
+<!-- ═══════════════════════════════════════════════════════
+     PAINEL DE RECOMENDAÇÕES ML — posição proeminente
+     ═══════════════════════════════════════════════════════ -->
+<div class="rec-panel mb-8">
+    <div class="rec-banner" id="mlRecomBanner">
+        <div class="rec-banner-left">
+            <div class="rec-banner-icon" data-rec-icon>🤖</div>
+            <div class="rec-banner-text">
+                <div class="rec-banner-eyebrow">Inteligência Artificial — ML AgroCaua</div>
+                <div class="rec-banner-title" data-rec-title>A carregar análise...</div>
+                <div class="rec-banner-subtitle" data-rec-subtitle>Aguarde enquanto o modelo analisa os dados dos
+                    sensores.</div>
+            </div>
+        </div>
+        <div class="rec-banner-right">
+            <span id="mlRecomBadge" class="rec-nivel-badge hidden"></span>
+            <button onclick="carregarRecomendacoesML()" class="rec-refresh-btn">
+                <i class="icon-refresh-cw" id="mlRecomSpinner"></i> Actualizar
+            </button>
+        </div>
+    </div>
+    <div class="rec-lista" id="mlRecomLista">
+        <div class="rec-loading">
+            <div class="rec-spinner"></div>
+            <p>A consultar o modelo de Machine Learning...</p>
+        </div>
+    </div>
+</div>
 <!-- Active Alerts Section -->
 <div class="card mb-8">
     <div class="flex items-center justify-between mb-4">
@@ -110,74 +128,15 @@
             <i class="icon-alert-circle text-red-600 text-xl"></i>
             Alertas Ativos
         </h3>
-        <p class="text-sm text-gray-500">3 pendentes</p>
+        <button onclick="fetchAlertas()" class="btn btn-sm btn-secondary">
+            <i class="icon-refresh-cw text-lg"></i>
+            Atualizar
+        </button>
     </div>
-
-    <div class="space-y-3">
-        <!-- Alert Item 1 -->
-        <div class="alert-item border-2 border-red-200 bg-red-50 rounded-lg p-4 hover:shadow-md transition-all">
-            <div class="flex items-start gap-4">
-                <div class="flex-shrink-0 mt-1">
-                    <i class="icon-alert-triangle text-red-600 text-2xl"></i>
-                </div>
-                <div class="flex-1 min-w-0">
-                    <h4 class="font-semibold text-red-900">Praga Detectada - Afídeos</h4>
-                    <p class="text-sm text-red-800 mt-1">Sistema de visão detectou infestação de afídeos na Zona B com 89% de confiança. Ação imediata recomendada.</p>
-                    <div class="flex items-center gap-4 mt-3 text-xs text-red-700">
-                        <span>⏱ Há 15 minutos</span>
-                        <span>📍 Talhão 04 - Setor Leste</span>
-                        <span class="badge badge-danger">Crítico</span>
-                    </div>
-                </div>
-                <div class="flex gap-2 flex-shrink-0">
-                    <button class="btn btn-sm btn-secondary hover:bg-red-100 text-red-600">Ver Detalhes</button>
-                    <button class="btn btn-sm btn-secondary text-green-600 hover:bg-green-100">✓ Marcar como lido</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Alert Item 2 -->
-        <div class="alert-item border-2 border-yellow-200 bg-yellow-50 rounded-lg p-4 hover:shadow-md transition-all">
-            <div class="flex items-start gap-4">
-                <div class="flex-shrink-0 mt-1">
-                    <i class="icon-alert-circle text-yellow-600 text-2xl"></i>
-                </div>
-                <div class="flex-1 min-w-0">
-                    <h4 class="font-semibold text-yellow-900">Humidade do Solo Baixa</h4>
-                    <p class="text-sm text-yellow-800 mt-1">Humidade do solo na Zona A está abaixo do limite crítico (18%). Irrigação recomendada para evitar estresse hídrico.</p>
-                    <div class="flex items-center gap-4 mt-3 text-xs text-yellow-700">
-                        <span>⏱ Há 1 hora</span>
-                        <span>📍 Talhão 12 - Setor Leste</span>
-                        <span class="badge badge-warning">Atenção</span>
-                    </div>
-                </div>
-                <div class="flex gap-2 flex-shrink-0">
-                    <button class="btn btn-sm btn-secondary hover:bg-yellow-100 text-yellow-600">Ver Detalhes</button>
-                    <button class="btn btn-sm btn-secondary text-green-600 hover:bg-green-100">✓ Marcar como lido</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Alert Item 3 -->
-        <div class="alert-item border-2 border-blue-200 bg-blue-50 rounded-lg p-4 hover:shadow-md transition-all">
-            <div class="flex items-start gap-4">
-                <div class="flex-shrink-0 mt-1">
-                    <i class="icon-info text-blue-600 text-2xl"></i>
-                </div>
-                <div class="flex-1 min-w-0">
-                    <h4 class="font-semibold text-blue-900">Temperatura Elevada</h4>
-                    <p class="text-sm text-blue-800 mt-1">Temperatura atingiu 32°C. Monitorar evolução nas próximas horas para evitar queima foliar em mudas jovens.</p>
-                    <div class="flex items-center gap-4 mt-3 text-xs text-blue-700">
-                        <span>⏱ Há 3 horas</span>
-                        <span>📍 Vizível 02</span>
-                        <span class="badge badge-info">Info</span>
-                    </div>
-                </div>
-                <div class="flex gap-2 flex-shrink-0">
-                    <button class="btn btn-sm btn-secondary hover:bg-blue-100 text-blue-600">Ver Detalhes</button>
-                    <button class="btn btn-sm btn-secondary text-green-600 hover:bg-green-100">✓ Marcar como lido</button>
-                </div>
-            </div>
+    <div id="activeAlertsList" class="space-y-3">
+        <div class="text-center py-8 text-gray-400">
+            <i class="icon-loader text-3xl mb-2 animate-spin"></i>
+            <p>Carregando alertas...</p>
         </div>
     </div>
 </div>
@@ -189,322 +148,376 @@
             <i class="icon-history text-green-600 text-xl"></i>
             Histórico de Alertas
         </h3>
-        <div class="flex gap-2">
-            <button class="btn btn-sm btn-secondary">
-                <i class="icon-filter text-lg"></i>
-                Filtrar
-            </button>
-            <button class="btn btn-sm btn-secondary">
-                <i class="icon-download text-lg"></i>
-                Exportar
-            </button>
-        </div>
     </div>
-
-    <!-- Table -->
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
             <thead>
                 <tr class="border-b border-gray-200 bg-gray-50">
-                    <th class="text-left py-3 px-4 font-600 text-gray-700">ID</th>
                     <th class="text-left py-3 px-4 font-600 text-gray-700">Tipo</th>
                     <th class="text-left py-3 px-4 font-600 text-gray-700">Mensagem</th>
                     <th class="text-left py-3 px-4 font-600 text-gray-700">Severidade</th>
                     <th class="text-left py-3 px-4 font-600 text-gray-700">Data/Hora</th>
                     <th class="text-left py-3 px-4 font-600 text-gray-700">Status</th>
-                    <th class="text-left py-3 px-4 font-600 text-gray-700">Ações</th>
                 </tr>
             </thead>
             <tbody id="alertsHistoryBody">
-                <tr class="border-b border-gray-100 hover:bg-gray-50">
-                    <td class="py-3 px-4 font-500 text-gray-900">REC-992</td>
-                    <td class="py-3 px-4">Praga</td>
-                    <td class="py-3 px-4 text-gray-700">Detecção de afídeos na Zona B</td>
-                    <td class="py-3 px-4"><span class="badge badge-danger">Crítico</span></td>
-                    <td class="py-3 px-4 text-gray-700">16/02/2024 14:30</td>
-                    <td class="py-3 px-4"><span class="badge badge-danger">• Ativo</span></td>
-                    <td class="py-3 px-4"><i class="icon-arrow-right text-gray-400"></i></td>
-                </tr>
-                <tr class="border-b border-gray-100 hover:bg-gray-50">
-                    <td class="py-3 px-4 font-500 text-gray-900">REC-991</td>
-                    <td class="py-3 px-4">Solo</td>
-                    <td class="py-3 px-4 text-gray-700">Humidade abaixo do limite em Zona A</td>
-                    <td class="py-3 px-4"><span class="badge badge-warning">Aviso</span></td>
-                    <td class="py-3 px-4 text-gray-700">16/02/2024 13:15</td>
-                    <td class="py-3 px-4"><span class="badge badge-info">• Resolvido</span></td>
-                    <td class="py-3 px-4"><i class="icon-arrow-right text-gray-400"></i></td>
-                </tr>
-                <tr class="border-b border-gray-100 hover:bg-gray-50">
-                    <td class="py-3 px-4 font-500 text-gray-900">REC-990</td>
-                    <td class="py-3 px-4">Clima</td>
-                    <td class="py-3 px-4 text-gray-700">Temperatura elevada detectada</td>
-                    <td class="py-3 px-4"><span class="badge badge-info">Info</span></td>
-                    <td class="py-3 px-4 text-gray-700">16/02/2024 11:45</td>
-                    <td class="py-3 px-4"><span class="badge badge-info">• Lido</span></td>
-                    <td class="py-3 px-4"><i class="icon-arrow-right text-gray-400"></i></td>
-                </tr>
-                <tr class="border-b border-gray-100 hover:bg-gray-50">
-                    <td class="py-3 px-4 font-500 text-gray-900">REC-989</td>
-                    <td class="py-3 px-4">Sensor</td>
-                    <td class="py-3 px-4 text-gray-700">Falha de conexão: Sensor 04G</td>
-                    <td class="py-3 px-4"><span class="badge badge-warning">Aviso</span></td>
-                    <td class="py-3 px-4 text-gray-700">15/02/2024 22:10</td>
-                    <td class="py-3 px-4"><span class="badge badge-info">• Em análise</span></td>
-                    <td class="py-3 px-4"><i class="icon-arrow-right text-gray-400"></i></td>
+                <tr>
+                    <td colspan="5" class="text-center py-6 text-gray-400">Carregando...</td>
                 </tr>
             </tbody>
         </table>
     </div>
+</div>
 
-    <!-- Pagination -->
-    <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
-        <p class="text-sm text-gray-500">Mostrando 1-5 de 156 registros</p>
-        <div class="flex gap-2 items-center">
-            <button class="btn btn-sm btn-secondary">Anterior</button>
-            <span class="px-3 py-2 text-sm font-500 text-gray-700">2</span>
-            <button class="btn btn-sm btn-secondary">Próximo</button>
-        </div>
+<!-- Action Modal -->
+<div id="actionModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6">
+        <div id="actionModalContent"></div>
+        <button onclick="closeActionModal()" class="mt-4 w-full btn btn-secondary">Fechar</button>
     </div>
 </div>
 
 {% endblock %}
 
 {% block extra_scripts %}
-<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-
 <script>
-    const alertasState = {
-        charts: {},
-        refreshInterval: null
+    // ── Agronomic action map by alert type ──
+    const ALERT_ACTIONS = {
+        'Solo': { icon: '💧', label: 'Ligar Bomba de Irrigação', color: 'blue', tip: 'Humidade crítica. Irrigue imediatamente e monitore por 2h. Mantenha humidade entre 40-70%. Evite encharcar — excesso causa apodrecimento radicular.' },
+        'Praga': { icon: '🐛', label: 'Aplicar Pesticida', color: 'red', tip: 'Praga detectada. Use pesticida biológico (neem) ou químico conforme a espécie. Aplique ao amanhecer ou ao entardecer. Repita em 7 dias se persistir.' },
+        'Clima': { icon: '🌡️', label: 'Instalar Sombrite / Proteção', color: 'orange', tip: 'Temperatura elevada. Instale sombrite 50% ou regue foliar às 7h/17h. Para frio abaixo de 15°C: cubra mudas com agrotêxtil ou plástico.' },
+        'Sensor': { icon: '🔧', label: 'Verificar Sensor', color: 'gray', tip: 'Sensor offline. Verifique a alimentação elétrica, conexão Wi-Fi e integridade física do dispositivo. Limpe os terminais e reinicie o sensor.' },
+        'default': { icon: '⚠️', label: 'Ver Detalhes', color: 'yellow', tip: 'Analise o alerta e tome as medidas necessárias conforme a situação.' }
     };
+
+    const alertasState = { charts: {}, data: [], refreshInterval: null };
 
     Chart.defaults.font.family = "'Inter', sans-serif";
     Chart.defaults.color = '#6B7280';
 
-    function initCharts() {
-        console.log('[Alertas] Initializing charts...');
-
-        // Alerts Type Donut Chart
-        alertasState.charts.alertsType = new Chart(document.getElementById('alertsTypeChart'), {
-            type: 'doughnut',
-            data: {
-                labels: [],
-                datasets: [{
-                    data: [],
-                    backgroundColor: [
-                        'rgba(239, 68, 68, 0.85)',
-                        'rgba(251, 191, 36, 0.85)',
-                        'rgba(59, 130, 246, 0.85)',
-                        'rgba(34, 197, 94, 0.85)'
-                    ],
-                    borderColor: [
-                        'rgb(239, 68, 68)',
-                        'rgb(251, 191, 36)',
-                        'rgb(59, 130, 246)',
-                        'rgb(34, 197, 94)'
-                    ],
-                    borderWidth: 2,
-                    spacing: 3,
-                    hoverOffset: 8
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: { padding: 20, font: { size: 12, weight: '500' } }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        padding: 12
-                    }
-                }
-            }
-        });
-
-        // Alerts Volume Stacked Bar Chart
-        alertasState.charts.alertsVolume = new Chart(document.getElementById('alertsVolumeChart'), {
-            type: 'bar',
-            data: {
-                labels: [],
-                datasets: [
-                    {
-                        label: 'Crítico',
-                        data: [],
-                        backgroundColor: 'rgba(239, 68, 68, 0.85)',
-                        borderColor: 'rgb(239, 68, 68)',
-                        borderWidth: 1,
-                        borderRadius: 4
-                    },
-                    {
-                        label: 'Aviso',
-                        data: [],
-                        backgroundColor: 'rgba(251, 191, 36, 0.85)',
-                        borderColor: 'rgb(251, 191, 36)',
-                        borderWidth: 1,
-                        borderRadius: 4
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: { intersect: false, mode: 'index' },
-                scales: {
-                    x: {
-                        stacked: true,
-                        grid: { display: false }
-                    },
-                    y: {
-                        stacked: true,
-                        beginAtZero: true,
-                        grid: { color: 'rgba(0, 0, 0, 0.05)' }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: { padding: 20, font: { size: 12, weight: '500' } }
-                    }
-                }
-            }
-        });
+    function getAction(tipo) {
+        return ALERT_ACTIONS[tipo] || ALERT_ACTIONS['default'];
     }
 
-    // Fetch alerts from API
-    async function fetchAlertas() {
+    function severityStyle(sev) {
+        if (!sev) return { border: 'border-gray-200', bg: 'bg-gray-50', text: 'text-gray-900', badge: 'badge-info', icon: 'icon-info', iconColor: 'text-gray-500' };
+        const s = sev.toLowerCase();
+        if (s === 'crítico' || s === 'critico') return { border: 'border-red-200', bg: 'bg-red-50', text: 'text-red-900', badge: 'badge-danger', icon: 'icon-alert-triangle', iconColor: 'text-red-600' };
+        if (s === 'alto' || s === 'aviso') return { border: 'border-yellow-200', bg: 'bg-yellow-50', text: 'text-yellow-900', badge: 'badge-warning', icon: 'icon-alert-circle', iconColor: 'text-yellow-600' };
+        return { border: 'border-blue-200', bg: 'bg-blue-50', text: 'text-blue-900', badge: 'badge-info', icon: 'icon-info', iconColor: 'text-blue-600' };
+    }
+
+    function fmtTime(ts) {
+        if (!ts) return '--';
         try {
-            const response = await API.getAlertas();
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const alertas = await response.json();
-            if (Array.isArray(alertas)) {
-                updateAlertCounts(alertas);
-                updateAlertCharts(alertas);
-                updateAlertTable(alertas);
-                console.log('[Alertas] Data updated successfully');
-            } else {
-                showWarning('Nenhum alerta disponível');
-            }
-        } catch (error) {
-            console.error('[Alertas] Error fetching data:', error);
-            showError('Erro ao carregar alertas');
-        }
+            const d = new Date(ts);
+            const diff = Math.floor((Date.now() - d) / 1000);
+            if (diff < 60) return 'Agora';
+            if (diff < 3600) return `Há ${Math.floor(diff / 60)} min`;
+            if (diff < 86400) return `Há ${Math.floor(diff / 3600)}h`;
+            return d.toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+        } catch { return ts; }
     }
 
-    function updateAlertCounts(alertas) {
-        if (!alertas) return;
-        
-        const critical = alertas.filter(a => a.severidade === 'crítico').length;
-        const warning = alertas.filter(a => a.severidade === 'aviso').length;
-        const info = alertas.filter(a => a.severidade === 'info').length;
-        const total = alertas.length;
-
-        // Update KPI cards - would need to add IDs to HTML first
-        // For now just log
-        console.log('[Alertas] Critical:', critical, 'Warning:', warning, 'Info:', info, 'Total:', total);
-    }
-
-    function updateAlertCharts(alertas) {
-        if (!alertas || alertas.length === 0) return;
-        
-        // Count by type
-        const typeCounts = {};
-        alertas.forEach(a => {
-            typeCounts[a.tipo] = (typeCounts[a.tipo] || 0) + 1;
-        });
-        
-        if (alertasState.charts.alertsType) {
-            alertasState.charts.alertsType.data.labels = Object.keys(typeCounts);
-            alertasState.charts.alertsType.data.datasets[0].data = Object.values(typeCounts);
-            alertasState.charts.alertsType.update('none');
-        }
-        
-        // Volume by severity
-        const last7Days = [];
-        const criticalByDay = [];
-        const warningByDay = [];
-        for (let i = 6; i >= 0; i--) {
-            const day = new Date();
-            day.setDate(day.getDate() - i);
-            const dayOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'][day.getDay()];
-            last7Days.push(dayOfWeek);
-            criticalByDay.push(Math.floor(Math.random() * 3));
-            warningByDay.push(Math.floor(Math.random() * 8));
-        }
-        
-        if (alertasState.charts.alertsVolume) {
-            alertasState.charts.alertsVolume.data.labels = last7Days;
-            alertasState.charts.alertsVolume.data.datasets[0].data = criticalByDay;
-            alertasState.charts.alertsVolume.data.datasets[1].data = warningByDay;
-            alertasState.charts.alertsVolume.update('none');
-        }
-    }
-
-    function updateAlertTable(alertas) {
-        const tbody = document.getElementById('alertsHistoryBody');
-        
-        if (!alertas || alertas.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-gray-500">Sem alertas disponíveis</td></tr>';
+    function renderActiveAlerts(alertas) {
+        const el = document.getElementById('activeAlertsList');
+        const active = alertas.filter(a => a.status === 'ativo' || !a.status);
+        if (!active.length) {
+            el.innerHTML = '<div class="text-center py-8 text-gray-400"><i class="icon-check-circle text-3xl mb-2 text-green-400"></i><p>Sem alertas ativos. Tudo OK!</p></div>';
             return;
         }
-        
-        tbody.innerHTML = alertas.slice(0, 10).map(a => {
-            const severityClass = a.severidade === 'crítico' ? 'badge-danger' : a.severidade === 'aviso' ? 'badge-warning' : 'badge-info';
-            const statusClass = a.status === 'ativo' ? 'badge-danger' : 'badge-info';
+        el.innerHTML = active.map(a => {
+            const st = severityStyle(a.severidade);
+            const act = getAction(a.tipo);
+            const btnColor = { blue: 'bg-blue-600 hover:bg-blue-700', red: 'bg-red-600 hover:bg-red-700', orange: 'bg-orange-500 hover:bg-orange-600', gray: 'bg-gray-600 hover:bg-gray-700', yellow: 'bg-yellow-500 hover:bg-yellow-600' }[act.color] || 'bg-green-600 hover:bg-green-700';
             return `
-                <tr class="border-b border-gray-100 hover:bg-gray-50">
-                    <td class="py-3 px-4 font-500 text-gray-900">${a.id || '--'}</td>
-                    <td class="py-3 px-4">${a.tipo || '--'}</td>
-                    <td class="py-3 px-4 text-gray-700">${a.mensagem || '--'}</td>
-                    <td class="py-3 px-4"><span class="badge ${severityClass}">${a.severidade || '--'}</span></td>
-                    <td class="py-3 px-4 text-gray-700">${formatTimestamp(a.timestamp) || '--'}</td>
-                    <td class="py-3 px-4"><span class="badge ${statusClass}">• ${a.status || '--'}</span></td>
-                    <td class="py-3 px-4"><i class="icon-arrow-right text-gray-400"></i></td>
-                </tr>
-            `;
+            <div class="alert-item border-2 ${st.border} ${st.bg} rounded-xl p-4 hover:shadow-md transition-all">
+                <div class="flex items-start gap-4">
+                    <div class="flex-shrink-0 mt-1">
+                        <i class="${st.icon} ${st.iconColor} text-2xl"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h4 class="font-semibold ${st.text}">${a.tipo || 'Alerta'} — ${a.mensagem || ''}</h4>
+                        <p class="text-sm text-gray-600 mt-1">${act.tip}</p>
+                        <div class="flex flex-wrap items-center gap-3 mt-3 text-xs text-gray-500">
+                            <span>⏱ ${fmtTime(a.timestamp || a.created_at)}</span>
+                            ${a.sensor_id ? `<span>📡 Sensor ${a.sensor_id}</span>` : ''}
+                            <span class="badge ${st.badge}">${a.severidade || 'info'}</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-2 flex-shrink-0">
+                        <button onclick="openActionModal(${JSON.stringify(a).replace(/"/g, '&quot;')})"
+                            class="text-white text-xs font-600 px-3 py-2 rounded-lg ${btnColor} transition-colors whitespace-nowrap">
+                            ${act.icon} ${act.label}
+                        </button>
+                        <button onclick="marcarLido(${a.id || 'null'}, this)"
+                            class="btn btn-sm btn-secondary text-green-600 hover:bg-green-100">
+                            ✓ Marcar como lido
+                        </button>
+                    </div>
+                </div>
+            </div>`;
         }).join('');
     }
 
-    // Setup auto-refresh
-    function setupAutoRefresh() {
-        if (alertasState.refreshInterval) {
-            clearInterval(alertasState.refreshInterval);
+    function renderHistoryTable(alertas) {
+        const tbody = document.getElementById('alertsHistoryBody');
+        if (!alertas.length) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-gray-400">Sem alertas no histórico</td></tr>';
+            return;
         }
-        
-        alertasState.refreshInterval = setInterval(() => {
-            if (document.visibilityState === 'visible') {
-                console.log('[Alertas] Auto-refreshing...');
-                fetchAlertas();
-            }
-        }, 60000); // 60 seconds
+        tbody.innerHTML = alertas.slice(0, 20).map(a => {
+            const st = severityStyle(a.severidade);
+            const statusBadge = a.status === 'ativo' ? 'badge-danger' : 'badge-info';
+            return `<tr class="border-b border-gray-100 hover:bg-gray-50">
+                <td class="py-3 px-4">${a.tipo || '--'}</td>
+                <td class="py-3 px-4 text-gray-700 max-w-xs truncate">${a.mensagem || '--'}</td>
+                <td class="py-3 px-4"><span class="badge ${st.badge}">${a.severidade || '--'}</span></td>
+                <td class="py-3 px-4 text-gray-500 text-xs">${fmtTime(a.timestamp || a.created_at)}</td>
+                <td class="py-3 px-4"><span class="badge ${statusBadge}">• ${a.status || 'ativo'}</span></td>
+            </tr>`;
+        }).join('');
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        console.log('[Alertas] Initializing...');
-        initCharts();
-        fetchAlertas();
-        setupAutoRefresh();
-    });
+    function animateVal(id, text) {
+        const el = document.getElementById(id);
+        if (!el || el.textContent === text) return;
+        el.textContent = text;
+        el.classList.remove('kpi-value--updated');
+        void el.offsetWidth;
+        el.classList.add('kpi-value--updated');
+        setTimeout(() => el.classList.remove('kpi-value--updated'), 600);
+    }
 
-    window.addEventListener('beforeunload', () => {
-        if (alertasState.refreshInterval) {
-            clearInterval(alertasState.refreshInterval);
+    function showLiveDot(id) {
+        const dot = document.getElementById(id);
+        if (dot) dot.style.display = 'inline-block';
+    }
+
+    function updateKPIs(alertas) {
+        const sev = (v) => (v || '').toLowerCase();
+        const critico = alertas.filter(a => ['crítico', 'critico'].includes(sev(a.severidade))).length;
+        const aviso = alertas.filter(a => ['alto', 'aviso'].includes(sev(a.severidade))).length;
+        const info = alertas.filter(a => ['medio', 'médio', 'info'].includes(sev(a.severidade))).length;
+        animateVal('kpiCritico', String(critico));
+        animateVal('kpiAviso', String(aviso));
+        animateVal('kpiInfo', String(info));
+        animateVal('kpiTotal', String(alertas.length));
+        // Activate live cards and dots
+        if (critico > 0) { document.getElementById('cardCritico')?.classList.add('kpi-card--live'); showLiveDot('dotCritico'); }
+        if (aviso > 0) { document.getElementById('cardAviso')?.classList.add('kpi-card--live'); showLiveDot('dotAviso'); }
+        if (info > 0) { document.getElementById('cardInfo')?.classList.add('kpi-card--live'); showLiveDot('dotInfo'); }
+        document.getElementById('cardTotal')?.classList.add('kpi-card--live');
+        showLiveDot('dotTotal');
+    }
+
+    function updateCharts(alertas) {
+        // Type distribution
+        const typeCounts = {};
+        alertas.forEach(a => { if (a.tipo) typeCounts[a.tipo] = (typeCounts[a.tipo] || 0) + 1; });
+
+        if (alertasState.charts.type) alertasState.charts.type.destroy();
+        alertasState.charts.type = new Chart(document.getElementById('alertsTypeChart'), {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(typeCounts).length ? Object.keys(typeCounts) : ['Sem dados'],
+                datasets: [{
+                    data: Object.keys(typeCounts).length ? Object.values(typeCounts) : [1],
+                    backgroundColor: ['rgba(239,68,68,0.8)', 'rgba(251,191,36,0.8)', 'rgba(59,130,246,0.8)', 'rgba(34,197,94,0.8)'],
+                    borderWidth: 2, hoverOffset: 8
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 } } } } }
+        });
+
+        // Volume by day
+        const days = [], critByDay = [], warnByDay = [];
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date(); d.setDate(d.getDate() - i);
+            const label = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'][d.getDay()];
+            const dayStr = d.toISOString().slice(0, 10);
+            days.push(label);
+            const dayAlerts = alertas.filter(a => (a.timestamp || a.created_at || '').startsWith(dayStr));
+            critByDay.push(dayAlerts.filter(a => ['crítico', 'critico'].includes((a.severidade || '').toLowerCase())).length);
+            warnByDay.push(dayAlerts.filter(a => ['alto', 'aviso'].includes((a.severidade || '').toLowerCase())).length);
         }
-        Object.values(alertasState.charts).forEach(chart => {
-            if (chart) {
-                try {
-                    chart.destroy();
-                } catch (e) {
-                    console.warn('Error destroying chart:', e);
-                }
+
+        if (alertasState.charts.volume) alertasState.charts.volume.destroy();
+        alertasState.charts.volume = new Chart(document.getElementById('alertsVolumeChart'), {
+            type: 'bar',
+            data: {
+                labels: days,
+                datasets: [
+                    { label: 'Crítico', data: critByDay, backgroundColor: 'rgba(239,68,68,0.8)', borderRadius: 4 },
+                    { label: 'Aviso', data: warnByDay, backgroundColor: 'rgba(251,191,36,0.8)', borderRadius: 4 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, beginAtZero: true } },
+                plugins: { legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 } } } }
             }
         });
+    }
+
+    async function fetchAlertas() {
+        try {
+            const res = await API.getAlertas();
+            if (!res.ok) throw new Error(res.status);
+            const data = await res.json();
+            alertasState.data = Array.isArray(data) ? data : (data.alertas || []);
+            updateKPIs(alertasState.data);
+            updateCharts(alertasState.data);
+            renderActiveAlerts(alertasState.data);
+            renderHistoryTable(alertasState.data);
+        } catch (err) {
+            console.error('[Alertas] Erro:', err);
+            document.getElementById('activeAlertsList').innerHTML = `
+                <div class="text-center py-8 text-gray-400">
+                    <i class="icon-wifi-off text-3xl mb-2"></i>
+                    <p>Erro ao carregar alertas. Verifique a ligação.</p>
+                </div>`;
+        }
+    }
+
+    async function marcarLido(id, btn) {
+        if (!id) { btn.closest('.alert-item').remove(); return; }
+        try {
+            await fetch(`/api/alertas/${id}/lido`, { method: 'PUT', headers: { Authorization: 'Bearer ' + localStorage.getItem('agrocaua_token') } });
+        } catch { }
+        btn.closest('.alert-item').style.opacity = '0.4';
+        setTimeout(() => btn.closest('.alert-item').remove(), 400);
+    }
+
+    function openActionModal(alerta) {
+        const act = getAction(alerta.tipo);
+        const btnColor = { blue: 'bg-blue-600', red: 'bg-red-600', orange: 'bg-orange-500', gray: 'bg-gray-600', yellow: 'bg-yellow-500' }[act.color] || 'bg-green-600';
+        document.getElementById('actionModalContent').innerHTML = `
+            <h3 class="text-lg font-bold text-gray-900 mb-2">${act.icon} ${act.label}</h3>
+            <p class="text-sm text-gray-600 mb-4">${act.tip}</p>
+            <div class="bg-gray-50 rounded-lg p-3 text-sm text-gray-700 mb-4">
+                <p><strong>Alerta:</strong> ${alerta.mensagem || '--'}</p>
+                <p><strong>Tipo:</strong> ${alerta.tipo || '--'} &nbsp;|&nbsp; <strong>Severidade:</strong> ${alerta.severidade || '--'}</p>
+            </div>
+            <button onclick="closeActionModal()" class="w-full text-white font-600 py-2 px-4 rounded-lg ${btnColor} hover:opacity-90 transition-opacity">
+                ${act.icon} Confirmar Ação
+            </button>`;
+        const modal = document.getElementById('actionModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function closeActionModal() {
+        const modal = document.getElementById('actionModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    document.getElementById('actionModal').addEventListener('click', function (e) {
+        if (e.target === this) closeActionModal();
     });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchAlertas();
+        carregarRecomendacoesML();
+        alertasState.refreshInterval = setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                fetchAlertas();
+                carregarRecomendacoesML();
+            }
+        }, 60000);
+    });
+
+    // ══════════════════════════════════════════════════════════
+    // PAINEL ML — lógica de carregamento e renderização
+    // ══════════════════════════════════════════════════════════
+
+    const ML_NIVEIS = {
+        'seguro': { cor: '#15803d', bg: 'linear-gradient(135deg,#14532d,#166534,#15803d)', borda: '#16a34a', icon: '✅', label: 'Sistema Seguro' },
+        'atenção': { cor: '#b45309', bg: 'linear-gradient(135deg,#78350f,#92400e,#b45309)', borda: '#d97706', icon: '👁️', label: 'Atenção Necessária' },
+        'alerta': { cor: '#b91c1c', bg: 'linear-gradient(135deg,#7f1d1d,#991b1b,#b91c1c)', borda: '#ef4444', icon: '⚠️', label: 'Estado de Alerta' },
+        'crítico': { cor: '#7c2d12', bg: 'linear-gradient(135deg,#431407,#7c2d12,#9a3412)', borda: '#f97316', icon: '🚨', label: 'ACÇÃO URGENTE' },
+    };
+
+    const URGENCIA_ESTILO = {
+        'URGENTE': { fundo: '#fef2f2', borda: '#fca5a5', topo: '#dc2626', icone: '🚨', badge: 'bg-red-600' },
+        'ALTA': { fundo: '#fff7ed', borda: '#fdba74', topo: '#ea580c', icone: '⚠️', badge: 'bg-orange-500' },
+        'MÉDIA': { fundo: '#fefce8', borda: '#fde68a', topo: '#ca8a04', icone: '👁️', badge: 'bg-yellow-500' },
+        'BAIXA': { fundo: '#f0fdf4', borda: '#86efac', topo: '#16a34a', icone: 'ℹ️', badge: 'bg-green-600' },
+    };
+
+    async function carregarRecomendacoesML() {
+        const spinner = document.getElementById('mlRecomSpinner');
+        if (spinner) spinner.classList.add('animate-spin');
+        RecUI.setLoading('mlRecomLista');
+        try {
+            const resp = await API.ml.alertas();
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            const dados = await resp.json();
+            renderizarPainelML(dados);
+        } catch (err) {
+            console.warn('Erro ML alertas:', err);
+            RecUI.setError('mlRecomLista', err.message, carregarRecomendacoesML);
+        } finally {
+            if (spinner) spinner.classList.remove('animate-spin');
+        }
+    }
+
+    function renderizarPainelML(dados) {
+        const nivel = dados.nivel_geral || 'seguro';
+        const recom = dados.recomendacoes || {};
+        const recs = recom.recomendacoes || [];
+        const resumo = recom.resumo || 'Análise ML concluída.';
+        const numAlertas = dados.num_alertas || 0;
+        RecUI.renderBanner(nivel, resumo, numAlertas, 'mlRecomBanner', 'mlRecomBadge');
+        RecUI.renderLista(recs, 'mlRecomLista', carregarRecomendacoesML);
+    }
+
+    function _setText(id, txt) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = txt;
+    }
+
+    window.addEventListener('beforeunload', () => {
+        clearInterval(alertasState.refreshInterval);
+        Object.values(alertasState.charts).forEach(c => { try { c.destroy(); } catch { } });
+    });
+</script>
+<script>
+    (function realtimeAlertsOnPage() {
+        try {
+            const token = getToken();
+            if (!token) return;
+            const es = new EventSource('/api/alertas/stream');
+
+            // Debounce chart updates — charts are expensive, only update after 3s of silence
+            let chartDebounce = null;
+            function scheduleChartUpdate() {
+                if (chartDebounce) clearTimeout(chartDebounce);
+                chartDebounce = setTimeout(() => {
+                    updateCharts(alertasState.data);
+                    chartDebounce = null;
+                }, 3000);
+            }
+
+            es.onmessage = async (e) => {
+                try {
+                    const a = JSON.parse(e.data);
+                    a.status = a.status || 'ativo';
+                    a.timestamp = a.timestamp || a.published_at;
+                    alertasState.data.unshift(a);
+                    // UI updates are cheap — do immediately
+                    updateKPIs(alertasState.data);
+                    renderActiveAlerts(alertasState.data);
+                    renderHistoryTable(alertasState.data);
+                    // Charts are expensive — debounce to avoid crash on rapid messages
+                    scheduleChartUpdate();
+                } catch { }
+            };
+            es.onerror = () => { try { es.close(); } catch { } };
+            window._alerts_sse = es;
+        } catch { }
+    })();
 </script>
 {% endblock %}

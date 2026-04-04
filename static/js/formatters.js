@@ -42,9 +42,9 @@ function formatTime(isoString) {
   if (!isoString) return 'N/A';
   try {
     const date = new Date(isoString);
-    return date.toLocaleTimeString('pt-PT', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    return date.toLocaleTimeString('pt-PT', {
+      hour: '2-digit',
+      minute: '2-digit'
     });
   } catch (e) {
     return 'N/A';
@@ -98,9 +98,9 @@ function formatDetection(detected) {
  */
 function getStatusClass(value, thresholds = {}) {
   if (value == null) return 'badge-info';
-  
+
   const { warning = 70, danger = 90 } = thresholds;
-  
+
   if (value < warning) return 'badge-success';
   if (value < danger) return 'badge-warning';
   return 'badge-danger';
@@ -111,12 +111,12 @@ function getStatusClass(value, thresholds = {}) {
  */
 function timeAgo(isoString) {
   if (!isoString) return 'N/A';
-  
+
   try {
     const date = new Date(isoString);
     const now = new Date();
     const seconds = Math.floor((now - date) / 1000);
-    
+
     if (seconds < 60) return 'há poucos segundos';
     if (seconds < 3600) return `há ${Math.floor(seconds / 60)} minutos`;
     if (seconds < 86400) return `há ${Math.floor(seconds / 3600)} horas`;
@@ -124,4 +124,67 @@ function timeAgo(isoString) {
   } catch (e) {
     return 'N/A';
   }
+}
+
+/**
+ * ── Realtime UI helpers ──
+ * Animate KPI card value changes and manage live state
+ */
+
+/**
+ * Update a KPI value element with a flash animation.
+ * Usage: setKpiValue('myId', '42.1°C')
+ */
+function setKpiValue(elementId, newValue) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+  if (el.textContent === newValue) return; // no change
+  el.textContent = newValue;
+  el.classList.remove('kpi-value--updated');
+  // Force reflow so animation restarts
+  void el.offsetWidth;
+  el.classList.add('kpi-value--updated');
+  // Clean up class after animation
+  setTimeout(() => el.classList.remove('kpi-value--updated'), 600);
+}
+
+/**
+ * Mark a KPI card as "live" (shows pulsing ring on icon).
+ * Pass the card element or its id.
+ */
+function setCardLive(cardOrId, isLive = true) {
+  const el = typeof cardOrId === 'string' ? document.getElementById(cardOrId) : cardOrId;
+  if (!el) return;
+  if (isLive) {
+    el.classList.add('kpi-card--live');
+  } else {
+    el.classList.remove('kpi-card--live');
+  }
+}
+
+/**
+ * Stagger-animate a list of elements on entry.
+ * Usage: animateEnter(document.querySelectorAll('.sensor-card'))
+ */
+function animateEnter(elements, baseDelayMs = 60) {
+  Array.from(elements).forEach((el, i) => {
+    el.style.animationDelay = `${i * baseDelayMs}ms`;
+    el.classList.add('card-animate-in');
+  });
+}
+
+/**
+ * Create or update a live dot span inside a container.
+ * Usage: renderLiveDot('statusEl', 'green')  // color: green | red | amber | blue
+ */
+function renderLiveDot(containerId, color = '') {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  let dot = el.querySelector('.live-dot');
+  if (!dot) {
+    dot = document.createElement('span');
+    dot.className = 'live-dot';
+    el.prepend(dot);
+  }
+  dot.className = `live-dot${color ? ' ' + color : ''}`;
 }

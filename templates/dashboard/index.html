@@ -73,7 +73,7 @@
 <!-- Secondary KPI Cards - Alerts & Status -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
     <!-- Pest Detection -->
-    <div class="kpi-card-compact group cursor-pointer hover:border-red-300">
+    <div class="kpi-card-compact group cursor-pointer hover:border-red-300" id="pestCard">
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <div class="kpi-icon-small bg-red-100 group-hover:scale-110 transition-transform">
@@ -81,10 +81,13 @@
                 </div>
                 <div>
                     <p class="text-xs font-600 text-gray-500 uppercase">Pragas</p>
-                    <p class="text-2xl font-bold text-gray-900" id="pestCount">0</p>
+                    <p class="text-2xl font-bold text-gray-900" id="pestCount">—</p>
+                    <p class="text-xs text-red-500 font-500 hidden" id="pestVibAlerta">
+                        <a href="/dashboard/visao" class="underline hover:text-red-700">Consulte o módulo visão para saber mais</a>
+                    </p>
                 </div>
             </div>
-            <span class="badge badge-danger" id="pestBadge">Alerta</span>
+            <span class="badge badge-success" id="pestBadge">Sem pragas</span>
         </div>
     </div>
     
@@ -97,10 +100,10 @@
                 </div>
                 <div>
                     <p class="text-xs font-600 text-gray-500 uppercase">Vibrações</p>
-                    <p class="text-2xl font-bold text-gray-900" id="vibrationCount">0</p>
+                    <p class="text-2xl font-bold text-gray-900" id="vibrationCount">—</p>
                 </div>
             </div>
-            <span class="badge badge-warning" id="vibrationBadge">Normal</span>
+            <span class="badge badge-success" id="vibrationBadge">Normal</span>
         </div>
     </div>
     
@@ -134,6 +137,29 @@
             </div>
             <i class="icon-refresh-cw text-gray-400"></i>
         </div>
+    </div>
+</div>
+
+<!-- ══ PAINEL ML — Diagnóstico em tempo real ══ -->
+<div class="rec-panel">
+    <div class="rec-banner" id="mlDashBanner">
+        <div class="rec-banner-left">
+            <div class="rec-banner-icon" data-rec-icon>🤖</div>
+            <div class="rec-banner-text">
+                <div class="rec-banner-eyebrow">Inteligência Artificial — ML AgroCaua</div>
+                <div class="rec-banner-title" data-rec-title>A carregar diagnóstico ML...</div>
+                <div class="rec-banner-subtitle" data-rec-subtitle>Aguarde enquanto o modelo analisa os dados dos sensores.</div>
+            </div>
+        </div>
+        <div class="rec-banner-right">
+            <span id="mlDashBadge" class="rec-nivel-badge hidden"></span>
+            <button onclick="carregarML()" class="rec-refresh-btn">
+                <i class="icon-refresh-cw" id="mlDashSpinner"></i> Actualizar
+            </button>
+        </div>
+    </div>
+    <div class="rec-lista" id="mlDashLista">
+        <div class="rec-loading"><div class="rec-spinner"></div><p>A consultar o modelo de Machine Learning...</p></div>
     </div>
 </div>
 
@@ -628,52 +654,82 @@
     // Update KPI cards
     function updateKPIs(data) {
         if (!data || data.length === 0) return;
-        
+
         const latest = data[0];
-        
-        // Temperature
-        if (latest.bme280?.temperatura != null) {
-            document.getElementById('tempValue').textContent = formatTemperature(latest.bme280.temperatura);
-            document.getElementById('tempTrend').textContent = `Última medição: ${timeAgo(latest.timestamp)}`;
+
+        // Helper: valor é válido se não for null/undefined e não for exactamente 0
+        // (0 indica sensor não inicializado ou dado inválido)
+        function validSensorVal(v) { return v != null && v !== 0; }
+
+        // Temperature — procurar o registo mais recente com valor válido
+        const tempRec = data.find(d => validSensorVal(d.bme280?.temperatura));
+        if (tempRec) {
+            document.getElementById('tempValue').textContent = formatTemperature(tempRec.bme280.temperatura);
+            document.getElementById('tempTrend').textContent = `Última medição: ${timeAgo(tempRec.timestamp)}`;
+        } else {
+            document.getElementById('tempValue').textContent = '--°C';
+            document.getElementById('tempTrend').textContent = 'Sem dados de temperatura';
         }
-        
-        // Humidity Air
-        if (latest.bme280?.humidade != null) {
-            document.getElementById('humidityValue').textContent = formatHumidity(latest.bme280.humidade);
-            document.getElementById('humidityTrend').textContent = `Última medição: ${timeAgo(latest.timestamp)}`;
+
+        // Humidity Air — procurar o registo mais recente com valor válido
+        const humAirRec = data.find(d => validSensorVal(d.bme280?.humidade));
+        if (humAirRec) {
+            document.getElementById('humidityValue').textContent = formatHumidity(humAirRec.bme280.humidade);
+            document.getElementById('humidityTrend').textContent = `Última medição: ${timeAgo(humAirRec.timestamp)}`;
+        } else {
+            document.getElementById('humidityValue').textContent = '--%';
+            document.getElementById('humidityTrend').textContent = 'Sem dados de humidade do ar';
         }
-        
-        // Soil Humidity
-        if (latest.solo?.humidade != null) {
-            document.getElementById('soilValue').textContent = formatHumidity(latest.solo.humidade);
-            document.getElementById('soilTrend').textContent = `Última medição: ${timeAgo(latest.timestamp)}`;
+
+        // Soil Humidity — procurar o registo mais recente com valor válido
+        const soilRec = data.find(d => validSensorVal(d.solo?.humidade));
+        if (soilRec) {
+            document.getElementById('soilValue').textContent = formatHumidity(soilRec.solo.humidade);
+            document.getElementById('soilTrend').textContent = `Última medição: ${timeAgo(soilRec.timestamp)}`;
+        } else {
+            document.getElementById('soilValue').textContent = '--%';
+            document.getElementById('soilTrend').textContent = 'Sem dados de humidade do solo';
         }
-        
-        // Pressure
-        if (latest.bme280?.pressao != null) {
-            document.getElementById('pressureValue').textContent = formatPressure(latest.bme280.pressao);
-            document.getElementById('pressureTrend').textContent = `Última medição: ${timeAgo(latest.timestamp)}`;
+
+        // Pressure — pressão atmosférica: 0 hPa também inválido; mínimo real ~870 hPa
+        const pressRec = data.find(d => d.bme280?.pressao != null && d.bme280.pressao > 100);
+        if (pressRec) {
+            document.getElementById('pressureValue').textContent = formatPressure(pressRec.bme280.pressao);
+            document.getElementById('pressureTrend').textContent = `Última medição: ${timeAgo(pressRec.timestamp)}`;
+        } else {
+            document.getElementById('pressureValue').textContent = '-- hPa';
+            document.getElementById('pressureTrend').textContent = 'Sem dados de pressão';
         }
-        
-        // Pest Detection Count
-        const pestDetections = data.filter(d => d.visao?.detecao_praga === true).length;
-        document.getElementById('pestCount').textContent = pestDetections;
-        document.getElementById('pestBadge').textContent = pestDetections > 0 ? 'Alerta' : 'Normal';
-        document.getElementById('pestBadge').className = `badge ${pestDetections > 0 ? 'badge-danger' : 'badge-success'}`;
-        
+
         // Vibration Count
         const vibrations = data.filter(d => d.vibracao?.detectada === true).length;
         document.getElementById('vibrationCount').textContent = vibrations;
-        document.getElementById('vibrationBadge').textContent = vibrations > 0 ? 'Sim' : 'Normal';
-        document.getElementById('vibrationBadge').className = `badge ${vibrations > 0 ? 'badge-warning' : 'badge-success'}`;
-        
-        // Active sensors (assume 5 sensors)
-        document.getElementById('activeSensors').textContent = '5';
-        document.getElementById('totalSensors').textContent = '5';
-        
+        document.getElementById('vibrationBadge').textContent = vibrations > 0 ? `${vibrations} Detectada(s)` : 'Normal';
+        document.getElementById('vibrationBadge').className   = `badge ${vibrations > 0 ? 'badge-warning' : 'badge-success'}`;
+
+        // Pest Detection Count — se vibração detectada, mostrar SIM e link para visão
+        const pestDetections = data.filter(d => d.visao?.detecao_praga === true).length;
+        const vibAlerta = document.getElementById('pestVibAlerta');
+        if (vibrations > 0) {
+            document.getElementById('pestCount').textContent = 'SIM';
+            document.getElementById('pestBadge').textContent = vibrations + ' Alerta(s)';
+            document.getElementById('pestBadge').className   = 'badge badge-danger';
+            if (vibAlerta) vibAlerta.classList.remove('hidden');
+        } else {
+            document.getElementById('pestCount').textContent = pestDetections > 0 ? pestDetections : '0';
+            document.getElementById('pestBadge').textContent = pestDetections > 0 ? `${pestDetections} Alerta(s)` : 'Sem pragas';
+            document.getElementById('pestBadge').className   = `badge ${pestDetections > 0 ? 'badge-danger' : 'badge-success'}`;
+            if (vibAlerta) vibAlerta.classList.add('hidden');
+        }
+
+        // Active sensors — contar sensores únicos activos nos dados
+        const sensoresAtivos = new Set(data.map(d => d.device_id).filter(Boolean)).size;
+        document.getElementById('activeSensors').textContent = sensoresAtivos || '—';
+        document.getElementById('totalSensors').textContent  = sensoresAtivos || '—';
+
         // Last update
         document.getElementById('lastUpdateTime').textContent = timeAgo(latest.timestamp);
-        
+
         dashboardState.lastDataTime = latest.timestamp;
     }
     
@@ -706,7 +762,7 @@
         }
         
         dashboardState.charts.sensorStatus.data.datasets[0].data = [normal || 1, warning || 0, critical || 0];
-        dashboardState.charts.sensorStatus.update('none');
+        dashboardState.charts.sensorStatus.update();
     }
     
     // Update readings bar chart
@@ -738,7 +794,7 @@
         
         dashboardState.charts.readingsBar.data.labels = Object.keys(hourCounts);
         dashboardState.charts.readingsBar.data.datasets[0].data = Object.values(hourCounts);
-        dashboardState.charts.readingsBar.update('none');
+        dashboardState.charts.readingsBar.update();
     }
     
     // Update line charts
@@ -753,13 +809,13 @@
         if (dashboardState.charts.temp) {
             dashboardState.charts.temp.data.labels = labels;
             dashboardState.charts.temp.data.datasets[0].data = temps;
-            dashboardState.charts.temp.update('none');
+            dashboardState.charts.temp.update();
         }
         
         if (dashboardState.charts.humidity) {
             dashboardState.charts.humidity.data.labels = labels;
             dashboardState.charts.humidity.data.datasets[0].data = humidity;
-            dashboardState.charts.humidity.update('none');
+            dashboardState.charts.humidity.update();
         }
     }
     
@@ -855,6 +911,47 @@
         tbody.innerHTML = html || '<tr><td colspan="5" class="text-center py-6 text-gray-500">Sem dados disponíveis</td></tr>';
     }
     
+    // ── ML: Carregar diagnóstico e recomendações ──────────────────────────
+    const _ML_CFG = {
+        seguro:  { bg:'bg-green-50',  border:'border-green-300', icon:'✅', label:'Sistema em Condições Normais',     badge:'badge-success', badgeText:'Seguro'   },
+        atencao: { bg:'bg-amber-50',  border:'border-amber-300', icon:'⚠️', label:'Atenção — Monitorar Condições',    badge:'badge-warning', badgeText:'Atenção'  },
+        alerta:  { bg:'bg-orange-50', border:'border-orange-300',icon:'🔶', label:'Alerta — Acção Recomendada',       badge:'badge-warning', badgeText:'Alerta'   },
+        critico: { bg:'bg-red-50',    border:'border-red-400',   icon:'🚨', label:'CRÍTICO — Acção Urgente Necessária',badge:'badge-danger',  badgeText:'Crítico'  },
+    };
+    const _UG_COLOR = { URGENTE:'border-red-400 bg-red-50', ALTA:'border-orange-400 bg-orange-50', MEDIA:'border-amber-300 bg-amber-50', BAIXA:'border-gray-200 bg-gray-50' };
+    const _UG_BADGE = { URGENTE:'badge-danger', ALTA:'badge-warning', MEDIA:'badge-info', BAIXA:'badge-success' };
+    const _CAT_ICON = {
+        'Gestão de Água':'💧','Segurança — Incêndio':'🔥','Praga Local':'🐛',
+        'Proteção de Culturas':'🐛','Saúde do Solo':'🌱','Condições Meteorológicas':'🌩️',
+        'Previsão Climática':'🔭','Colheita do Cafe':'☕'
+    };
+
+    async function carregarML() {
+        const spinner = document.getElementById('mlDashSpinner');
+        if (spinner) spinner.classList.add('animate-spin');
+        RecUI.setLoading('mlDashLista');
+        try {
+            const resp = await API.ml.alertas();
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            const dados = await resp.json();
+            renderizarML(dados);
+        } catch(e) {
+            RecUI.setError('mlDashLista', e.message, carregarML);
+        } finally {
+            if (spinner) spinner.classList.remove('animate-spin');
+        }
+    }
+
+    function renderizarML(dados) {
+        const nivel  = dados.nivel_geral || 'seguro';
+        const recom  = dados.recomendacoes || {};
+        const recs   = recom.recomendacoes || [];
+        const resumo = recom.resumo || 'Análise concluída.';
+        RecUI.renderBanner(nivel, resumo, dados.num_alertas || 0, 'mlDashBanner', 'mlDashBadge');
+        RecUI.renderLista(recs, 'mlDashLista', carregarML);
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     // Fetch dashboard data
     async function fetchDashboardData() {
         try {
@@ -929,6 +1026,7 @@
         console.log('[Dashboard] Initializing...');
         initCharts();
         await fetchDashboardData();
+        carregarML();
         setupAutoRefresh();
     });
     

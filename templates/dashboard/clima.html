@@ -70,6 +70,58 @@
     </div>
 </div>
 
+<!-- Interpretation Banner -->
+<div id="climaBanner" class="rounded-xl border-l-4 p-4 mb-6 flex items-start gap-3 hidden">
+    <i id="climaBannerIcon" class="text-2xl flex-shrink-0 mt-0.5"></i>
+    <div>
+        <p class="font-semibold text-sm" id="climaBannerTitle"></p>
+        <p class="text-xs mt-0.5" id="climaBannerMsg"></p>
+    </div>
+</div>
+
+<!-- Previsão ML -->
+<div id="mlClimaPanel" class="rec-panel mb-6 hidden">
+    <div class="rec-banner nivel-seguro" id="mlClimaBanner">
+        <div class="rec-banner-left">
+            <div class="rec-banner-icon">🔭</div>
+            <div class="rec-banner-text">
+                <div class="rec-banner-eyebrow">ML AgroCaua — Previsão Climática</div>
+                <div class="rec-banner-title">Previsão ML — Próximo Período</div>
+                <div class="rec-banner-subtitle">Estimativa do modelo com base nos últimos sensores</div>
+            </div>
+        </div>
+        <div class="rec-banner-right">
+            <span id="mlClimaAlertaBadge" class="rec-nivel-badge hidden"></span>
+        </div>
+    </div>
+    <div class="p-5">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div class="bg-white rounded-xl p-4 border border-blue-100 text-center">
+                <p class="text-xs font-600 text-gray-500 uppercase mb-1">Temp. Prevista</p>
+                <p class="text-2xl font-bold text-blue-800" id="mlTempPrevista">--°C</p>
+                <p class="text-xs mt-1" id="mlTempStatus">--</p>
+            </div>
+            <div class="bg-white rounded-xl p-4 border border-blue-100 text-center">
+                <p class="text-xs font-600 text-gray-500 uppercase mb-1">Hum. Prevista</p>
+                <p class="text-2xl font-bold text-blue-800" id="mlHumPrevista">--%</p>
+                <p class="text-xs mt-1" id="mlHumStatus">--</p>
+            </div>
+            <div class="bg-white rounded-xl p-4 border border-blue-100">
+                <p class="text-xs font-600 text-gray-500 uppercase mb-2">Mudança Climática</p>
+                <p class="text-sm font-semibold text-gray-800" id="mlMudancaNivel">--</p>
+                <p class="text-xs text-gray-500 mt-1" id="mlMudancaDetalhe">--</p>
+            </div>
+        </div>
+        <div id="mlClimaRecomendacao" class="rec-inline urg-media hidden" id="mlClimaRecomendacao">
+            <span class="rec-inline-icon">⛅</span>
+            <div class="rec-inline-body">
+                <div class="rec-inline-cat" id="mlClimaRecTitulo"></div>
+                <p class="rec-inline-text" id="mlClimaRecAccao"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Charts Section -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
     <!-- Temperature Variation -->
@@ -101,30 +153,56 @@
     </div>
 </div>
 
+<!-- Agro Tips Panel -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="card bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200">
+        <div class="flex items-center gap-2 mb-2">
+            <i class="icon-thermometer-sun text-orange-600"></i>
+            <span class="text-xs font-700 text-orange-800 uppercase">Temperatura</span>
+        </div>
+        <p class="text-xs text-orange-700" id="tempTip">A carregar interpretação...</p>
+    </div>
+    <div class="card bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
+        <div class="flex items-center gap-2 mb-2">
+            <i class="icon-droplets text-blue-600"></i>
+            <span class="text-xs font-700 text-blue-800 uppercase">Humidade do Ar</span>
+        </div>
+        <p class="text-xs text-blue-700" id="humTip">A carregar interpretação...</p>
+    </div>
+    <div class="card bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200">
+        <div class="flex items-center gap-2 mb-2">
+            <i class="icon-gauge text-purple-600"></i>
+            <span class="text-xs font-700 text-purple-800 uppercase">Pressão Atmosférica</span>
+        </div>
+        <p class="text-xs text-purple-700" id="pressTip">A carregar interpretação...</p>
+    </div>
+</div>
+
 <!-- Recent Climate Readings Table -->
 <div class="card group hover:shadow-lg transition-all duration-300">
-    <div class="flex justify-between items-center mb-4">
+    <div class="flex flex-wrap justify-between items-center gap-2 mb-4">
         <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <i class="icon-history text-green-600 text-xl"></i>
             Leituras Climáticas Recentes
         </h3>
-        <p class="text-sm text-gray-500">Histórico detalhado das últimas medições do sensor BME280</p>
+        <p class="text-xs text-gray-500">Histórico das últimas medições — Sensor BME280</p>
     </div>
 
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
             <thead>
                 <tr class="border-b border-gray-200 bg-gray-50">
-                    <th class="text-left py-3 px-4 font-600 text-gray-700">Humidade</th>
-                    <th class="text-left py-3 px-4 font-600 text-gray-700">Status</th>
-                    <th class="text-left py-3 px-4 font-600 text-gray-700">Recomendação</th>
-                    <th class="text-left py-3 px-4 font-600 text-gray-700">Temp. Solo</th>
-                    <th class="text-left py-3 px-4 font-600 text-gray-700">Hora</th>
+                    <th class="text-left py-3 px-3 font-600 text-gray-700">Temp.</th>
+                    <th class="text-left py-3 px-3 font-600 text-gray-700">Hum. Ar</th>
+                    <th class="text-left py-3 px-3 font-600 text-gray-700">Pressão</th>
+                    <th class="text-left py-3 px-3 font-600 text-gray-700">Risco Doenças</th>
+                    <th class="text-left py-3 px-3 font-600 text-gray-700">Condição</th>
+                    <th class="text-left py-3 px-3 font-600 text-gray-700">Hora</th>
                 </tr>
             </thead>
             <tbody id="climateReadingsBody">
                 <tr>
-                    <td colspan="5" class="text-center py-8 text-gray-500">
+                    <td colspan="6" class="text-center py-8 text-gray-500">
                         <div class="spinner mx-auto"></div>
                     </td>
                 </tr>
@@ -306,56 +384,164 @@
         }
     }
 
+    // ── Interpretation helpers ──────────────────────────────────────────────
+    function interpretTemp(t) {
+        if (t == null) return { label: '--', badgeClass: 'badge-info', tip: 'Sem dados de temperatura.' };
+        if (t < 15) return {
+            label: 'Muito Frio', badgeClass: 'badge-danger',
+            tip: `${t.toFixed(1)}°C — Temperatura abaixo de 15 °C pode danificar culturas tropicais. Proteja as plantas do frio.`
+        };
+        if (t < 18) return {
+            label: 'Fresco', badgeClass: 'badge-warning',
+            tip: `${t.toFixed(1)}°C — Crescimento lento. Acompanhe culturas sensíveis ao frio.`
+        };
+        if (t <= 32) return {
+            label: 'Ideal', badgeClass: 'badge-success',
+            tip: `${t.toFixed(1)}°C — Temperatura favorável para a maioria das culturas. Condições de crescimento óptimas.`
+        };
+        if (t <= 38) return {
+            label: 'Quente', badgeClass: 'badge-warning',
+            tip: `${t.toFixed(1)}°C — Calor elevado. Aumente a frequência de irrigação e monitorize o estresse hídrico.`
+        };
+        return {
+            label: 'Crítico', badgeClass: 'badge-danger',
+            tip: `${t.toFixed(1)}°C — Risco de queimadura foliar e morte celular. Irrigação imediata e protecção solar necessária.`
+        };
+    }
+
+    function interpretHumidity(h) {
+        if (h == null) return { label: '--', badgeClass: 'badge-info', riskLabel: '--', riskClass: 'badge-info', tip: 'Sem dados de humidade.' };
+        if (h < 40) return {
+            label: 'Seco', badgeClass: 'badge-warning',
+            riskLabel: 'Baixo', riskClass: 'badge-success',
+            tip: `${h.toFixed(0)}% — Ar seco aumenta a transpiração das plantas. Monitorize o solo e irriguem conforme necessário.`
+        };
+        if (h <= 60) return {
+            label: 'Ideal', badgeClass: 'badge-success',
+            riskLabel: 'Baixo', riskClass: 'badge-success',
+            tip: `${h.toFixed(0)}% — Humidade do ar óptima. Condições favoráveis para crescimento e baixo risco de doenças.`
+        };
+        if (h <= 80) return {
+            label: 'Elevado', badgeClass: 'badge-warning',
+            riskLabel: 'Médio', riskClass: 'badge-warning',
+            tip: `${h.toFixed(0)}% — Humidade elevada favorece fungos e bactérias. Melhore a ventilação e monitorize manchas foliares.`
+        };
+        return {
+            label: 'Crítico', badgeClass: 'badge-danger',
+            riskLabel: 'Alto', riskClass: 'badge-danger',
+            tip: `${h.toFixed(0)}% — Risco alto de doenças fúngicas (míldio, ferrugem). Aplique fungicida preventivo e melhore a drenagem.`
+        };
+    }
+
+    function interpretPressure(p) {
+        if (p == null) return { label: '--', badgeClass: 'badge-info', tip: 'Sem dados de pressão.' };
+        if (p < 1000) return {
+            label: 'Chuva Provável', badgeClass: 'badge-warning',
+            tip: `${p.toFixed(0)} hPa — Pressão baixa indica chuva ou tempestade. Suspenda aplicações de pesticidas e fertilizantes.`
+        };
+        if (p <= 1020) return {
+            label: 'Estável', badgeClass: 'badge-success',
+            tip: `${p.toFixed(0)} hPa — Pressão normal. Tempo estável e favorável para operações agrícolas.`
+        };
+        return {
+            label: 'Tempo Seco', badgeClass: 'badge-info',
+            tip: `${p.toFixed(0)} hPa — Alta pressão indica tempo seco. Aumente a atenção à irrigação.`
+        };
+    }
+
+    function updateBanner(temp, humidity, pressure) {
+        const banner = document.getElementById('climaBanner');
+        const ti = interpretTemp(temp);
+        const hi = interpretHumidity(humidity);
+
+        // Show banner only for warning/danger conditions
+        let msg = null, title = null, color = null, icon = null;
+        if (ti.badgeClass === 'badge-danger') {
+            title = `Alerta de Temperatura: ${ti.label}`;
+            msg = ti.tip;
+            color = 'bg-red-50 border-red-500 text-red-800';
+            icon = 'icon-alert-triangle text-red-600';
+        } else if (hi.badgeClass === 'badge-danger') {
+            title = `Risco de Doenças: Humidade ${hi.label}`;
+            msg = hi.tip;
+            color = 'bg-orange-50 border-orange-500 text-orange-800';
+            icon = 'icon-alert-circle text-orange-600';
+        } else if (ti.badgeClass === 'badge-warning') {
+            title = `Atenção: Temperatura ${ti.label}`;
+            msg = ti.tip;
+            color = 'bg-amber-50 border-amber-400 text-amber-800';
+            icon = 'icon-info text-amber-600';
+        }
+
+        if (msg) {
+            banner.className = `rounded-xl border-l-4 p-4 mb-6 flex items-start gap-3 ${color}`;
+            document.getElementById('climaBannerIcon').className = `text-2xl flex-shrink-0 mt-0.5 ${icon}`;
+            document.getElementById('climaBannerTitle').textContent = title;
+            document.getElementById('climaBannerMsg').textContent = msg;
+            banner.classList.remove('hidden');
+        } else {
+            banner.classList.add('hidden');
+        }
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
     function updateKPIs(data) {
         if (!data || data.length === 0) return;
-        
-        const latest = data[0];
-        
-        // Get temperature data
-        if (latest.bme280?.temperatura != null) {
-            const temp = latest.bme280.temperatura;
+
+        // Helper: 0 é valor inválido (sensor não inicializado)
+        function validSVal(v) { return v != null && v !== 0; }
+
+        // Procurar registo mais recente com valor válido (não null, não 0)
+        const tempRec     = data.find(d => validSVal(d.bme280?.temperatura));
+        const humidityRec = data.find(d => validSVal(d.bme280?.humidade));
+        const pressureRec = data.find(d => d.bme280?.pressao != null && d.bme280.pressao > 100);
+
+        const temp     = tempRec     ? tempRec.bme280.temperatura       : null;
+        const humidity = humidityRec ? humidityRec.bme280.humidade      : null;
+        const pressure = pressureRec ? pressureRec.bme280.pressao       : null;
+
+        // Temperature
+        if (temp != null) {
+            const ti = interpretTemp(temp);
             document.getElementById('tempValue').textContent = temp.toFixed(1) + '°C';
-            document.getElementById('tempStatus').textContent = 'OK';
-            
-            // Calculate min/max from available data
-            const temps = data.filter(d => d.bme280?.temperatura != null).map(d => d.bme280.temperatura);
+            document.getElementById('tempStatus').textContent = ti.label;
+            document.getElementById('tempStatus').className = `text-sm font-600 badge ${ti.badgeClass}`;
+            document.getElementById('tempTip').textContent = ti.tip;
+
+            const temps = data.filter(d => validSVal(d.bme280?.temperatura)).map(d => d.bme280.temperatura);
             if (temps.length > 0) {
-                const minTemp = Math.min(...temps);
-                const maxTemp = Math.max(...temps);
-                document.getElementById('tempRange').textContent = `Mín: ${minTemp.toFixed(1)}°C / Máx: ${maxTemp.toFixed(1)}°C`;
+                document.getElementById('tempRange').textContent = `Mín: ${Math.min(...temps).toFixed(1)}°C / Máx: ${Math.max(...temps).toFixed(1)}°C`;
             }
         }
-        
-        // Get humidity data
-        if (latest.bme280?.humidade != null) {
-            const humidity = latest.bme280.humidade;
+
+        // Humidity
+        if (humidity != null) {
+            const hi = interpretHumidity(humidity);
             document.getElementById('humidityValue').textContent = humidity.toFixed(0) + '%';
-            
-            // Calculate trend
-            if (data.length > 1 && data[1].bme280?.humidade != null) {
-                const prevHumidity = data[1].bme280.humidade;
-                const trend = humidity - prevHumidity;
-                const trendText = trend > 0 ? '↑ +' + trend.toFixed(1) : (trend < 0 ? '↓ ' + trend.toFixed(1) : '→');
-                document.getElementById('humidityTrend').textContent = trendText;
+            document.getElementById('humTip').textContent = hi.tip;
+
+            const idx = data.indexOf(humidityRec);
+            if (idx >= 0 && data[idx + 1]?.bme280?.humidade != null && data[idx + 1].bme280.humidade !== 0) {
+                const trend = humidity - data[idx + 1].bme280.humidade;
+                document.getElementById('humidityTrend').textContent = trend > 0 ? '↑ +' + trend.toFixed(1) : (trend < 0 ? '↓ ' + trend.toFixed(1) : '→ estável');
             }
-            
-            // Calculate min/max
-            const humidities = data.filter(d => d.bme280?.humidade != null).map(d => d.bme280.humidade);
+
+            const humidities = data.filter(d => validSVal(d.bme280?.humidade)).map(d => d.bme280.humidade);
             if (humidities.length > 0) {
-                const minHum = Math.min(...humidities);
-                const maxHum = Math.max(...humidities);
-                document.getElementById('humidityRange').textContent = `Mín: ${minHum.toFixed(0)}% / Máx: ${maxHum.toFixed(0)}%`;
+                document.getElementById('humidityRange').textContent = `Mín: ${Math.min(...humidities).toFixed(0)}% / Máx: ${Math.max(...humidities).toFixed(0)}%`;
             }
         }
-        
-        // Get pressure data
-        if (latest.bme280?.pressao != null) {
-            const pressure = latest.bme280.pressao;
+
+        // Pressure
+        if (pressure != null) {
+            const pi = interpretPressure(pressure);
             document.getElementById('pressureValue').textContent = pressure.toFixed(0) + ' hPa';
-            document.getElementById('pressureStatus').textContent = 'OK';
+            document.getElementById('pressureStatus').textContent = pi.label;
+            document.getElementById('pressTip').textContent = pi.tip;
         }
-        
-        // Update station status and last reading time
+
+        // Banner and station
+        updateBanner(temp, humidity, pressure);
         document.getElementById('stationStatus').textContent = 'ATIVO';
         document.getElementById('lastReadingTime').textContent = 'Última leitura: há ' + timeAgo(latest.timestamp);
     }
@@ -386,30 +572,114 @@
 
     function updateClimateReadings(data) {
         const tbody = document.getElementById('climateReadingsBody');
-        
+
         if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-gray-500">Sem dados disponíveis</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-gray-500">Sem dados disponíveis</td></tr>';
             return;
         }
-        
-        const html = data.map(item => {
-            const humidity = item.bme280?.humidade || '--';
-            const soilTemp = item.solo?.humidade || '--';
+
+        tbody.innerHTML = data.map(item => {
+            const temp     = item.bme280?.temperatura ?? null;
+            const humidity = item.bme280?.humidade ?? null;
+            const pressure = item.bme280?.pressao ?? null;
             const timestamp = formatTimestamp(item.timestamp);
-            
+
+            const ti = interpretTemp(temp);
+            const hi = interpretHumidity(humidity);
+            const pi = interpretPressure(pressure);
+
             return `
                 <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                    <td class="py-3 px-4 font-bold text-gray-900">${typeof humidity === 'number' ? humidity.toFixed(0) : humidity}%</td>
-                    <td class="py-3 px-4"><span class="badge badge-success">Normal</span></td>
-                    <td class="py-3 px-4 text-gray-500">--</td>
-                    <td class="py-3 px-4 text-gray-700">${typeof soilTemp === 'number' ? soilTemp.toFixed(1) : soilTemp}°C</td>
-                    <td class="py-3 px-4 text-gray-500">${timestamp}</td>
+                    <td class="py-3 px-3 font-bold text-gray-900">${temp != null ? temp.toFixed(1) + '°C' : '--'}</td>
+                    <td class="py-3 px-3 text-gray-700">${humidity != null ? humidity.toFixed(0) + '%' : '--'}</td>
+                    <td class="py-3 px-3 text-gray-700">${pressure != null ? pressure.toFixed(0) + ' hPa' : '--'}</td>
+                    <td class="py-3 px-3"><span class="badge ${hi.riskClass}">${hi.riskLabel}</span></td>
+                    <td class="py-3 px-3"><span class="badge ${pi.badgeClass}">${pi.label}</span></td>
+                    <td class="py-3 px-3 text-gray-500 whitespace-nowrap">${timestamp}</td>
                 </tr>
             `;
         }).join('');
-        
-        tbody.innerHTML = html;
     }
+
+    // ── ML: Previsão climática ──────────────────────────────────────────────
+    async function carregarMLClima() {
+        try {
+            const resp = await API.ml.alertas();
+            if (!resp.ok) return;
+            const dados = await resp.json();
+            renderizarMLClima(dados);
+        } catch(e) { console.warn('[Clima] ML indisponível:', e); }
+    }
+
+    function renderizarMLClima(dados) {
+        const previsoes  = dados.previsoes  || {};
+        const recom      = dados.recomendacoes || {};
+        const alertas    = previsoes.alertas  || {};
+        const climaFut   = previsoes.clima_futuro || {};
+        const mc         = alertas.mudanca_climatica || {};
+        const recs       = (recom.recomendacoes || []);
+
+        const tempPrev = climaFut.temperatura_prevista;
+        const humPrev  = climaFut.humidade_prevista;
+
+        if (tempPrev == null && humPrev == null && !mc.nivel) return;
+
+        document.getElementById('mlClimaPanel').classList.remove('hidden');
+
+        // Update banner
+        const nivelGeral = dados.nivel_geral || 'seguro';
+        const resumoClima = (dados.recomendacoes || {}).resumo || 'Previsão climática concluída.';
+        RecUI.renderBanner(nivelGeral, resumoClima, dados.num_alertas || 0, 'mlClimaBanner', 'mlClimaAlertaBadge');
+
+        // Temperatura prevista
+        if (tempPrev != null) {
+            document.getElementById('mlTempPrevista').textContent = tempPrev.toFixed(1) + '°C';
+            const ok = tempPrev >= 18 && tempPrev <= 32;
+            const status = ok ? '✅ Dentro do ideal' : (tempPrev > 32 ? '⚠️ Acima do limite' : '⚠️ Abaixo do ideal');
+            document.getElementById('mlTempStatus').textContent = status;
+            document.getElementById('mlTempStatus').className   = `text-xs mt-1 ${ok ? 'text-green-600' : 'text-orange-600'}`;
+        }
+
+        // Humidade prevista
+        if (humPrev != null) {
+            document.getElementById('mlHumPrevista').textContent = humPrev.toFixed(1) + '%';
+            const ok = humPrev >= 40 && humPrev <= 75;
+            document.getElementById('mlHumStatus').textContent = ok ? '✅ Dentro do ideal' : '⚠️ Fora da zona ideal';
+            document.getElementById('mlHumStatus').className   = `text-xs mt-1 ${ok ? 'text-green-600' : 'text-orange-600'}`;
+        }
+
+        // Mudança climática
+        if (mc.nivel) {
+            const lvlMap = { baixo:'🟢 Baixa', moderado:'🟡 Moderada', alto:'🟠 Alta', critico:'🔴 Crítica' };
+            document.getElementById('mlMudancaNivel').textContent  = lvlMap[mc.nivel] || mc.nivel;
+            document.getElementById('mlMudancaDetalhe').textContent =
+                mc.delta_temperatura != null
+                    ? `Δ Temp: ${mc.delta_temperatura.toFixed(1)}°C | Δ Pressão: ${(mc.delta_pressao||0).toFixed(1)} hPa em ${(mc.intervalo_minutos||60).toFixed(0)} min`
+                    : '--';
+        }
+
+        // Badge de nível geral
+        const nvl = dados.nivel_geral || 'seguro';
+        const clsBanner = document.getElementById('mlClimaBanner');
+        if (clsBanner) {
+            clsBanner.classList.remove('nivel-seguro','nivel-atencao','nivel-alerta','nivel-critico');
+            clsBanner.classList.add('nivel-' + nvl);
+        }
+        const b = document.getElementById('mlClimaAlertaBadge');
+        if (b) {
+            const bClsMap = { seguro:'seguro', atencao:'atencao', alerta:'alerta', critico:'critico' };
+            b.className   = `rec-nivel-badge ${bClsMap[nvl]||'atencao'}`;
+            b.textContent = nvl.charAt(0).toUpperCase() + nvl.slice(1);
+            b.classList.remove('hidden');
+        }
+
+        // Recomendação de previsão climática
+        const recClima = recs.find(r => r.categoria === 'Previsão Climática' || r.categoria === 'Condições Meteorológicas');
+        if (recClima) {
+            RecUI.renderInline(recClima, 'mlClimaRecomendacao');
+        }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
 
     // Setup auto-refresh
     function setupAutoRefresh() {
@@ -429,6 +699,7 @@
         console.log('[Clima] Initializing...');
         initCharts();
         fetchClimateData();
+        carregarMLClima();
         setupAutoRefresh();
     });
 

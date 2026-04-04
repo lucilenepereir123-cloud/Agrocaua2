@@ -9,7 +9,7 @@
 {% block content %}
 
 <!-- Sensor Status Cards -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8" id="sensorKpiGrid">
     <!-- BME280 Status -->
     <div class="kpi-card-compact group cursor-pointer hover:border-green-300">
         <div class="flex items-center gap-3">
@@ -18,8 +18,8 @@
             </div>
             <div>
                 <p class="text-xs font-600 text-gray-500 uppercase">BME280</p>
-                <p class="font-bold text-green-600">Online</p>
-                <p class="text-xs text-gray-500">99.8% uptime</p>
+                <p class="font-bold" id="kpi-bme280-status">—</p>
+                <p class="text-xs text-gray-500" id="kpi-bme280-ts">A carregar...</p>
             </div>
         </div>
     </div>
@@ -32,8 +32,8 @@
             </div>
             <div>
                 <p class="text-xs font-600 text-gray-500 uppercase">GPS</p>
-                <p class="font-bold text-blue-600">Online</p>
-                <p class="text-xs text-gray-500">100% precisão</p>
+                <p class="font-bold" id="kpi-gps-status">—</p>
+                <p class="text-xs text-gray-500" id="kpi-gps-ts">A carregar...</p>
             </div>
         </div>
     </div>
@@ -46,8 +46,8 @@
             </div>
             <div>
                 <p class="text-xs font-600 text-gray-500 uppercase">SOLO</p>
-                <p class="font-bold text-amber-600">Alerta</p>
-                <p class="text-xs text-gray-500">98.5% uptime</p>
+                <p class="font-bold" id="kpi-solo-status">—</p>
+                <p class="text-xs text-gray-500" id="kpi-solo-ts">A carregar...</p>
             </div>
         </div>
     </div>
@@ -60,8 +60,8 @@
             </div>
             <div>
                 <p class="text-xs font-600 text-gray-500 uppercase">VIBRAÇÃO</p>
-                <p class="font-bold text-orange-600">Online</p>
-                <p class="text-xs text-gray-500">97.6% uptime</p>
+                <p class="font-bold" id="kpi-vibracao-status">—</p>
+                <p class="text-xs text-gray-500" id="kpi-vibracao-ts">A carregar...</p>
             </div>
         </div>
     </div>
@@ -74,8 +74,8 @@
             </div>
             <div>
                 <p class="text-xs font-600 text-gray-500 uppercase">VISÃO</p>
-                <p class="font-bold text-purple-600">Online</p>
-                <p class="text-xs text-gray-500">97.8% uptime</p>
+                <p class="font-bold" id="kpi-visao-status">—</p>
+                <p class="text-xs text-gray-500" id="kpi-visao-ts">A carregar...</p>
             </div>
         </div>
     </div>
@@ -86,6 +86,47 @@
             <i class="icon-plus text-lg"></i>
             <span>Novo Sensor</span>
         </button>
+    </div>
+</div>
+
+<!-- Modal: Novo Sensor -->
+<div id="newSensorModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+    <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4">
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <i class="icon-cpu text-green-600"></i> Novo Sensor
+            </h3>
+            <button onclick="closeNewSensorModal()" class="text-gray-400 hover:text-gray-600 text-xl font-bold">✕</button>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-xs font-600 text-gray-500 uppercase mb-1">Nome / Device ID <span class="text-red-500">*</span></label>
+                <input id="newSensorNome" type="text" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" placeholder="Ex.: sensor-001">
+                <p class="text-xs text-red-500 hidden mt-1" id="errSensorNome">Nome obrigatório</p>
+            </div>
+            <div>
+                <label class="block text-xs font-600 text-gray-500 uppercase mb-1">Tipo <span class="text-red-500">*</span></label>
+                <select id="newSensorTipo" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400">
+                    <option value="">Seleccionar tipo...</option>
+                    <option value="Clima">Clima (BME280)</option>
+                    <option value="Solo">Solo (Humidade)</option>
+                    <option value="GPS">GPS</option>
+                    <option value="Câmara">Câmara (Visão)</option>
+                </select>
+                <p class="text-xs text-red-500 hidden mt-1" id="errSensorTipo">Tipo obrigatório</p>
+            </div>
+            <div>
+                <label class="block text-xs font-600 text-gray-500 uppercase mb-1">Bateria (%)</label>
+                <input id="newSensorBateria" type="number" min="0" max="100" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" placeholder="100" value="100">
+                <p class="text-xs text-red-500 hidden mt-1" id="errSensorBateria">Valor entre 0 e 100</p>
+            </div>
+        </div>
+        <div class="flex gap-3 mt-6">
+            <button onclick="closeNewSensorModal()" class="flex-1 btn btn-secondary">Cancelar</button>
+            <button onclick="saveNewSensor()" class="flex-1 btn btn-primary">
+                <i class="icon-plus text-lg"></i> Adicionar
+            </button>
+        </div>
     </div>
 </div>
 
@@ -362,155 +403,153 @@
     // Update charts with sensor data
     function updateCharts(data) {
         if (!data || data.length === 0) return;
-        
+
         // Count readings by sensor type
-        const latest = data[0];
         const sensorCounts = {
-            'BME280': data.filter(d => d.bme280?.temperatura != null).length,
-            'GPS': data.filter(d => d.gps).length,
-            'SOLO': data.filter(d => d.solo?.humidade != null).length,
+            'BME280':   data.filter(d => d.bme280?.temperatura != null).length,
+            'GPS':      data.filter(d => d.gps).length,
+            'SOLO':     data.filter(d => d.solo?.humidade != null).length,
             'VIBRAÇÃO': data.filter(d => d.vibracao != null).length,
-            'VISÃO': data.filter(d => d.visao).length
+            'VISÃO':    data.filter(d => d.visao).length
         };
-        
+
         // Update sensor activity chart
         if (sensoresState.charts.activity) {
-            sensoresState.charts.activity.data.labels = Object.keys(sensorCounts);
+            sensoresState.charts.activity.data.labels   = Object.keys(sensorCounts);
             sensoresState.charts.activity.data.datasets[0].data = Object.values(sensorCounts);
             sensoresState.charts.activity.update('none');
         }
-        
-        // Update transmission quality (using availability metric)
+
+        // Transmission quality — agrupar leituras por hora (últimas 12h)
         if (sensoresState.charts.transmission) {
-            const last12Hours = [];
+            const now   = new Date();
+            const hourBuckets = {};
             for (let i = 11; i >= 0; i--) {
-                const hour = new Date();
-                hour.setHours(hour.getHours() - i);
-                last12Hours.push(String(hour.getHours()).padStart(2, '0') + 'h');
+                const h = new Date(now);
+                h.setHours(now.getHours() - i, 0, 0, 0);
+                hourBuckets[h.getHours()] = 0;
             }
-            sensoresState.charts.transmission.data.labels = last12Hours;
-            sensoresState.charts.transmission.data.datasets[0].data = last12Hours.map(() => 98 + Math.random() * 1.5);
+            data.forEach(d => {
+                if (!d.timestamp) return;
+                const ts  = new Date(d.timestamp);
+                const age = (now - ts) / 3600000; // horas
+                if (age <= 12) {
+                    const hh = ts.getHours();
+                    if (hh in hourBuckets) hourBuckets[hh]++;
+                }
+            });
+            const maxVal = Math.max(...Object.values(hourBuckets), 1);
+            const qualidade = Object.values(hourBuckets).map(v => Math.round((v / maxVal) * 100));
+            const labels12h = Object.keys(hourBuckets).map(h => String(h).padStart(2,'0') + 'h');
+            sensoresState.charts.transmission.data.labels = labels12h;
+            sensoresState.charts.transmission.data.datasets[0].data = qualidade;
             sensoresState.charts.transmission.update('none');
         }
-        
-        // Update annual health chart - show data availability over time
+
+        // Annual health — leituras por dia (últimos 7 dias)
         if (sensoresState.charts.annualHealth) {
-            const last7Days = [];
+            const dayNames = ['Dom','Seg','Ter','Qua','Qui','Sex','Sab'];
+            const dayBuckets = {};
             for (let i = 6; i >= 0; i--) {
-                const day = new Date();
-                day.setDate(day.getDate() - i);
-                const dayOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'][day.getDay()];
-                last7Days.push(dayOfWeek);
+                const d = new Date(); d.setDate(d.getDate() - i); d.setHours(0,0,0,0);
+                dayBuckets[d.toDateString()] = { leituras: 0, vibracoes: 0, label: dayNames[d.getDay()] };
             }
-            sensoresState.charts.annualHealth.data.labels = last7Days;
-            const uptime = last7Days.map(() => 98 + Math.random() * 1.5);
-            const quality = last7Days.map(() => 97 + Math.random() * 2.5);
+            data.forEach(d => {
+                if (!d.timestamp) return;
+                const ts  = new Date(d.timestamp);
+                const key = ts.toDateString();
+                if (key in dayBuckets) {
+                    dayBuckets[key].leituras++;
+                    if (d.vibracao?.detectada) dayBuckets[key].vibracoes++;
+                }
+            });
+            const vals   = Object.values(dayBuckets);
+            const maxL   = Math.max(...vals.map(v => v.leituras), 1);
+            const uptime  = vals.map(v => Math.round((v.leituras / maxL) * 100));
+            const alertas = vals.map(v => v.vibracoes);
+            sensoresState.charts.annualHealth.data.labels = vals.map(v => v.label);
             sensoresState.charts.annualHealth.data.datasets[0].data = uptime;
-            sensoresState.charts.annualHealth.data.datasets[1].data = quality;
+            sensoresState.charts.annualHealth.data.datasets[1].data = alertas;
             sensoresState.charts.annualHealth.update('none');
         }
     }
 
-    function updateSensorsTable(data) {
+    // ── Tabela de sensores reais registados na fazenda ──────────
+    function updateSensorsTable(sensores, _ultimoDadoGlobal) {
         const tbody = document.getElementById('sensorsTableBody');
-        
-        if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-gray-500">Sem dados disponíveis</td></tr>';
+
+        if (!sensores || sensores.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-gray-500">Sem sensores registados nesta fazenda</td></tr>';
             return;
         }
-        
-        // Map sensor types from data
-        const sensors = [];
-        const latest = data[0];
-        
-        if (latest.bme280?.temperatura != null) {
-            sensors.push({
-                id: 'BME280-001',
-                type: 'Clima',
-                status: 'online',
-                lastRead: timeAgo(latest.timestamp),
-                battery: '87%',
-                signal: '📶'
-            });
+
+        function badgeClass(status) {
+            if (status === 'online')  return 'badge-success';
+            if (status === 'offline') return 'badge-danger';
+            return 'badge-warning';
         }
-        
-        if (latest.gps) {
-            sensors.push({
-                id: 'GPS-001',
-                type: 'Localização',
-                status: 'online',
-                lastRead: timeAgo(latest.timestamp),
-                battery: '92%',
-                signal: '📶'
-            });
+
+        function sensorStatusLabel(sensor) {
+            // Se o sensor tem ultimo_dado próprio → está a comunicar → online
+            if (sensor.ultimo_dado && sensor.ultimo_dado.timestamp) return 'online';
+            // Se o status na BD for explicitamente offline
+            if (sensor.status === 'offline') return 'offline';
+            if (sensor.status === 'warn')    return 'aviso';
+            // Sem dados IoT registados → nunca comunicou
+            return 'sem dados';
         }
-        
-        if (latest.solo?.humidade != null) {
-            sensors.push({
-                id: 'SOIL-001',
-                type: 'Humidade Solo',
-                status: latest.solo.humidade < 30 ? 'warning' : 'online',
-                lastRead: timeAgo(latest.timestamp),
-                battery: '65%',
-                signal: '📶'
-            });
-        }
-        
-        if (latest.vibracao != null) {
-            sensors.push({
-                id: 'VIB-001',
-                type: 'Vibração',
-                status: latest.vibracao ? 'warning' : 'online',
-                lastRead: timeAgo(latest.timestamp),
-                battery: '78%',
-                signal: '📶'
-            });
-        }
-        
-        if (latest.visao) {
-            sensors.push({
-                id: 'VISAO-001',
-                type: 'Monitoramento',
-                status: latest.visao.detecao_praga ? 'warning' : 'online',
-                lastRead: timeAgo(latest.timestamp),
-                battery: '45%',
-                signal: '📶'
-            });
-        }
-        
-        tbody.innerHTML = sensors.map(s => `
+
+        tbody.innerHTML = sensores.map(s => {
+            const st  = sensorStatusLabel(s);
+            const bat = s.bateria != null ? `${s.bateria}%` : '—';
+            // Usar o ultimo_dado específico deste sensor
+            const ts  = s.ultimo_dado?.timestamp ? timeAgo(s.ultimo_dado.timestamp) : 'Nunca';
+            const bCls = st === 'online' ? 'badge-success'
+                       : st === 'offline' ? 'badge-danger'
+                       : st === 'sem dados' ? 'badge-info'
+                       : 'badge-warning';
+            return `
             <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                <td class="py-3 px-4 font-500 text-gray-900">${s.id}</td>
-                <td class="py-3 px-4 text-gray-700">${s.type}</td>
+                <td class="py-3 px-4 font-500 text-gray-900">${s.nome}</td>
+                <td class="py-3 px-4 text-gray-700">${s.tipo || '—'}</td>
                 <td class="py-3 px-4">
-                    <span class="badge ${s.status === 'online' ? 'badge-success' : 'badge-warning'}">
-                        ${s.status === 'online' ? 'online' : 'warning'}
-                    </span>
+                    <span class="badge ${bCls}">${st}</span>
                 </td>
-                <td class="py-3 px-4 text-gray-700">⏱ ${s.lastRead}</td>
-                <td class="py-3 px-4 text-gray-700 font-500">${s.battery}</td>
-                <td class="py-3 px-4 text-gray-700 font-500">${s.signal}</td>
+                <td class="py-3 px-4 text-gray-700">⏱ ${ts}</td>
+                <td class="py-3 px-4 text-gray-700 font-500">${bat}</td>
+                <td class="py-3 px-4 text-gray-700 font-500">📶</td>
                 <td class="py-3 px-4 text-center">
-                    <button class="text-green-600 hover:text-green-700 font-500">⟳</button>
+                    <button class="text-green-600 hover:text-green-700 font-500" title="Actualizar">⟳</button>
                 </td>
-            </tr>
-        `).join('');
+            </tr>`;
+        }).join('');
     }
 
-    // Fetch sensor data from API
+    // ── Fetch: sensores reais da fazenda + dados IoT para gráficos ──
     async function fetchSensoresData() {
         try {
-            const response = await API.getAllData();
-            if (response.ok) {
-                const data = await response.json();
-                if (Array.isArray(data) && data.length > 0) {
-                    updateCharts(data);
-                    updateSensorsTable(data);
-                    console.log('[Sensores] Data loaded successfully');
-                } else {
-                    showWarning('Nenhum dado disponível');
+            // 1. Dados IoT filtrados pela fazenda (para gráficos de actividade)
+            const iotResp = await API.getAllData();
+            if (iotResp.ok) {
+                const iotData = await iotResp.json();
+                if (Array.isArray(iotData) && iotData.length > 0) {
+                    updateCharts(iotData);
                 }
             }
+
+            // 2. Sensores reais registados na fazenda do agricultor
+            const sensResp = await API.fazenda.sensores();
+            if (sensResp.ok) {
+                const sensData = await sensResp.json();
+                const lista = sensData.sensores || [];
+                updateSensorsTable(lista, sensData.ultimo_dado || null);
+                updateKpiCards(lista);
+                console.log(`[Sensores] ${lista.length} sensor(es) carregado(s) — fazenda: ${sensData.fazenda_nome || '?'}`);
+            } else {
+                console.warn('[Sensores] Não foi possível obter sensores da fazenda:', sensResp.status);
+                showWarning('Não foi possível carregar os sensores da fazenda');
+            }
+
         } catch (error) {
             console.error('[Sensores] Error:', error);
             showError('Erro ao carregar dados dos sensores');
@@ -531,9 +570,122 @@
         }, 60000); // 60 seconds
     }
 
-    function openNewSensorModal() {
-        showInfo('Funcionalidade de novo sensor em desenvolvimento');
+    // ── KPI Cards dinâmicos ───────────────────────────────────────────
+    // Mapeia tipo de sensor → chave do card KPI
+    const TIPO_KPI_MAP = {
+        'clima': 'bme280', 'bme280': 'bme280',
+        'solo':  'solo',
+        'gps':   'gps',
+        'câmara': 'visao', 'camara': 'visao', 'visão': 'visao', 'visao': 'visao',
+        'vibração': 'vibracao', 'vibracao': 'vibracao'
+    };
+
+    function updateKpiCards(sensores) {
+        // Determinar status de cada card a partir dos sensores reais
+        const statusMap = { bme280: null, gps: null, solo: null, vibracao: null, visao: null };
+
+        sensores.forEach(s => {
+            const chave = TIPO_KPI_MAP[(s.tipo || '').toLowerCase().trim()];
+            if (!chave) return;
+            const st = sensorStatusLabel(s);
+            // Se já há um status para este tipo, priorizar: online > offline > sem dados
+            const priority = { 'online': 3, 'aviso': 2, 'offline': 1, 'sem dados': 0 };
+            if (statusMap[chave] === null || (priority[st] || 0) > (priority[statusMap[chave]] || 0)) {
+                statusMap[chave] = { st, ts: s.ultimo_dado?.timestamp || null };
+            }
+        });
+
+        const colorMap = {
+            'online':    { text: 'text-green-600',  label: 'Online' },
+            'offline':   { text: 'text-red-600',    label: 'Offline' },
+            'aviso':     { text: 'text-amber-600',  label: 'Aviso' },
+            'sem dados': { text: 'text-gray-400',   label: 'Sem dados' }
+        };
+
+        Object.entries(statusMap).forEach(([chave, val]) => {
+            const elSt = document.getElementById(`kpi-${chave}-status`);
+            const elTs = document.getElementById(`kpi-${chave}-ts`);
+            if (!elSt) return;
+            if (!val) {
+                elSt.textContent = 'Sem dados';
+                elSt.className = 'font-bold text-gray-400';
+                if (elTs) elTs.textContent = 'Sensor não registado';
+                return;
+            }
+            const cfg = colorMap[val.st] || colorMap['sem dados'];
+            elSt.textContent = cfg.label;
+            elSt.className = `font-bold ${cfg.text}`;
+            if (elTs) elTs.textContent = val.ts ? timeAgo(val.ts) : 'Nunca comunicou';
+        });
     }
+
+    // ── Modal: Novo Sensor ──────────────────────────────────────────
+    function openNewSensorModal() {
+        document.getElementById('newSensorNome').value = '';
+        document.getElementById('newSensorTipo').value = '';
+        document.getElementById('newSensorBateria').value = '100';
+        ['errSensorNome','errSensorTipo','errSensorBateria'].forEach(id => {
+            document.getElementById(id).classList.add('hidden');
+        });
+        ['newSensorNome','newSensorTipo','newSensorBateria'].forEach(id => {
+            document.getElementById(id).classList.remove('border-red-400');
+        });
+        const m = document.getElementById('newSensorModal');
+        m.classList.remove('hidden');
+    }
+
+    function closeNewSensorModal() {
+        document.getElementById('newSensorModal').classList.add('hidden');
+    }
+
+    function _fieldError(inputId, errId, show) {
+        const inp = document.getElementById(inputId);
+        const err = document.getElementById(errId);
+        if (show) {
+            inp.classList.add('border-red-400');
+            err.classList.remove('hidden');
+        } else {
+            inp.classList.remove('border-red-400');
+            err.classList.add('hidden');
+        }
+    }
+
+    async function saveNewSensor() {
+        const nome    = document.getElementById('newSensorNome').value.trim();
+        const tipo    = document.getElementById('newSensorTipo').value;
+        const bateria = parseInt(document.getElementById('newSensorBateria').value || '100', 10);
+
+        let valid = true;
+        _fieldError('newSensorNome', 'errSensorNome', !nome);
+        if (!nome) valid = false;
+        _fieldError('newSensorTipo', 'errSensorTipo', !tipo);
+        if (!tipo) valid = false;
+        const batInvalid = isNaN(bateria) || bateria < 0 || bateria > 100;
+        _fieldError('newSensorBateria', 'errSensorBateria', batInvalid);
+        if (batInvalid) valid = false;
+        if (!valid) return;
+
+        try {
+            const resp = await API.admin.createSensor({ nome, tipo, bateria, status: 'online' });
+            if (resp.ok) {
+                closeNewSensorModal();
+                showSuccess('Sensor adicionado com sucesso!');
+                fetchSensoresData();
+            } else {
+                const err = await resp.json().catch(() => ({}));
+                showError(err.erro || 'Erro ao adicionar sensor');
+            }
+        } catch (e) {
+            console.error(e);
+            showError('Erro de ligação ao servidor');
+        }
+    }
+
+    // Fechar modal ao clicar fora
+    document.addEventListener('click', function(e) {
+        const modal = document.getElementById('newSensorModal');
+        if (e.target === modal) closeNewSensorModal();
+    });
 
     // Initialize
     document.addEventListener('DOMContentLoaded', () => {
