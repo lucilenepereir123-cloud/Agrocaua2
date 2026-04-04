@@ -32,7 +32,7 @@ app.register_blueprint(admin_api_bp)
 app.register_blueprint(zones_export_bp)
 
 with app.app_context():
-    db.create_all()
+    db.create_all(checkfirst=True)
 
     # ── Migração: adicionar colunas novas se não existirem ──
     from sqlalchemy import text, inspect as sa_inspect
