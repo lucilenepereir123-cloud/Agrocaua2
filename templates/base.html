@@ -198,6 +198,74 @@
             z-index: 30;
         }
     </style>
+
+    <!-- ═══ RESPONSIVE PATCH ═══ -->
+    <style>
+    /* Tables scroll on mobile */
+    .overflow-x-auto { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+    .overflow-x-auto table { min-width: 520px; }
+
+    @media (max-width: 767px) {
+      /* Main padding */
+      main { padding-left: 0.5rem !important; padding-right: 0.5rem !important; padding-top: 0.75rem !important; }
+
+      /* KPI grids → 2 col */
+      .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4 { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+      .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-3 { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+      .grid.grid-cols-1.md\:grid-cols-3               { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+      .grid.grid-cols-1.md\:grid-cols-4               { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+      .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-6 { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+      .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-5 { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+      .grid.grid-cols-2.sm\:grid-cols-2.md\:grid-cols-4 { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+
+      /* Layout grids → 1 col */
+      .grid.grid-cols-1.lg\:grid-cols-2 { grid-template-columns: repeat(1,minmax(0,1fr)) !important; }
+      .grid.grid-cols-1.lg\:grid-cols-3 { grid-template-columns: repeat(1,minmax(0,1fr)) !important; }
+
+      /* Spacing */
+      .gap-8 { gap: 0.75rem !important; }
+      .gap-6 { gap: 0.625rem !important; }
+      .mb-8  { margin-bottom: 1rem !important; }
+      .mb-6  { margin-bottom: 0.75rem !important; }
+      .card  { padding: 0.75rem !important; }
+      .kpi-card { padding: 0.75rem !important; min-height: 80px !important; }
+
+      /* Typography */
+      .text-3xl, .text-2xl { font-size: 1.25rem !important; }
+      .text-lg { font-size: 0.9375rem !important; }
+
+      /* Charts */
+      .chart-wrapper { height: 180px !important; max-height: 180px !important; }
+      .chart-container { min-height: 240px !important; }
+
+      /* Buttons row wrap */
+      .flex.justify-between { flex-wrap: wrap; gap: 0.5rem; }
+      .export-btn, .periodo-btn { font-size: 0.75rem !important; padding: 0.4rem 0.75rem !important; }
+
+      /* Banners stack */
+      #soloBanner, #climaBanner { flex-direction: column !important; gap: 0.5rem !important; }
+
+      /* Overflow prevention */
+      body, .main-content { overflow-x: hidden; }
+    }
+
+    @media (max-width: 480px) {
+      .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4,
+      .grid.grid-cols-1.md\:grid-cols-3,
+      .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-6,
+      .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-5 { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+      .card { padding: 0.625rem !important; border-radius: 0.75rem !important; }
+      .chart-wrapper { height: 150px !important; max-height: 150px !important; }
+      main { padding-left: 0.375rem !important; padding-right: 0.375rem !important; }
+    }
+
+    /* GPS map mobile */
+    @media (max-width: 767px) { #map { height: 250px !important; } }
+
+    /* Images and canvas never overflow */
+    img, canvas, svg { max-width: 100%; }
+    </style>
+
 </head>
 
 <body class="bg-gray-50 text-gray-900"

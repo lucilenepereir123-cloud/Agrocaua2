@@ -55,9 +55,25 @@
             transition: opacity 0.15s, transform 0.15s;
         }
         .btn-nav-green:hover { opacity: 0.9; transform: translateY(-1px); }
+        /* Ham button */
+        .ham-nav{display:none;flex-direction:column;justify-content:center;gap:5px;width:36px;height:36px;border:none;background:none;cursor:pointer;padding:4px;border-radius:8px;}
+        .ham-nav span{display:block;height:2px;background:#374151;border-radius:2px;transition:all .25s;}
+        .ham-nav:hover{background:#f3f4f6;}
+        /* Mobile nav drawer */
+        .mobile-nav{display:none;position:fixed;inset:0;z-index:100;}
+        .mobile-nav-overlay{position:absolute;inset:0;background:rgba(0,0,0,.5);}
+        .mobile-nav-panel{position:absolute;top:0;right:0;width:280px;max-width:85vw;height:100%;background:white;box-shadow:-4px 0 24px rgba(0,0,0,.15);display:flex;flex-direction:column;padding:1.5rem 1.25rem;gap:0.5rem;}
+        .mobile-nav-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;}
+        .mobile-nav-close{width:32px;height:32px;border:none;background:#f3f4f6;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
+        .mobile-nav-link{display:block;padding:.75rem 1rem;border-radius:10px;font-size:.95rem;font-weight:500;color:#374151;text-decoration:none;transition:background .15s;}
+        .mobile-nav-link:hover{background:#f3f4f6;color:#111827;}
+        .mobile-nav-divider{height:1px;background:#f3f4f6;margin:.5rem 0;}
+        .mobile-nav-cta{display:block;padding:.75rem 1rem;border-radius:10px;font-size:.95rem;font-weight:600;color:white;background:linear-gradient(135deg,#2E8B57,#38A169);text-decoration:none;text-align:center;margin-top:.5rem;}
         @media (max-width: 768px) {
             .nav-links { display: none; }
             .btn-nav-outline { display: none; }
+            .ham-nav{display:flex;}
+            .mobile-nav.open{display:block;}
         }
 
         /* ── HERO ── */
@@ -260,9 +276,39 @@
         </div>
         <div class="nav-actions">
             <a href="/login" class="btn-nav-outline">Entrar</a>
+            <button class="ham-nav" onclick="toggleMobileNav()" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
         </div>
     </div>
 </nav>
+
+<!-- Mobile nav drawer -->
+<div class="mobile-nav" id="mobileNav">
+    <div class="mobile-nav-overlay" onclick="toggleMobileNav()"></div>
+    <div class="mobile-nav-panel">
+        <div class="mobile-nav-header">
+            <span style="font-weight:700;font-size:1rem;color:#111827;">AgroCaua</span>
+            <button class="mobile-nav-close" onclick="toggleMobileNav()">✕</button>
+        </div>
+        <a href="#inicio" class="mobile-nav-link" onclick="toggleMobileNav()">Início</a>
+        <a href="#funcionalidades" class="mobile-nav-link" onclick="toggleMobileNav()">Funcionalidades</a>
+        <a href="#como-funciona" class="mobile-nav-link" onclick="toggleMobileNav()">Como Funciona</a>
+        <a href="#quem-somos" class="mobile-nav-link" onclick="toggleMobileNav()">Quem Somos</a>
+        <a href="#contacto" class="mobile-nav-link" onclick="toggleMobileNav()">Contacto</a>
+        <div class="mobile-nav-divider"></div>
+        <a href="/login" class="mobile-nav-link">Entrar</a>
+        <a href="/register" class="mobile-nav-cta">Começar Grátis →</a>
+    </div>
+</div>
+
+<script>
+function toggleMobileNav(){
+    const nav = document.getElementById('mobileNav');
+    nav.classList.toggle('open');
+    document.body.style.overflow = nav.classList.contains('open') ? 'hidden' : '';
+}
+</script>
 
 <!-- ══ HERO ══ -->
 <section class="hero" id="inicio">

@@ -296,6 +296,18 @@
             .left-panel { width: 100%; border-right: none; }
         }
     </style>
+<!-- mobile_resp -->    <style>
+    @media (max-width: 860px) {
+      .left { display: none !important; }
+      .right { width: 100% !important; padding: 1rem !important; }
+      .card { border-radius: 1rem !important; }
+    }
+    @media (max-width: 480px) {
+      .right { padding: 0.5rem !important; }
+      .card-body { padding: 1.5rem 1.25rem !important; }
+      .ctitle { font-size: 1.4rem !important; }
+    }
+    </style>
 </head>
 <body>
 <div class="bg-layer"></div>
@@ -452,9 +464,7 @@
 </div>
 
 <script>
-    const API_BASE = window.location.port === '5000'
-        ? window.location.origin
-        : '';
+    const API_BASE = '';
 
     // ── Verificar se já está autenticado como superadmin
     (function checkExistingSession() {

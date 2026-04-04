@@ -219,13 +219,49 @@
         .tgl input:checked+.tgl-s{background:#2E8B57}
         .tgl input:checked+.tgl-s::before{transform:translateX(16px)}
 
-        @media(max-width:768px){.sb{display:none}.main{margin-left:0}}
+        @media(max-width:768px){
+  .sb{transform:translateX(-100%);transition:transform .3s ease;position:fixed;z-index:50;display:flex !important;}
+  .sb.sb-open{transform:translateX(0);}
+  .main{margin-left:0}
+  .sb-overlay{display:block !important;}
+  .ham-btn{display:flex !important;}
+  .topbar-title{display:block;}
+}
+@media(min-width:769px){
+  .sb{transform:none !important;}
+  .ham-btn{display:none !important;}
+}
+
+        .sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:45;}
+        .ham-btn{display:none;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;border:none;background:none;cursor:pointer;color:#6b7280;flex-shrink:0;}
+        .ham-btn:hover{background:#f3f4f6;}
     </style>
+
+<style>
+/* Admin responsive */
+@media (max-width: 768px) {
+  .overflow-x-auto { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+  .overflow-x-auto table { min-width: 600px; }
+  [style*="display:grid"], [style*="display: grid"] { display: block !important; }
+  .grid { display: grid !important; }
+  .lg\:grid-cols-4, .md\:grid-cols-4 { grid-template-columns: repeat(2,1fr) !important; }
+  .lg\:grid-cols-3, .md\:grid-cols-3 { grid-template-columns: repeat(2,1fr) !important; }
+  .lg\:grid-cols-2, .md\:grid-cols-2 { grid-template-columns: repeat(1,1fr) !important; }
+}
+@media (max-width: 480px) {
+  .lg\:grid-cols-4, .md\:grid-cols-4,
+  .lg\:grid-cols-3, .md\:grid-cols-3 { grid-template-columns: repeat(2,1fr) !important; }
+  body { overflow-x: hidden; }
+}
+</style>
 </head>
-<body x-data="adminData()" x-init="init()">
+<body x-data="{...adminData(), sbOpen:false}" x-init="init()">
+
+<!-- Mobile overlay -->
+<div class="sb-overlay" x-show="sbOpen" @click="sbOpen=false"></div>
 
 <!-- ══ SIDEBAR ══ -->
-<aside class="sb">
+<aside class="sb" :class="{'sb-open':sbOpen}">
     <a class="sb-logo" href="/dashboard">
         <div class="sb-logo-icon"><i class="icon-sprout" style="font-size:.85rem;color:white"></i></div>
         <span class="sb-logo-text">AgroCaua</span>
@@ -285,6 +321,7 @@
 <div class="main">
     <!-- TOPBAR -->
     <div class="topbar">
+        <button class="ham-btn" @click="sbOpen=!sbOpen" aria-label="Menu"><i class="icon-menu" style="font-size:1.1rem"></i></button>
         <div class="tb-search"><i class="icon-search"></i><input type="text" placeholder="Pesquisar..."></div>
         <div class="tb-actions">
             <button class="tb-btn" @click="tab='messages';selectedMsg=null" title="Mensagens">

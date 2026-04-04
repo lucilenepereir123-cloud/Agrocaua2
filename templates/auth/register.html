@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Criar Conta — AgroCaua</title>
     <link
         href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@300;400;500;600&display=swap"
@@ -620,6 +620,17 @@
                 top: 1rem
             }
         }
+    </style>
+    <style>
+    @media (max-width: 860px) {
+      .left { display: none !important; }
+      .right { width: 100% !important; padding: 1rem !important; }
+      .card { border-radius: 1rem !important; }
+    }
+    @media (max-width: 480px) {
+      .right { padding: 0.5rem !important; }
+      .card-body { padding: 1.5rem 1.25rem !important; }
+    }
     </style>
 </head>
 
