@@ -32,8 +32,11 @@ app.register_blueprint(admin_api_bp)
 app.register_blueprint(zones_export_bp)
 
 with app.app_context():
-    db.create_all(checkfirst=True)
-
+    try:
+        db.create_all()
+    except Exception as e:
+        print(f"[Init] Tabelas já existem ou erro ignorado: {e}")
+        
     # ── Migração: adicionar colunas novas se não existirem ──
     from sqlalchemy import text, inspect as sa_inspect
     try:
